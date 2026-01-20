@@ -20,7 +20,7 @@ class Client extends Model
 
     public function collections()
     {
-        return $this->hasMany(Collection::class);
+        return $this->hasMany(\App\Models\Collection::class);
     }
 
     public function leads()

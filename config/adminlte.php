@@ -321,6 +321,16 @@ return [
             'can' => 'manage-blog',
         ],
         [
+            'text' => 'Clients',
+            'url'  => 'clients',
+            'icon' => 'fas fa-building',
+        ],
+        [
+            'text' => 'Collections',
+            'url'  => 'collections',
+            'icon' => 'fas fa-truck',
+            ],
+        [
             'text' => 'pages',
             'url' => 'admin/pages',
             'icon' => 'far fa-fw fa-file',

@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateClientRequest extends FormRequest
+class UpdateCollectionRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -13,6 +13,6 @@ class UpdateClientRequest extends FormRequest
 
     public function rules(): array
     {
-        return (new StoreClientRequest())->rules();
+        return (new StoreCollectionRequest())->rules();
     }
 }
