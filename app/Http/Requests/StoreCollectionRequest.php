@@ -15,7 +15,6 @@ class StoreCollectionRequest extends FormRequest
     {
         return [
             'status' => ['required', 'in:created,client_confirmed,pending,collected,processing,processed,cancelled'],
-            'client_id' => ['required','exists:clients,id'],
             'collection_date' => ['nullable','date'],
 
             'address_line_1' => ['nullable','string','max:255'],

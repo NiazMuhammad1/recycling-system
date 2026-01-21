@@ -22,6 +22,15 @@ class Collection extends Model
         'sent_to_client_at','sent_to_client_by','created_by','updated_by',
     ];
 
+    protected $casts = [
+        'collection_date' => 'datetime',
+        'client_confirmed_at' => 'datetime',
+        'collected_at' => 'datetime',
+        'processing_started_at' => 'datetime',
+        'processed_at' => 'datetime',
+        'sent_to_client_at' => 'datetime',
+    ];
+
     protected static function booted(): void
     {
         static::creating(function (Collection $collection) {

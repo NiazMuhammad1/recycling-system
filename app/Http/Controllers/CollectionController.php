@@ -7,7 +7,7 @@ use App\Models\Collection;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreCollectionRequest;
 use App\Http\Requests\UpdateCollectionRequest;
-
+use Illuminate\Support\Facades\DB;
 class CollectionController extends Controller
 {
     public function index(Request $request)
@@ -53,16 +53,44 @@ class CollectionController extends Controller
     {
         $data = $request->validated();
 
-        // Set defaults
-        $data['country'] = $data['country'] ?? 'UK';
-        $data['created_by'] = $request->user()->id;
-        $data['updated_by'] = $request->user()->id;
+        $collection = DB::transaction(function () use ($request, $data) {
 
-        $collection = Collection::create($data);
+            // 1) Create client if none selected
+            if (empty($data['client_id'])) {
+                $client = Client::create([
+                    'name' => $data['contact_name'],
+                    'county' => $data['county'] ?? null,
+                    'country' => $data['country'] ?? 'UK',
+                    'address_line_1' => $data['address_line_1'] ?? null,
+                    'address_line_2' => $data['address_line_2'] ?? null,
+                    'town' => $data['town'] ?? null,
+                    'postcode' => $data['postcode'] ?? null,
+                    'contact_name' => $data['contact_name'] ?? null,
+                    'contact_email' => $data['contact_email'] ?? null,
+                    'contact_number' => $data['contact_number'] ?? null,
+                    'on_site_contact_name' => $data['on_site_contact_name'] ?? null,
+                    'on_site_contact_number' => $data['on_site_contact_number'] ?? null,
+                    'is_active' => true,
+                    'created_by' => $request->user()->id,
+                    'updated_by' => $request->user()->id,
+                ]);
 
-        return redirect()
-            ->route('collections.show', $collection)
-            ->with('success', 'Collection created successfully.');
+                $data['client_id'] = $client->id;
+            }
+
+            // 2) Save collection (snapshot fields remain)
+            unset($data['contact_name']); // not a column in collections
+
+            $collection = new Collection();
+            $collection->fill($data);
+            $collection->created_by = $request->user()->id;
+            $collection->updated_by = $request->user()->id;
+            $collection->save();
+
+            return $collection;
+        });
+
+        return redirect()->route('collections.show', $collection)->with('success', 'Collection created.');
     }
 
     public function show(Collection $collection)
@@ -92,13 +120,39 @@ class CollectionController extends Controller
     public function update(UpdateCollectionRequest $request, Collection $collection)
     {
         $data = $request->validated();
-        $data['updated_by'] = $request->user()->id;
 
-        $collection->update($data);
+        DB::transaction(function () use ($request, $data, $collection) {
 
-        return redirect()
-            ->route('collections.show', $collection)
-            ->with('success', 'Collection updated successfully.');
+            if (empty($data['client_id'])) {
+                $client = Client::create([
+                    'name' => $data['contact_name'],
+                    'county' => $data['county'] ?? null,
+                    'country' => $data['country'] ?? 'UK',
+                    'address_line_1' => $data['address_line_1'] ?? null,
+                    'address_line_2' => $data['address_line_2'] ?? null,
+                    'town' => $data['town'] ?? null,
+                    'postcode' => $data['postcode'] ?? null,
+                    'contact_name' => $data['contact_name'] ?? null,
+                    'contact_email' => $data['contact_email'] ?? null,
+                    'contact_number' => $data['contact_number'] ?? null,
+                    'on_site_contact_name' => $data['on_site_contact_name'] ?? null,
+                    'on_site_contact_number' => $data['on_site_contact_number'] ?? null,
+                    'is_active' => true,
+                    'created_by' => $request->user()->id,
+                    'updated_by' => $request->user()->id,
+                ]);
+
+                $data['client_id'] = $client->id;
+            }
+
+            unset($data['contact_name']);
+
+            $collection->fill($data);
+            $collection->updated_by = $request->user()->id;
+            $collection->save();
+        });
+
+        return redirect()->route('collections.show', $collection)->with('success', 'Collection updated.');
     }
 
     public function destroy(Collection $collection)

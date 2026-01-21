@@ -18,6 +18,6 @@ Route::middleware('auth')->group(function () {
     Route::resource('collections', CollectionController::class);
 
     // Select2 client search + inline create
-    Route::get('ajax/clients', [ClientAjaxController::class, 'select2'])->name('ajax.clients.select2');
-    Route::post('ajax/clients', [ClientAjaxController::class, 'store'])->name('ajax.clients.store');
+    Route::get('/ajax/clients/select2', [ClientAjaxController::class, 'select2'])->name('ajax.clients.select2');
+    Route::get('/ajax/clients/{client}', [ClientAjaxController::class, 'show'])->name('ajax.clients.show');
 });

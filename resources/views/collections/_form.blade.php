@@ -26,17 +26,14 @@
                     <label>Client *</label>
                     <div class="d-flex">
                         <select id="client_id" name="client_id"
-                                class="form-control @error('client_id') is-invalid @enderror"
-                                style="width:100%;">
+                                class=" @error('client_id') is-invalid @enderror"
+                                style="width:100%;height:100%;">
                             @if($collection?->client)
                                 <option value="{{ $collection->client->id }}" selected>
                                     {{ $collection->client->name }}
                                 </option>
                             @endif
                         </select>
-                        <button type="button" class="btn btn-outline-primary ml-2" data-toggle="modal" data-target="#addClientModal">
-                            <i class="fas fa-plus"></i>
-                        </button>
                     </div>
                     @error('client_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                     <small class="text-muted">Search client name. If not found click + to add quickly.</small>
@@ -349,85 +346,90 @@
     </div>
   </div>
 </div>
-
 @push('css')
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
 @endpush
 
 @push('js')
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-    <script>
-    (function () {
-        const csrf = '{{ csrf_token() }}';
+<script>
+(function () {
+    const $client = $('#client_id');
 
-        // Select2 client selector
-        $('#client_id').select2({
-            placeholder: 'Select client...',
-            ajax: {
-                url: '{{ route('ajax.clients.select2') }}',
-                dataType: 'json',
-                delay: 250,
-                data: params => ({ q: params.term || '' }),
-                processResults: data => data,
-                cache: true
-            },
-            width: '100%'
+    $client.select2({
+        placeholder: 'Search client name...',
+        allowClear: true,
+        ajax: {
+            url: '{{ route('ajax.clients.select2') }}',
+            dataType: 'json',
+            delay: 250,
+            data: params => ({ q: params.term || '' }),
+            processResults: data => data,
+            cache: true
+        },
+        width: '100%'
+    });
+
+    function setVal(id, v) {
+        const el = document.getElementById(id);
+        if (el) el.value = v ?? '';
+    }
+
+    function fillFromClient(c) {
+        // Client name (for new-client mode validation)
+        setVal('client_name', c.name);
+        const nameVisible = document.getElementById('client_name_visible');
+        if (nameVisible) nameVisible.value = c.name ?? '';
+
+        setVal('address_line_1', c.address_line_1);
+        setVal('address_line_2', c.address_line_2);
+        setVal('town', c.town);
+        setVal('county', c.county);
+        setVal('postcode', c.postcode);
+        setVal('country', c.country || 'UK');
+
+        setVal('contact_name', c.contact_name);
+        setVal('contact_email', c.contact_email);
+        setVal('contact_number', c.contact_number);
+        setVal('on_site_contact_name', c.on_site_contact_name);
+        setVal('on_site_contact_number', c.on_site_contact_number);
+    }
+
+    async function loadClient(id) {
+        const url = '{{ route('ajax.clients.show', ':id') }}'.replace(':id', id);
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error('Failed');
+        return await res.json();
+    }
+
+    $client.on('change', async function () {
+        const id = $(this).val();
+
+        // If no client selected => new client mode (do not wipe fields automatically)
+        if (!id) {
+            // keep whatever user typed; just ensure hidden client_name matches visible if exists
+            const nameVisible = document.getElementById('client_name_visible');
+            if (nameVisible) setVal('client_name', nameVisible.value);
+            return;
+        }
+
+        try {
+            const data = await loadClient(id);
+            fillFromClient(data);
+        } catch (e) {
+            console.error(e);
+            alert('Unable to load client details.');
+        }
+    });
+
+    // keep hidden client_name synced
+    const nameVisible = document.getElementById('client_name_visible');
+    if (nameVisible) {
+        nameVisible.addEventListener('input', function () {
+            setVal('client_name', this.value);
         });
-
-        // OPTIONAL: When client selected, you can auto-fill address/contact via a simple map
-        // For now we keep it minimal (you can add a "GET /clients/{id}/json" later if you want auto-fill)
-
-        // Inline create client
-        $('#saveClientBtn').on('click', async function () {
-            $('#clientModalError').addClass('d-none').text('');
-
-            const payload = {
-                name: $('#m_name').val(),
-                country: $('#m_country').val() || 'UK',
-                county: $('#m_county').val(),
-                town: $('#m_town').val(),
-                address_line_1: $('#m_address_line_1').val(),
-                address_line_2: $('#m_address_line_2').val(),
-                postcode: $('#m_postcode').val(),
-                contact_name: $('#m_contact_name').val(),
-                contact_email: $('#m_contact_email').val(),
-                contact_number: $('#m_contact_number').val(),
-                on_site_contact_name: $('#m_on_site_contact_name').val(),
-                on_site_contact_number: $('#m_on_site_contact_number').val(),
-                is_active: 1
-            };
-
-            try {
-                const res = await fetch('{{ route('ajax.clients.store') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrf,
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await res.json();
-
-                if (!res.ok) {
-                    const msg = data?.message || 'Failed to create client';
-                    $('#clientModalError').removeClass('d-none').text(msg);
-                    return;
-                }
-
-                // Add new option to select2 and select it
-                const newOption = new Option(data.text, data.id, true, true);
-                $('#client_id').append(newOption).trigger('change');
-
-                // Close modal
-                $('#addClientModal').modal('hide');
-
-            } catch (e) {
-                $('#clientModalError').removeClass('d-none').text('Network error. Try again.');
-            }
-        });
-    })();
-    </script>
+    }
+})();
+</script>
 @endpush
