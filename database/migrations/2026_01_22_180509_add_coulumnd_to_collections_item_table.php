@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('collection_items', function (Blueprint $table) {
-            $table->string('status')->default('created')->index();
             $table->timestamp('collected_at')->nullable();
             $table->timestamp('processed_at')->nullable();
             $table->timestamp('added_to_stock_at')->nullable();

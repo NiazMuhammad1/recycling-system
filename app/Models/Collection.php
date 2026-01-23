@@ -7,28 +7,24 @@ use App\Services\CodeGenerator;
 
 class Collection extends Model
 {
-    protected $fillable = [
-        'collection_code',
+     protected $fillable = [
+         'collection_code',
         'client_id',
         'collection_date',
-        'status',
+        'collection_number','status','client_id','collection_date',
         'address_line_1','address_line_2','town','county','postcode','country',
         'contact_name','contact_email','contact_number','on_site_contact_name','on_site_contact_number',
-        'data_sanitisation','collection_type','logistics',
+        'vehicles_used','staff_members',
         'equipment_location','access_elevator','route_restrictions','other_information',
-        'internal_notes','pre_collection_audit','equipment_classification',
-        'value_amount','sold_amount','costs_amount','profit_amount',
-        'client_confirmed_at','collected_at','processing_started_at','processed_at',
-        'sent_to_client_at','sent_to_client_by','created_by','updated_by',
+        'internal_notes','data_sanitisation','collection_type','logistics',
+        'pre_collection_audit','equipment_classification',
+        'collected_at','processed_at',
     ];
 
     protected $casts = [
-        'collection_date' => 'datetime',
-        'client_confirmed_at' => 'datetime',
+        'collection_date' => 'datetime',   // fixes your: format() on string error
         'collected_at' => 'datetime',
-        'processing_started_at' => 'datetime',
         'processed_at' => 'datetime',
-        'sent_to_client_at' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -38,6 +34,11 @@ class Collection extends Model
                 $collection->collection_code = CodeGenerator::next('collections', 'J', 5);
             }
         });
+    }
+
+    public function getTotalWeightAttribute(): float
+    {
+        return (float)$this->items()->sum('weight_kg');
     }
 
     public function client()

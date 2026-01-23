@@ -8,18 +8,22 @@ use Illuminate\Support\Facades\DB;
 class CollectionItem extends Model
 {
     protected $fillable = [
-        'collection_id','item_code','quantity','category_id',
-        'manufacturer','model','serial_number','asset_tags',
-        'erasure_required','is_collected',
-        'status','erasure_report_label','erasure_completed_at',
-        'stock_item_id','created_by','updated_by',
+        'collection_id','item_number','qty','category_id',
+        'manufacturer_id','product_model_id','manufacturer_text','model_text',
+        'serial_number','asset_tags','dimensions','weight_kg',
+        'erasure_required','status','collected','collected_at','processed_at',
+        'process_action','item_valuation','refurb_cost','hdd_serial','erasure_report_path',
+        'stock_item_id',
     ];
 
     protected $casts = [
-        'quantity' => 'integer',
         'erasure_required' => 'boolean',
-        'is_collected' => 'boolean',
-        'erasure_completed_at' => 'datetime',
+        'collected' => 'boolean',
+        'weight_kg' => 'decimal:2',
+        'item_valuation' => 'decimal:2',
+        'refurb_cost' => 'decimal:2',
+        'collected_at' => 'datetime',
+        'processed_at' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -67,6 +71,10 @@ class CollectionItem extends Model
     {
         return $this->belongsTo(Category::class);
     }
+
+    public function manufacturer(){ return $this->belongsTo(Manufacturer::class); }
+    public function productModel(){ return $this->belongsTo(ProductModel::class); }
+    
 
     public function stockItem()
     {

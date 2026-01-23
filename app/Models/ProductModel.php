@@ -1,12 +1,16 @@
 <?php
-
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Model;
+
 class ProductModel extends Model
 {
-    protected $fillable = ['manufacturer_id','name','is_active'];
+    public function manufacturer(): BelongsTo
+    {
+        return $this->belongsTo(Manufacturer::class);
+    }
 
-    public function manufacturer() { return $this->belongsTo(Manufacturer::class); }
-    public function productModel() { return $this->belongsTo(ProductModel::class); }
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
 }

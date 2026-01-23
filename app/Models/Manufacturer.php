@@ -16,4 +16,9 @@ class Manufacturer extends Model
     public function manufacturer() { return $this->belongsTo(Manufacturer::class); }
     public function productModel() { return $this->belongsTo(ProductModel::class); }
 
+    public function models()
+    {
+        return $this->hasMany(ProductModel::class, 'manufacturer_id');
+    }
+
 }

@@ -11,18 +11,20 @@ class ClientAjaxController extends Controller
     // GET /ajax/clients?q=abc
     public function select2(Request $request)
     {
-        $q = trim((string)$request->get('q', ''));
+        $q = trim($request->get('q',''));
 
         $clients = Client::query()
-            ->when($q !== '', fn($query) => $query->where('name', 'like', "%{$q}%"))
+            ->where('is_active',1)
+            ->when($q, fn($s) => $s->where('name','like',"%{$q}%"))
             ->orderBy('name')
             ->limit(20)
-            ->get(['id', 'name']);
+            ->get(['id','name']);
 
         return response()->json([
-            'results' => $clients->map(fn($c) => ['id' => $c->id, 'text' => $c->name]),
+            'results' => $clients->map(fn($c) => ['id'=>$c->id,'text'=>$c->name])->values()
         ]);
     }
+
 
     // POST /ajax/clients (inline create)
     public function store(Request $request)
@@ -61,24 +63,9 @@ class ClientAjaxController extends Controller
         ], 201);
     }
 
-    public function show(Client $client)
+    // 
+     public function show(Client $client)
     {
-        return response()->json([
-            'id' => $client->id,
-            'name' => $client->name,
-
-            'address_line_1' => $client->address_line_1,
-            'address_line_2' => $client->address_line_2,
-            'town' => $client->town,
-            'county' => $client->county,
-            'postcode' => $client->postcode,
-            'country' => $client->country,
-
-            'contact_name' => $client->contact_name,
-            'contact_email' => $client->contact_email,
-            'contact_number' => $client->contact_number,
-            'on_site_contact_name' => $client->on_site_contact_name,
-            'on_site_contact_number' => $client->on_site_contact_number,
-        ]);
+        return response()->json($client);
     }
 }

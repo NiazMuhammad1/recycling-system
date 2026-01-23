@@ -1,166 +1,187 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Client;
 use App\Models\Collection;
+use App\Services\NumberService;
 use Illuminate\Http\Request;
-use App\Http\Requests\StoreCollectionRequest;
-use App\Http\Requests\UpdateCollectionRequest;
 use Illuminate\Support\Facades\DB;
+
 class CollectionController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $q = $request->string('q')->toString();
-        $status = $request->string('status')->toString();
-
-        $collections = Collection::query()
-            ->with('client:id,name')
-            ->when($q, function ($query) use ($q) {
-                $query->where('collection_code', 'like', "%{$q}%")
-                      ->orWhereHas('client', fn($c) => $c->where('name', 'like', "%{$q}%"));
-            })
-            ->when($status, fn($query) => $query->where('status', $status))
-            ->orderByDesc('id')
-            ->paginate(15)
-            ->withQueryString();
-
-        $statuses = [
-            'created','client_confirmed','pending','collected','processing','processed','cancelled'
-        ];
-
-        return view('collections.index', compact('collections', 'q', 'status', 'statuses'));
+        $collections = Collection::with('client')->latest()->paginate(20);
+        return view('collections.index', compact('collections'));
     }
 
     public function create()
     {
-        // we will load client list via select2 ajax, so no need to preload
-        $statuses = [
-            'created' => 'Created',
-            'client_confirmed' => 'Client Confirmed',
-            'pending' => 'Pending',
-            'collected' => 'Collected',
-            'processing' => 'Processing',
-            'processed' => 'Processed',
-            'cancelled' => 'Cancelled',
-        ];
-
+        $statuses = $this->statuses();
         return view('collections.create', compact('statuses'));
     }
 
-    public function store(StoreCollectionRequest $request)
+    public function store(Request $request)
     {
-        $data = $request->validated();
+        $data = $this->validateCollection($request);
 
-        $collection = DB::transaction(function () use ($request, $data) {
+        DB::transaction(function () use (&$collection, $data, $request) {
+            // If client_id not selected => create client from form fields
+            $clientId = $data['client_id'] ?? null;
 
-            // 1) Create client if none selected
-            if (empty($data['client_id'])) {
-                $client = Client::create([
-                    'name' => $data['contact_name'],
-                    'county' => $data['county'] ?? null,
-                    'country' => $data['country'] ?? 'UK',
-                    'address_line_1' => $data['address_line_1'] ?? null,
-                    'address_line_2' => $data['address_line_2'] ?? null,
-                    'town' => $data['town'] ?? null,
-                    'postcode' => $data['postcode'] ?? null,
-                    'contact_name' => $data['contact_name'] ?? null,
-                    'contact_email' => $data['contact_email'] ?? null,
-                    'contact_number' => $data['contact_number'] ?? null,
-                    'on_site_contact_name' => $data['on_site_contact_name'] ?? null,
-                    'on_site_contact_number' => $data['on_site_contact_number'] ?? null,
-                    'is_active' => true,
-                    'created_by' => $request->user()->id,
-                    'updated_by' => $request->user()->id,
-                ]);
-
-                $data['client_id'] = $client->id;
+            if (!$clientId) {
+                $clientId = Client::create([
+                    'name' => $request->input('client_name'),
+                    'county' => $request->input('county'),
+                    'country' => $request->input('country', 'UK'),
+                    'address_line_1' => $request->input('address_line_1'),
+                    'address_line_2' => $request->input('address_line_2'),
+                    'town' => $request->input('town'),
+                    'postcode' => $request->input('postcode'),
+                    'contact_name' => $request->input('contact_name'),
+                    'contact_email' => $request->input('contact_email'),
+                    'contact_number' => $request->input('contact_number'),
+                    'on_site_contact_name' => $request->input('on_site_contact_name'),
+                    'on_site_contact_number' => $request->input('on_site_contact_number'),
+                    'is_active' => 1,
+                ])->id;
             }
 
-            // 2) Save collection (snapshot fields remain)
-            unset($data['contact_name']); // not a column in collections
+            $collection = Collection::create(array_merge($data, [
+                'client_id' => $clientId,
+                'collection_number' => NumberService::next('collection', 'J', 5), // J00001
+            ]));
 
-            $collection = new Collection();
-            $collection->fill($data);
-            $collection->created_by = $request->user()->id;
-            $collection->updated_by = $request->user()->id;
-            $collection->save();
-
-            return $collection;
+            // snapshot from selected client if selected
+            $this->snapshotClientIfSelected($collection);
         });
 
-        return redirect()->route('collections.show', $collection)->with('success', 'Collection created.');
+        return redirect()->route('collections.show', $collection)->with('success','Collection created.');
     }
 
     public function show(Collection $collection)
     {
-        $collection->load('client:id,name');
-
+        $collection->load(['client','items.category','items.manufacturer','items.productModel','items.stockItem']);
         return view('collections.show', compact('collection'));
     }
 
     public function edit(Collection $collection)
     {
-        $collection->load('client:id,name');
-
-        $statuses = [
-            'created' => 'Created',
-            'client_confirmed' => 'Client Confirmed',
-            'pending' => 'Pending',
-            'collected' => 'Collected',
-            'processing' => 'Processing',
-            'processed' => 'Processed',
-            'cancelled' => 'Cancelled',
-        ];
-
-        return view('collections.edit', compact('collection', 'statuses'));
+        $statuses = $this->statuses();
+        $collection->load('client');
+        return view('collections.edit', compact('collection','statuses'));
     }
 
-    public function update(UpdateCollectionRequest $request, Collection $collection)
+    public function update(Request $request, Collection $collection)
     {
-        $data = $request->validated();
+        $data = $this->validateCollection($request, true);
 
-        DB::transaction(function () use ($request, $data, $collection) {
+        DB::transaction(function () use ($collection, $data, $request) {
+            // same rule: if client_id empty => create a new client from fields
+            $clientId = $data['client_id'] ?? null;
 
-            if (empty($data['client_id'])) {
-                $client = Client::create([
-                    'name' => $data['contact_name'],
-                    'county' => $data['county'] ?? null,
-                    'country' => $data['country'] ?? 'UK',
-                    'address_line_1' => $data['address_line_1'] ?? null,
-                    'address_line_2' => $data['address_line_2'] ?? null,
-                    'town' => $data['town'] ?? null,
-                    'postcode' => $data['postcode'] ?? null,
-                    'contact_name' => $data['contact_name'] ?? null,
-                    'contact_email' => $data['contact_email'] ?? null,
-                    'contact_number' => $data['contact_number'] ?? null,
-                    'on_site_contact_name' => $data['on_site_contact_name'] ?? null,
-                    'on_site_contact_number' => $data['on_site_contact_number'] ?? null,
-                    'is_active' => true,
-                    'created_by' => $request->user()->id,
-                    'updated_by' => $request->user()->id,
-                ]);
-
-                $data['client_id'] = $client->id;
+            if (!$clientId) {
+                $clientId = Client::create([
+                    'name' => $request->input('client_name'),
+                    'county' => $request->input('county'),
+                    'country' => $request->input('country', 'UK'),
+                    'address_line_1' => $request->input('address_line_1'),
+                    'address_line_2' => $request->input('address_line_2'),
+                    'town' => $request->input('town'),
+                    'postcode' => $request->input('postcode'),
+                    'contact_name' => $request->input('contact_name'),
+                    'contact_email' => $request->input('contact_email'),
+                    'contact_number' => $request->input('contact_number'),
+                    'on_site_contact_name' => $request->input('on_site_contact_name'),
+                    'on_site_contact_number' => $request->input('on_site_contact_number'),
+                    'is_active' => 1,
+                ])->id;
             }
 
-            unset($data['contact_name']);
-
-            $collection->fill($data);
-            $collection->updated_by = $request->user()->id;
-            $collection->save();
+            $collection->update(array_merge($data, ['client_id' => $clientId]));
+            $this->snapshotClientIfSelected($collection);
         });
 
-        return redirect()->route('collections.show', $collection)->with('success', 'Collection updated.');
+        return redirect()->route('collections.show', $collection)->with('success','Collection updated.');
     }
 
     public function destroy(Collection $collection)
     {
         $collection->delete();
+        return redirect()->route('collections.index')->with('success','Collection deleted.');
+    }
 
-        return redirect()
-            ->route('collections.index')
-            ->with('success', 'Collection deleted successfully.');
+    private function snapshotClientIfSelected(Collection $collection): void
+    {
+        if (!$collection->client_id) return;
+        $client = $collection->client()->first();
+        if (!$client) return;
+
+        // Fill snapshot fields ONLY if empty OR always (choose)
+        $collection->update([
+            'address_line_1' => $collection->address_line_1 ?? $client->address_line_1,
+            'address_line_2' => $collection->address_line_2 ?? $client->address_line_2,
+            'town' => $collection->town ?? $client->town,
+            'county' => $collection->county ?? $client->county,
+            'postcode' => $collection->postcode ?? $client->postcode,
+            'country' => $collection->country ?? $client->country,
+
+            'contact_name' => $collection->contact_name ?? $client->contact_name,
+            'contact_email' => $collection->contact_email ?? $client->contact_email,
+            'contact_number' => $collection->contact_number ?? $client->contact_number,
+            'on_site_contact_name' => $collection->on_site_contact_name ?? $client->on_site_contact_name,
+            'on_site_contact_number' => $collection->on_site_contact_number ?? $client->on_site_contact_number,
+        ]);
+    }
+
+    private function statuses(): array
+    {
+        return [
+            'created' => 'Created',
+            'collected' => 'Collected',
+            'processed' => 'Processed',
+        ];
+    }
+
+    private function validateCollection(Request $request, bool $updating=false): array
+    {
+        return $request->validate([
+            'status' => 'required|in:created,collected,processed',
+
+            // IMPORTANT: client can be null if user is creating new client from fields
+            'client_id' => 'nullable|exists:clients,id',
+            'client_name' => 'nullable|required_without:client_id|string|max:255',
+
+            'collection_date' => 'nullable|date',
+
+            'address_line_1' => 'nullable|string|max:255',
+            'address_line_2' => 'nullable|string|max:255',
+            'town' => 'nullable|string|max:255',
+            'county' => 'nullable|string|max:255',
+            'postcode' => 'nullable|string|max:50',
+            'country' => 'required|string|max:100',
+
+            'contact_name' => 'nullable|string|max:255',
+            'contact_email' => 'nullable|email|max:255',
+            'contact_number' => 'nullable|string|max:100',
+            'on_site_contact_name' => 'nullable|string|max:255',
+            'on_site_contact_number' => 'nullable|string|max:100',
+
+            'vehicles_used' => 'nullable|string|max:255',
+            'staff_members' => 'nullable|string|max:255',
+
+            'equipment_location' => 'nullable|string',
+            'access_elevator' => 'nullable|string',
+            'route_restrictions' => 'nullable|string',
+            'other_information' => 'nullable|string',
+            'internal_notes' => 'nullable|string',
+
+            'data_sanitisation' => 'nullable|string|max:255',
+            'collection_type' => 'nullable|string|max:255',
+            'logistics' => 'nullable|string|max:255',
+
+            'pre_collection_audit' => 'nullable|string',
+            'equipment_classification' => 'nullable|string',
+        ]);
     }
 }
