@@ -19,7 +19,7 @@
     <div class="card-header">
         <form class="form-inline" method="GET" action="{{ route('collections.index') }}">
             <div class="input-group input-group-sm mr-2" style="width: 300px;">
-                <input type="text" name="q" value="{{ $q }}" class="form-control" placeholder="Search J-code or client...">
+                <input type="text" name="q" value="{{ $q ?? '' }}" class="form-control" placeholder="Search J-code or client...">
                 <div class="input-group-append">
                     <button class="btn btn-default"><i class="fas fa-search"></i></button>
                 </div>

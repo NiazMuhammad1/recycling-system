@@ -3,22 +3,22 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Manufacturer extends Model
 {
     protected $fillable = ['name','is_active'];
 
-    public function productModels()
+    public function manufacturer() { return $this->belongsTo(Manufacturer::class); }
+   
+    public function productModels(): HasMany
     {
         return $this->hasMany(ProductModel::class);
     }
 
-    public function manufacturer() { return $this->belongsTo(Manufacturer::class); }
-    public function productModel() { return $this->belongsTo(ProductModel::class); }
-
-    public function models()
+    public function collectionItems(): HasMany
     {
-        return $this->hasMany(ProductModel::class, 'manufacturer_id');
+        return $this->hasMany(\App\Models\CollectionItem::class);
     }
 
 }
