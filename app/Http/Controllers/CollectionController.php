@@ -61,7 +61,8 @@ class CollectionController extends Controller
 
     public function show(Collection $collection)
     {
-        $collection->load(['client','items.category','items.manufacturer','items.productModel','items.stockItem']);
+
+        $collection->load(['client','items.category','items.manufacturerRel','items.productModel','items.stockItem']);
         return view('collections.show', compact('collection'));
     }
 

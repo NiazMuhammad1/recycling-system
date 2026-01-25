@@ -149,52 +149,45 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
-$(function () {
+(function () {
+    const $tbody = document.getElementById('itemsTbody');
 
-    // -----------------------------
-    // Helpers
-    // -----------------------------
-    function uid() {
-        return 'n' + Math.random().toString(16).slice(2);
-    }
+    // ------- helpers -------
+    function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
+    function uid(){ return 'n' + Math.random().toString(16).slice(2); }
 
-    function isNumeric(v) {
-        return /^\d+$/.test(v + '');
-    }
-
-    // -----------------------------
-    // Select2 for Manufacturer (depends on category)
-    // -----------------------------
-    function initManufacturer($manSelect, getCategoryId) {
-        $manSelect.select2({
+    function initManufacturerSelect($select, getCategoryIdFn) {
+        $($select).select2({
             placeholder: '-- Manufacturer --',
             allowClear: true,
             tags: true,
             width: '100%',
             ajax: {
-                url: function () {
-                    var catId = getCategoryId();
-                    return "{{ route('ajax.categories.manufacturers', ':id') }}".replace(':id', catId || 0);
-                },
-                dataType: 'json',
-                delay: 200,
-                data: function (params) {
-                    return { q: params.term || '' };
-                },
-                processResults: function (data) {
-                    // your backend returns {results:[...]} so return directly
-                    return data;
-                }
+            url: function () {
+                const catId = getCategoryIdFn();
+                return "{{ route('ajax.categories.manufacturers', ':id') }}".replace(':id', catId || 0);
             },
+            dataType: 'json',
+            delay: 200,
+            data: function (params) {
+                return { q: params.term || '' };
+            },
+            processResults: function (data) {
+                // IMPORTANT: your endpoint already returns {results:[...]}
+                return data;
+            }
+            },
+            // this guarantees Add "xxxx" appears even if ajax returns empty
             createTag: function (params) {
-                var term = $.trim(params.term);
-                if (!term) return null;
-                return { id: term, text: term, newTag: true };
+            const term = (params.term || '').trim();
+            if (!term) return null;
+            return { id: term, text: term, newTag: true };
             }
         });
     }
 
-    function initModel($select, getCategoryIdFn, getManufacturerValFn){
+
+    function initModelSelect($select, getCategoryIdFn, getManufacturerValFn){
         $($select).select2({
             placeholder: '-- Model --',
             allowClear: true,
@@ -243,183 +236,196 @@ $(function () {
     }
 
 
-    // -----------------------------
-    // Select2 for Model (depends on category + manufacturer)
-    // -----------------------------
-    
-    // -----------------------------
-    // When user types new Manufacturer / Model (tags)
-    // We store text into hidden input and clear numeric id
-    // -----------------------------
-    function bindTagBehavior($row) {
+    function bindRowDependentReload(tr){
+        const catSel = tr.querySelector('.categorySel');
+        if (!catSel) return;
 
-        // Manufacturer change
-        $row.find('.manSel').on('change', function () {
-            var val = $(this).val();
-            var text = $(this).find('option:selected').text();
+        catSel.addEventListener('change', function(){
+            // wipe manufacturer + model when category changes
+            const manSel = tr.querySelector('.manSel');
+            const modelSel = tr.querySelector('.modelSel');
 
-            if (val && !isNumeric(val)) {
-                // typed new
-                $row.find('.manText').val(text);
-                $(this).val(null).trigger('change.select2'); // keep manufacturer_id empty
-            } else {
-                $row.find('.manText').val('');
-            }
+            $(manSel).val(null).trigger('change');
+            $(modelSel).val(null).trigger('change');
 
-            // reset model when manufacturer changes
-            $row.find('.modelSel').val(null).trigger('change.select2');
-            $row.find('.modelText').val('');
-        });
-
-        // Model change
-        $row.find('.modelSel').on('change', function () {
-            var val = $(this).val();
-            var text = $(this).find('option:selected').text();
-
-            if (val && !isNumeric(val)) {
-                $row.find('.modelText').val(text);
-                $(this).val(null).trigger('change.select2'); // keep product_model_id empty
-            } else {
-                $row.find('.modelText').val('');
-            }
-        });
-
-        // Category change (inside table)
-        $row.find('.categorySel').on('change', function () {
-            $row.find('.manSel').val(null).trigger('change.select2');
-            $row.find('.modelSel').val(null).trigger('change.select2');
-            $row.find('.manText').val('');
-            $row.find('.modelText').val('');
+            tr.querySelector('.manText').value = '';
+            tr.querySelector('.modelText').value = '';
         });
     }
 
-    // -----------------------------
-    // Init a single row (existing or new)
-    // -----------------------------
-    function initRow($row) {
-        var getCat = function () { return $row.find('.categorySel').val(); };
-        var getMan = function () { return $row.find('.manSel').val(); };
+    function initRow(tr){
+        const getCat = () => tr.querySelector('.categorySel')?.value || '';
+        const getMan = () => tr.querySelector('.manSel') ? $(tr.querySelector('.manSel')).val() : '';
 
-        initManufacturer($row.find('.manSel'), getCat);
-        initModel($row.find('.modelSel'), getCat, getMan);
-        bindTagBehavior($row);
+        initManufacturerSelect(tr.querySelector('.manSel'), getCat);
+        initModelSelect(tr.querySelector('.modelSel'), getCat, () => {
+            const v = $(tr.querySelector('.manSel')).val();
+            return v && !isNaN(Number(v)) ? v : '';
+        });
+        bindRowDependentReload(tr);
     }
 
-    // -----------------------------
-    // Init EXISTING rows
-    // -----------------------------
-    $('#itemsTbody tr[data-row="existing"]').each(function () {
-        initRow($(this));
+    // init existing rows
+    document.querySelectorAll('tr[data-row="existing"]').forEach(initRow);
+
+    // ------- TOP BAR select2 -------
+    const bulkCategory = document.getElementById('bulk_category');
+    const bulkMan = document.getElementById('bulk_manufacturer');
+    const bulkModel = document.getElementById('bulk_model');
+
+    // bulk manufacturer depends on bulk category
+    $(bulkMan).select2({
+        placeholder: '-- Manufacturer --',
+        allowClear: true,
+        tags: true,
+        width: '100%',
+        ajax: {
+            transport: async (params, success, failure) => {
+                try {
+                    const categoryId = bulkCategory.value;
+                    if (!categoryId) return success({results: []});
+
+                    const url = "{{ route('ajax.categories.manufacturers', ':id') }}".replace(':id', categoryId);
+                    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                    const data = await res.json();
+
+                    const term = (params.data?.term || '').toLowerCase();
+                    const filtered = term ? data.filter(x => (x.text||'').toLowerCase().includes(term)) : data;
+
+                    success({ results: filtered });
+                } catch(e){ failure(e); }
+            },
+            delay: 150,
+            processResults: (data) => data
+        }
     });
 
-    // -----------------------------
-    // TOP BAR Select2 (bulk controls)
-    // -----------------------------
-    var $bulkCat   = $('#bulk_category');
-    var $bulkMan   = $('#bulk_manufacturer');
-    var $bulkModel = $('#bulk_model');
+    $(bulkModel).select2({
+        placeholder: '-- Model --',
+        allowClear: true,
+        tags: true,
+        width: '100%',
+        ajax: {
+            transport: async (params, success, failure) => {
+                try {
+                    const categoryId = bulkCategory.value;
+                    const manId = $(bulkMan).val();
+                    if (!categoryId || !manId || isNaN(Number(manId))) return success({results: []});
 
-    initManufacturer($bulkMan, function () { return $bulkCat.val(); });
-    initModel($bulkModel, function () { return $bulkCat.val(); }, function () { return $bulkMan.val(); });
+                    let url = "{{ route('ajax.manufacturers.models', ':id') }}".replace(':id', manId);
+                    url += '?category_id=' + encodeURIComponent(categoryId);
 
-    $bulkCat.on('change', function () {
-        $bulkMan.val(null).trigger('change.select2');
-        $bulkModel.val(null).trigger('change.select2');
+                    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                    const data = await res.json();
+
+                    const term = (params.data?.term || '').toLowerCase();
+                    const filtered = term ? data.filter(x => (x.text||'').toLowerCase().includes(term)) : data;
+
+                    success({ results: filtered });
+                } catch(e){ failure(e); }
+            },
+            delay: 150,
+            processResults: (data) => data
+        }
     });
 
-    $bulkMan.on('change', function () {
-        $bulkModel.val(null).trigger('change.select2');
+    bulkCategory.addEventListener('change', function(){
+        $(bulkMan).val(null).trigger('change');
+        $(bulkModel).val(null).trigger('change');
     });
 
-    // -----------------------------
-    // Add Qty rows (NOT DB)
-    // -----------------------------
-    $('#bulk_add_btn').on('click', function () {
+    $(bulkMan).on('change', function(){
+        $(bulkModel).val(null).trigger('change');
+    });
 
-        var qty = parseInt($('#bulk_qty').val() || 1, 10);
-        qty = Math.max(1, Math.min(500, qty));
+    // ------- add rows -------
+    document.getElementById('bulk_add_btn').addEventListener('click', function(){
+        const qty = Math.max(1, Math.min(500, parseInt(document.getElementById('bulk_qty').value || '1', 10)));
+        const catId = bulkCategory.value;
+        const catText = bulkCategory.options[bulkCategory.selectedIndex].text;
 
-        var catId = $bulkCat.val();
+        // manufacturer could be existing id or tag text
+        const bulkManVal = $(bulkMan).val();
+        const bulkManText = $(bulkMan).find('option:selected').text();
+        const manId = (bulkManVal && !isNaN(Number(bulkManVal))) ? bulkManVal : '';
+        const manText = (!manId && bulkManText) ? bulkManText : '';
 
-        var manVal  = $bulkMan.val();
-        var manText = $bulkMan.find('option:selected').text();
+        const bulkModelVal = $(bulkModel).val();
+        const bulkModelText = $(bulkModel).find('option:selected').text();
+        const modelId = (bulkModelVal && !isNaN(Number(bulkModelVal))) ? bulkModelVal : '';
+        const modelText = (!modelId && bulkModelText) ? bulkModelText : '';
 
-        var modelVal  = $bulkModel.val();
-        var modelText = $bulkModel.find('option:selected').text();
+        for(let i=0;i<qty;i++){
+            const key = uid();
 
-        for (var i = 0; i < qty; i++) {
-            var key = uid();
+            const tr = document.createElement('tr');
+            tr.dataset.row = 'new';
+            tr.innerHTML = `
+                <td><em>new</em></td>
 
-            var $tr = $(`
-                <tr data-row="new">
-                    <td><em>new</em></td>
+                <td><input class="form-control" name="new_items[${key}][qty]" value="1"></td>
 
-                    <td><input class="form-control" name="new_items[${key}][qty]" value="1"></td>
+                <td>
+                    <select class="form-control categorySel" name="new_items[${key}][category_id]">
+                        @foreach($categories as $c)
+                            <option value="{{ $c->id }}">{{ $c->name }}</option>
+                        @endforeach
+                    </select>
+                </td>
 
-                    <td>
-                        <select class="form-control categorySel" name="new_items[${key}][category_id]">
-                            @foreach($categories as $c)
-                                <option value="{{ $c->id }}">{{ $c->name }}</option>
-                            @endforeach
-                        </select>
-                    </td>
+                <td>
+                    <select class="form-control manSel" name="new_items[${key}][manufacturer_id]" style="width:100%"></select>
+                    <input type="hidden" class="manText" name="new_items[${key}][manufacturer_text]" value="">
+                </td>
 
-                    <td>
-                        <select class="form-control manSel" name="new_items[${key}][manufacturer_id]" style="width:100%"></select>
-                        <input type="hidden" class="manText" name="new_items[${key}][manufacturer_text]" value="">
-                    </td>
+                <td>
+                    <select class="form-control modelSel" name="new_items[${key}][product_model_id]" style="width:100%"></select>
+                    <input type="hidden" class="modelText" name="new_items[${key}][model_text]" value="">
+                </td>
 
-                    <td>
-                        <select class="form-control modelSel" name="new_items[${key}][product_model_id]" style="width:100%"></select>
-                        <input type="hidden" class="modelText" name="new_items[${key}][model_text]" value="">
-                    </td>
+                <td><input class="form-control" name="new_items[${key}][serial_number]" value=""></td>
+                <td><input class="form-control" name="new_items[${key}][asset_tags]" value=""></td>
+                <td><input class="form-control" name="new_items[${key}][dimensions]" value=""></td>
+                <td><input class="form-control" name="new_items[${key}][weight_kg]" value="0"></td>
+                <td class="text-center"><input type="checkbox" name="new_items[${key}][erasure_required]" value="1"></td>
 
-                    <td><input class="form-control" name="new_items[${key}][serial_number]" value=""></td>
-                    <td><input class="form-control" name="new_items[${key}][asset_tags]" value=""></td>
-                    <td><input class="form-control" name="new_items[${key}][dimensions]" value=""></td>
-                    <td><input class="form-control" name="new_items[${key}][weight_kg]" value="0"></td>
-                    <td class="text-center"><input type="checkbox" name="new_items[${key}][erasure_required]" value="1"></td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline-danger removeNew" title="Remove">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </td>
+            `;
 
-                    <td class="text-center">
-                        <button type="button" class="btn btn-sm btn-outline-danger removeNew" title="Remove">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </td>
-                </tr>
-            `);
+            $tbody.appendChild(tr);
 
-            $('#itemsTbody').append($tr);
+            // set category default from top bar
+            const catSel = tr.querySelector('.categorySel');
+            catSel.value = catId;
 
-            // set category from top bar
-            $tr.find('.categorySel').val(catId);
+            // init select2 behavior on row
+            initRow(tr);
 
-            // init select2 & behavior
-            initRow($tr);
-
-            // prefill manufacturer
-            if (manVal && isNumeric(manVal)) {
-                var op = new Option(manText, manVal, true, true);
-                $tr.find('.manSel').append(op).trigger('change.select2');
-            } else if (manVal && !isNumeric(manVal)) {
-                $tr.find('.manText').val(manVal); // typed new manufacturer
+            // set manufacturer/model from top bar if provided
+            if (manId) {
+                const op = new Option(bulkManText, manId, true, true);
+                $(tr.querySelector('.manSel')).append(op).trigger('change');
+            } else if (manText) {
+                tr.querySelector('.manText').value = manText;
             }
 
-            // prefill model
-            if (modelVal && isNumeric(modelVal)) {
-                var opm = new Option(modelText, modelVal, true, true);
-                $tr.find('.modelSel').append(opm).trigger('change.select2');
-            } else if (modelVal && !isNumeric(modelVal)) {
-                $tr.find('.modelText').val(modelVal); // typed new model
+            if (modelId) {
+                const opm = new Option(bulkModelText, modelId, true, true);
+                $(tr.querySelector('.modelSel')).append(opm).trigger('change');
+            } else if (modelText) {
+                tr.querySelector('.modelText').value = modelText;
             }
 
-            // remove new row
-            $tr.find('.removeNew').on('click', function () {
-                $(this).closest('tr').remove();
+            tr.querySelector('.removeNew').addEventListener('click', function(){
+                tr.remove();
             });
         }
     });
 
-});
+})();
 </script>
-
 @endpush

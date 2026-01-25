@@ -14,7 +14,7 @@ class CollectionItemController extends Controller
     // STEP 2: Edit items grid (screenshot #2)
     public function edit(Collection $collection)
     {
-        $collection->load(['items.category','items.manufacturer','items.productModel']);
+        $collection->load(['items.category','items.manufacturerRel','items.productModel']);
         $categories = \App\Models\Category::where('is_active',1)->orderBy('sort_order')->get();
         return view('collections.items.edit', compact('collection','categories'));
     }
@@ -76,7 +76,7 @@ class CollectionItemController extends Controller
     // STEP 3: Collect form (screenshot #4)
     public function collectForm(Collection $collection)
     {
-        $collection->load(['items.category','items.manufacturer','items.productModel']);
+        $collection->load(['items.category','items.manufacturerRel','items.productModel']);
         return view('collections.items.collect', compact('collection'));
     }
 
@@ -110,7 +110,7 @@ class CollectionItemController extends Controller
     // STEP 4: Process list (screenshot #5)
     public function processIndex(Collection $collection)
     {
-        $collection->load(['items.category','items.manufacturer','items.productModel']);
+        $collection->load(['items.category','items.manufacturerRel','items.productModel']);
         // show only items that are collected and not processed/stocked yet
         $items = $collection->items()
             ->whereIn('status',['collected','processing'])

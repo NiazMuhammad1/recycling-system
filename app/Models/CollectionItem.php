@@ -72,7 +72,7 @@ class CollectionItem extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function manufacturer(){ 
+    public function manufacturerRel(){ 
         return $this->belongsTo(Manufacturer::class, 'manufacturer_id', 'id'); 
     }
     public function productModel(){ return $this->belongsTo(ProductModel::class); }

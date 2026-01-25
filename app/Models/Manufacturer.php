@@ -3,16 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Manufacturer extends Model
 {
-    public function productModels(): HasMany
+    protected $table = 'manufacturers';
+    protected $primaryKey = 'id'; 
+    public function productModels()
     {
         return $this->hasMany(ProductModel::class);
     }
 
-    public function collectionItems(): HasMany
+    public function collectionItems()
     {
         return $this->hasMany(\App\Models\CollectionItem::class);
     }

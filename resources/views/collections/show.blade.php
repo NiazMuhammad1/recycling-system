@@ -87,7 +87,7 @@
                                 <td>{{ $it->item_code }}</td>
                                 <td>{{ $it->qty }}</td>
                                 <td>{{ $it->category?->name }}</td>
-                                <td>{{ $it->manufacturer?->name ?? $it->manufacturer_text }}</td>
+                                <td>{{ $it->manufacturerRel?->name ?? $it->manufacturer_text }}</td>
                                 <td>{{ $it->productModel?->name ?? $it->model_text }}</td>
                                 <td>{{ $it->serial_number }}</td>
                                 <td>{{ $it->asset_tags }}</td>
