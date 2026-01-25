@@ -82,9 +82,9 @@
                             </tr>
                         </thead>
                         <tbody>
-                        @foreach($collection->items->sortBy('item_number') as $it)
+                        @foreach($collection->items->sortBy('item_code') as $it)
                             <tr>
-                                <td>{{ $it->item_number }}</td>
+                                <td>{{ $it->item_code }}</td>
                                 <td>{{ $it->qty }}</td>
                                 <td>{{ $it->category?->name }}</td>
                                 <td>{{ $it->manufacturer?->name ?? $it->manufacturer_text }}</td>

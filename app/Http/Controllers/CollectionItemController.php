@@ -248,10 +248,13 @@ class CollectionItemController extends Controller
             'new_items.*.model_text' => 'nullable|string|max:120',
         ]);
 
-        DB::transaction(function () use ($collection, $data) {
+      
 
+        DB::transaction(function () use ($collection, $data) {
             // Update existing
+            
             foreach (($data['items'] ?? []) as $id => $row) {
+                
                 /** @var CollectionItem $item */
                 $item = $collection->items()->whereKey($id)->lockForUpdate()->firstOrFail();
 
@@ -314,13 +317,17 @@ class CollectionItemController extends Controller
 
     private function renumberItems(Collection $collection): void
     {
-        $items = $collection->items()->orderBy('id')->get();
+        $items = $collection->items()
+            ->orderByRaw('COALESCE(seq, 999999), id') // keep existing seq first
+            ->lockForUpdate()
+            ->get();
 
         $seq = 1;
         foreach ($items as $item) {
-            $item->seq = $seq;
-            $item->item_number = $collection->collection_number.'-'.str_pad((string)$seq, 3, '0', STR_PAD_LEFT);
-            $item->save();
+            $item->update([
+                'seq' => $seq,
+                'item_number' => $collection->collection_number . '-' . str_pad((string)$seq, 3, '0', STR_PAD_LEFT),
+            ]);
             $seq++;
         }
     }

@@ -34,8 +34,11 @@ Route::middleware('auth')->group(function () {
     Route::post('collections/{collection}/items/bulk', [CollectionItemController::class, 'bulkStore'])
         ->name('collections.items.bulkStore');
 
-    Route::put('collections/{collection}/items', [CollectionItemController::class, 'update'])
-        ->name('collections.items.update');
+    // Route::put('collections/{collection}/items', [CollectionItemController::class, 'update'])
+    //     ->name('collections.items.update');
+
+    Route::put('/collections/{collection}/items', [CollectionItemController::class,'updateGrid'])
+    ->name('collections.items.update');
 
     Route::put('/collections/{collection}/items', [CollectionItemController::class,'updateGrid'])
     ->name('collections.items.update');

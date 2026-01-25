@@ -68,9 +68,9 @@
                     <tbody id="itemsTbody">
 
                     {{-- existing rows --}}
-                    @foreach($collection->items->sortBy('seq') as $it)
+                    @foreach($collection->items->sortBy('item_code') as $it)
                         <tr data-row="existing" data-id="{{ $it->id }}">
-                            <td>{{ $it->item_number ?? $collection->collection_number.'-'.str_pad($it->seq ?? 0, 3, '0', STR_PAD_LEFT) }}</td>
+                            <td>{{ $it->item_code ?? $collection->collection_number.'-'.str_pad($it->seq ?? 0, 3, '0', STR_PAD_LEFT) }}</td>
 
                             <td>
                                 <input class="form-control" name="items[{{ $it->id }}][qty]" value="{{ $it->qty }}">
@@ -85,6 +85,7 @@
                             </td>
 
                             <td>
+                               
                                 <select class="form-control manSel" name="items[{{ $it->id }}][manufacturer_id]" style="width:100%">
                                     @if($it->manufacturer)
                                         <option value="{{ $it->manufacturer->id }}" selected>{{ $it->manufacturer->name }}</option>
@@ -112,14 +113,9 @@
                             </td>
 
                             <td class="text-center">
-                                <form method="POST" action="{{ route('collections.items.destroy', $it) }}"
-                                      onsubmit="return confirm('Delete this item?')" style="display:inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </form>
+                                <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete">
+                                    <i class="fas fa-times"></i>
+                                </button>
                             </td>
                         </tr>
                     @endforeach
@@ -127,7 +123,7 @@
                     </tbody>
                 </table>
 
-                <button class="btn btn-primary">Save</button>
+                <button class="btn btn-primary">Save Data</button>
                 <a class="btn btn-link" href="{{ route('collections.show',$collection) }}">Cancel</a>
             </form>
         </div>
@@ -156,83 +152,83 @@
     function uid(){ return 'n' + Math.random().toString(16).slice(2); }
 
     function initManufacturerSelect($select, getCategoryIdFn) {
-  $($select).select2({
-    placeholder: '-- Manufacturer --',
-    allowClear: true,
-    tags: true,
-    width: '100%',
-    ajax: {
-      url: function () {
-        const catId = getCategoryIdFn();
-        return "{{ route('ajax.categories.manufacturers', ':id') }}".replace(':id', catId || 0);
-      },
-      dataType: 'json',
-      delay: 200,
-      data: function (params) {
-        return { q: params.term || '' };
-      },
-      processResults: function (data) {
-        // IMPORTANT: your endpoint already returns {results:[...]}
-        return data;
-      }
-    },
-    // this guarantees Add "xxxx" appears even if ajax returns empty
-    createTag: function (params) {
-      const term = (params.term || '').trim();
-      if (!term) return null;
-      return { id: term, text: term, newTag: true };
+        $($select).select2({
+            placeholder: '-- Manufacturer --',
+            allowClear: true,
+            tags: true,
+            width: '100%',
+            ajax: {
+            url: function () {
+                const catId = getCategoryIdFn();
+                return "{{ route('ajax.categories.manufacturers', ':id') }}".replace(':id', catId || 0);
+            },
+            dataType: 'json',
+            delay: 200,
+            data: function (params) {
+                return { q: params.term || '' };
+            },
+            processResults: function (data) {
+                // IMPORTANT: your endpoint already returns {results:[...]}
+                return data;
+            }
+            },
+            // this guarantees Add "xxxx" appears even if ajax returns empty
+            createTag: function (params) {
+            const term = (params.term || '').trim();
+            if (!term) return null;
+            return { id: term, text: term, newTag: true };
+            }
+        });
     }
-  });
-}
 
 
     function initModelSelect($select, getCategoryIdFn, getManufacturerValFn){
-  $($select).select2({
-    placeholder: '-- Model --',
-    allowClear: true,
-    tags: true,
-    width: '100%',
+        $($select).select2({
+            placeholder: '-- Model --',
+            allowClear: true,
+            tags: true,
+            width: '100%',
 
-    ajax: {
-      transport: async (params, success, failure) => {
-        try {
-          const manufacturerVal = getManufacturerValFn();
-          const categoryId = getCategoryIdFn();
+            ajax: {
+            transport: async (params, success, failure) => {
+                try {
+                const manufacturerVal = getManufacturerValFn();
+                const categoryId = getCategoryIdFn();
 
-          // 🚫 if manufacturer is NEW (string), skip ajax
-          if (!manufacturerVal || isNaN(Number(manufacturerVal))) {
-            return success({ results: [] });
-          }
+                // 🚫 if manufacturer is NEW (string), skip ajax
+                if (!manufacturerVal || isNaN(Number(manufacturerVal))) {
+                    return success({ results: [] });
+                }
 
-          let url = "{{ route('ajax.manufacturers.models', ':id') }}"
-            .replace(':id', manufacturerVal);
+                let url = "{{ route('ajax.manufacturers.models', ':id') }}"
+                    .replace(':id', manufacturerVal);
 
-          url += '?category_id=' + encodeURIComponent(categoryId || '');
-          url += '&q=' + encodeURIComponent(params.data?.term || '');
+                url += '?category_id=' + encodeURIComponent(categoryId || '');
+                url += '&q=' + encodeURIComponent(params.data?.term || '');
 
-          const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-          const data = await res.json();
+                const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                const data = await res.json();
 
-          success(data);
-        } catch (e) {
-          failure(e);
-        }
-      },
-      delay: 200,
-      processResults: data => data
-    },
+                success(data);
+                } catch (e) {
+                failure(e);
+                }
+            },
+            delay: 200,
+            processResults: data => data
+            },
 
-    createTag: function (params) {
-      const term = (params.term || '').trim();
-      if (!term) return null;
-      return {
-        id: term,
-        text: term,
-        newTag: true
-      };
+            createTag: function (params) {
+            const term = (params.term || '').trim();
+            if (!term) return null;
+            return {
+                id: term,
+                text: term,
+                newTag: true
+            };
+            }
+        });
     }
-  });
-}
 
 
     function bindRowDependentReload(tr){

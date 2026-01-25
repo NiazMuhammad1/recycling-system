@@ -28,20 +28,20 @@ class CollectionItem extends Model
 
     protected static function booted(): void
     {
-        static::creating(function ($item) {
-            if ($item->item_number) return;
+        // static::creating(function ($item) {
+        //     if ($item->item_number) return;
 
-            $collection = $item->collection()->first();
-            $prefix = $collection->collection_number; // example: J00001 (use your column name)
+        //     $collection = $item->collection()->first();
+        //     $prefix = $collection->collection_number; // example: J00001 (use your column name)
 
-            // lock rows for safe increment
-            $next = DB::table('collection_items')
-                ->where('collection_id', $item->collection_id)
-                ->lockForUpdate()
-                ->count() + 1;
+        //     // lock rows for safe increment
+        //     $next = DB::table('collection_items')
+        //         ->where('collection_id', $item->collection_id)
+        //         ->lockForUpdate()
+        //         ->count() + 1;
 
-            $item->item_number = $prefix . '-' . str_pad((string)$next, 3, '0', STR_PAD_LEFT);
-        });
+        //     $item->item_number = $prefix . '-' . str_pad((string)$next, 3, '0', STR_PAD_LEFT);
+        // });
         
         static::creating(function (CollectionItem $item) {
             if (!empty($item->item_code)) {
@@ -72,7 +72,9 @@ class CollectionItem extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function manufacturer(){ return $this->belongsTo(Manufacturer::class); }
+    public function manufacturer(){ 
+        return $this->belongsTo(Manufacturer::class, 'manufacturer_id', 'id'); 
+    }
     public function productModel(){ return $this->belongsTo(ProductModel::class); }
     
 

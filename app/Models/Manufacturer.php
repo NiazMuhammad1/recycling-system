@@ -7,10 +7,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Manufacturer extends Model
 {
-    protected $fillable = ['name','is_active'];
-
-    public function manufacturer() { return $this->belongsTo(Manufacturer::class); }
-   
     public function productModels(): HasMany
     {
         return $this->hasMany(ProductModel::class);
