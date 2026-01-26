@@ -6,7 +6,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProductModel extends Model
 {
-    protected $fillable = ['name','category_id','manufacturer_id'];
+    protected $fillable = [
+        'name',
+        'category_id',
+        'manufacturer_id',
+        'is_active',
+    ];
 
     public function manufacturer(): BelongsTo
     {

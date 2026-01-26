@@ -17,25 +17,7 @@
 
 <div class="card">
     <div class="card-header">
-        <form class="form-inline" method="GET" action="{{ route('collections.index') }}">
-            <div class="input-group input-group-sm mr-2" style="width: 300px;">
-                <input type="text" name="q" value="{{ $q ?? '' }}" class="form-control" placeholder="Search J-code or client...">
-                <div class="input-group-append">
-                    <button class="btn btn-default"><i class="fas fa-search"></i></button>
-                </div>
-            </div>
-
-            <select name="status" class="form-control form-control-sm mr-2">
-                <option value="">All Status</option>
-                @foreach($statuses as $st)
-                    <option value="{{ $st }}" {{ $status===$st?'selected':'' }}>
-                        {{ ucfirst(str_replace('_',' ',$st)) }}
-                    </option>
-                @endforeach
-            </select>
-
-            <button class="btn btn-sm btn-outline-secondary" type="submit">Filter</button>
-        </form>
+       
     </div>
 
     <div class="card-body p-0">
