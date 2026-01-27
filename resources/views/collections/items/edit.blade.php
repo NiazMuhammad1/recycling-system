@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 @section('title', 'Edit Items')
-
+@section('plugins.Select2', true) 
 @section('content')
 <div class="container-fluid">
     <div class="d-flex align-items-center mb-2">
@@ -136,18 +136,7 @@
 </div>
 @endsection
 
-@push('css')
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
-<style>
-    .select2-container .select2-selection--single { height: calc(2.25rem + 2px); }
-    .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 2.25rem; }
-    .select2-container--default .select2-selection--single .select2-selection__arrow { height: 2.25rem; }
-</style>
-@endpush
-
 @push('js')
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
 <script>
 $(function () {
 
@@ -259,9 +248,8 @@ $(function () {
             var text = $(this).find('option:selected').text();
 
             if (val && !isNumeric(val)) {
-                // typed new
                 $row.find('.manText').val(text);
-                $(this).val(null).trigger('change.select2'); // keep manufacturer_id empty
+                // DO NOT clear select2 value
             } else {
                 $row.find('.manText').val('');
             }
@@ -278,7 +266,6 @@ $(function () {
 
             if (val && !isNumeric(val)) {
                 $row.find('.modelText').val(text);
-                $(this).val(null).trigger('change.select2'); // keep product_model_id empty
             } else {
                 $row.find('.modelText').val('');
             }
@@ -401,7 +388,9 @@ $(function () {
                 var op = new Option(manText, manVal, true, true);
                 $tr.find('.manSel').append(op).trigger('change.select2');
             } else if (manVal && !isNumeric(manVal)) {
-                $tr.find('.manText').val(manVal); // typed new manufacturer
+                var opt = new Option(manText, manVal, true, true);
+                $tr.find('.manSel').append(opt).trigger('change.select2');
+                $tr.find('.manText').val(manText);
             }
 
             // prefill model
@@ -409,7 +398,9 @@ $(function () {
                 var opm = new Option(modelText, modelVal, true, true);
                 $tr.find('.modelSel').append(opm).trigger('change.select2');
             } else if (modelVal && !isNumeric(modelVal)) {
-                $tr.find('.modelText').val(modelVal); // typed new model
+                var optm = new Option(modelText, modelVal, true, true);
+                $tr.find('.modelSel').append(optm).trigger('change.select2');
+                $tr.find('.modelText').val(modelText);
             }
 
             // remove new row
