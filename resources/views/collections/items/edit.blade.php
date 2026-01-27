@@ -2,6 +2,7 @@
 @section('title', 'Edit Items')
 @section('plugins.Select2', true) 
 @section('content')
+@php $isCollect = ($mode ?? 'edit') === 'collect'; @endphp
 <div class="container-fluid">
     <div class="d-flex align-items-center mb-2">
         <h1 class="mb-0">Collection {{ $collection->collection_number }}</h1>
@@ -62,6 +63,9 @@
                         <th style="width:140px;">Dimensions</th>
                         <th style="width:100px;">Weight</th>
                         <th style="width:70px;">Erase</th>
+                        @if($isCollect)
+                            <th style="width:90px;" class="text-center">Collected</th>
+                        @endif
                         <th style="width:70px;"></th>
                     </tr>
                     </thead>
@@ -111,23 +115,60 @@
                             <td class="text-center">
                                 <input type="checkbox" name="items[{{ $it->id }}][erasure_required]" value="1" {{ $it->erasure_required?'checked':'' }}>
                             </td>
+                            @if($isCollect)
+                                <td class="text-center">
+                                     <input type="checkbox" name="items[{{ $it->id }}][is_collected]" value="1" {{ $it->is_collected?'checked':'' }}>
+                                </td>
+                            @endif
 
                             <td class="text-center">
-                                <form method="POST" action="{{ route('collections.items.destroy', $it) }}"
+                                <!-- <form method="POST" action="{{ route('collections.items.destroy', $it) }}"
                                       onsubmit="return confirm('Delete this item?')" style="display:inline">
                                     @csrf
                                     @method('DELETE')
                                     <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete">
                                         <i class="fas fa-times"></i>
                                     </button>
-                                </form>
+                                </form> -->
                             </td>
                         </tr>
                     @endforeach
 
                     </tbody>
                 </table>
+                @if($isCollect)
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label>Client Signature</label>
+                            <textarea class="form-control" name="client_signature" rows="5"></textarea>
+                            <div class="form-row mt-2">
+                                <div class="col">
+                                    <label>Print Name</label>
+                                    <input class="form-control" name="client_print_name">
+                                </div>
+                                <div class="col">
+                                    <label>Job Title</label>
+                                    <input class="form-control" name="client_job_title">
+                                </div>
+                            </div>
+                        </div>
 
+                        <div class="col-md-6">
+                            <label>Driver Signature</label>
+                            <textarea class="form-control" name="driver_signature" rows="5"></textarea>
+                            <div class="form-row mt-2">
+                                <div class="col">
+                                    <label>Print Name</label>
+                                    <input class="form-control" name="driver_print_name">
+                                </div>
+                                <div class="col">
+                                    <label>Job Title</label>
+                                    <input class="form-control" name="driver_job_title">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                 <button class="btn btn-primary">Save Data</button>
                 <a class="btn btn-link" href="{{ route('collections.show',$collection) }}">Cancel</a>
             </form>
@@ -135,11 +176,17 @@
     </div>
 </div>
 @endsection
-
+@push('css')
+<style>
+    .select2-container .select2-selection--single { height: calc(2.25rem + 2px); }
+    .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 2.25rem; }
+    .select2-container--default .select2-selection--single .select2-selection__arrow { height: 2.25rem; }
+</style>
+@endpush
 @push('js')
 <script>
 $(function () {
-
+    var IS_COLLECT = @json($isCollect);   // true on /collect, false on /items/edit
     // -----------------------------
     // Helpers
     // -----------------------------
@@ -336,7 +383,9 @@ $(function () {
 
         for (var i = 0; i < qty; i++) {
             var key = uid();
-
+            var collectedTd = IS_COLLECT
+                ? `<td class="text-center"><input type="checkbox" name="new_items[${key}][is_collected]" value="1"></td>`
+                : '';
             var $tr = $(`
                 <tr data-row="new">
                     <td><em>new</em></td>
@@ -367,6 +416,7 @@ $(function () {
                     <td><input class="form-control" name="new_items[${key}][weight_kg]" value="0"></td>
                     <td class="text-center"><input type="checkbox" name="new_items[${key}][erasure_required]" value="1"></td>
 
+                    ${collectedTd}
                     <td class="text-center">
                         <button type="button" class="btn btn-sm btn-outline-danger removeNew" title="Remove">
                             <i class="fas fa-times"></i>

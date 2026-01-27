@@ -14,9 +14,10 @@ class CollectionItemController extends Controller
     // STEP 2: Edit items grid (screenshot #2)
     public function edit(Collection $collection)
     {
+        $mode = 'edit';
         $collection->load(['items.category','items.manufacturerRel','items.productModel']);
         $categories = \App\Models\Category::where('is_active',1)->orderBy('sort_order')->get();
-        return view('collections.items.edit', compact('collection','categories'));
+        return view('collections.items.edit', compact('collection','categories','mode'));
     }
 
     // Add many items when qty typed and button clicked
@@ -76,8 +77,10 @@ class CollectionItemController extends Controller
     // STEP 3: Collect form (screenshot #4)
     public function collectForm(Collection $collection)
     {
+        $mode = 'collect';
         $collection->load(['items.category','items.manufacturerRel','items.productModel']);
-        return view('collections.items.collect', compact('collection'));
+        $categories = \App\Models\Category::where('is_active',1)->orderBy('sort_order')->get();
+        return view('collections.items.edit', compact('collection','categories','mode'));
     }
 
     public function collectSave(Request $request, Collection $collection)
@@ -225,7 +228,10 @@ class CollectionItemController extends Controller
 
     public function updateGrid(Request $request, Collection $collection)
     {
+        //echo "<pre>"; print_r($request->all()); exit;
         $data = $request->validate([
+           
+
             'items' => 'array',
             'items.*.qty' => 'required|integer|min:1|max:500',
             'items.*.category_id' => 'required|exists:categories,id',
@@ -259,7 +265,7 @@ class CollectionItemController extends Controller
             'new_items.*.erasure_required' => 'nullable|boolean',
         ]);
 
-        // ✅ numeric-id safety check (only if numeric)
+        // ✅ numeric-id safety check ONLY when numeric
         $checkNumericIds = function (array $row) {
             if (!empty($row['manufacturer_id']) && is_numeric($row['manufacturer_id'])) {
                 abort_unless(Manufacturer::whereKey($row['manufacturer_id'])->exists(), 422, 'Invalid manufacturer');
@@ -272,33 +278,37 @@ class CollectionItemController extends Controller
         foreach (($data['items'] ?? []) as $row) $checkNumericIds($row);
         foreach (($data['new_items'] ?? []) as $row) $checkNumericIds($row);
 
-        DB::transaction(function () use ($collection, $data) {
+        $collectIds = collect($data['collect_ids'] ?? [])->map(fn($v)=>(int)$v)->all();
+
+        DB::transaction(function () use ($collection, $data, $collectIds) {
 
             // -------------------------
-            // Update existing
+            // Update existing rows
             // -------------------------
             foreach (($data['items'] ?? []) as $id => $row) {
 
                 /** @var CollectionItem $item */
                 $item = $collection->items()->whereKey($id)->lockForUpdate()->firstOrFail();
 
-                [$manId, $modelId] = $this->resolveManufacturerModel($row);
+                [$manId, $modelId, $manText, $modelText] = $this->resolveManufacturerModel($row);
 
                 $item->update([
                     'qty' => $row['qty'],
                     'category_id' => $row['category_id'],
+
                     'manufacturer_id' => $manId,
                     'product_model_id' => $modelId,
 
-                    // keep texts too (optional)
-                    'manufacturer_text' => $row['manufacturer_text'] ?? null,
-                    'model_text' => $row['model_text'] ?? null,
+                    // store texts also
+                    'manufacturer_text' => $manText,
+                    'model_text' => $modelText,
 
                     'serial_number' => $row['serial_number'] ?? null,
                     'asset_tags' => $row['asset_tags'] ?? null,
                     'dimensions' => $row['dimensions'] ?? null,
                     'weight_kg' => $row['weight_kg'] ?? 0,
                     'erasure_required' => (bool)($row['erasure_required'] ?? false),
+                    'is_collected' => (bool)($row['is_collected'] ?? false),
                 ]);
             }
 
@@ -307,95 +317,258 @@ class CollectionItemController extends Controller
             // -------------------------
             foreach (($data['new_items'] ?? []) as $row) {
 
-                [$manId, $modelId] = $this->resolveManufacturerModel($row);
+                [$manId, $modelId, $manText, $modelText] = $this->resolveManufacturerModel($row);
 
-                $collection->items()->create([
+                 $created = $collection->items()->create([
                     'qty' => $row['qty'],
                     'category_id' => $row['category_id'],
+
                     'manufacturer_id' => $manId,
                     'product_model_id' => $modelId,
 
-                    // keep texts too (optional)
-                    'manufacturer_text' => $row['manufacturer_text'] ?? null,
-                    'model_text' => $row['model_text'] ?? null,
+                    'manufacturer_text' => $manText,
+                    'model_text' => $modelText,
 
                     'serial_number' => $row['serial_number'] ?? null,
                     'asset_tags' => $row['asset_tags'] ?? null,
                     'dimensions' => $row['dimensions'] ?? null,
                     'weight_kg' => $row['weight_kg'] ?? 0,
                     'erasure_required' => (bool)($row['erasure_required'] ?? false),
-
+                    'is_collected' => (bool)($row['is_collected'] ?? false),
                     'status' => 'created',
                     'collected' => false,
                 ]);
-                // ✅ item_number will auto-generate in CollectionItem::creating()
             }
 
-            // ✅ DO NOT call renumberItems() here (seq column doesn't exist and item_number is auto-generated)
+            // -------------------------
+            // If collect page submitted => update collected flags
+            // -------------------------
+            if (!empty($collectIds)) {
+                // reset all items first
+                $collection->items()->update([
+                    'collected' => false,
+                    'collected_at' => null,
+                ]);
+
+                // mark selected
+                $collection->items()->whereIn('id', $collectIds)->update([
+                    'collected' => true,
+                    'collected_at' => now(),
+                    'status' => 'collected',
+                ]);
+
+                // update collection status
+                $collection->update(['status' => 'collected']);
+            }
+
+            // ✅ DO NOT call renumberItems() (you said seq column not exists)
         });
 
-        return back()->with('success', 'Items saved.');
+        return back()->with('success', 'Saved successfully.');
     }
 
+    /**
+     * Returns: [manufacturer_id, product_model_id, manufacturer_text, model_text]
+     */
     private function resolveManufacturerModel(array $row): array
     {
         $categoryId = $row['category_id'] ?? null;
 
+        // manufacturer can be numeric OR string tag
         $manId = $row['manufacturer_id'] ?? null;
+        $manText = $row['manufacturer_text'] ?? null;
+
         if ($manId && !is_numeric($manId)) {
-            $row['manufacturer_text'] = $manId;
+            $manText = $manId;     // select2 tag value
             $manId = null;
         }
 
-        if (!$manId && !empty($row['manufacturer_text'])) {
+        if (!$manId && !empty($manText)) {
             $m = Manufacturer::firstOrCreate(
-                ['name' => trim($row['manufacturer_text'])],
+                ['name' => trim($manText)],
                 ['is_active' => 1]
             );
             $manId = $m->id;
         }
 
+        // model can be numeric OR string tag
         $modelId = $row['product_model_id'] ?? null;
+        $modelText = $row['model_text'] ?? null;
+
         if ($modelId && !is_numeric($modelId)) {
-            $row['model_text'] = $modelId;
+            $modelText = $modelId; // select2 tag value
             $modelId = null;
         }
 
-        if (!$modelId && $manId && $categoryId && !empty($row['model_text'])) {
+        if (!$modelId && $manId && $categoryId && !empty($modelText)) {
             $pm = ProductModel::firstOrCreate(
                 [
                     'category_id' => $categoryId,
                     'manufacturer_id' => $manId,
-                    'name' => trim($row['model_text']),
+                    'name' => trim($modelText),
                 ],
                 ['is_active' => 1]
             );
             $modelId = $pm->id;
         }
 
-        return [$manId, $modelId];
+        return [$manId, $modelId, $manText, $modelText];
     }
+
+    // public function updateGrid(Request $request, Collection $collection)
+    // {
+    //     $data = $request->validate([
+    //         'items' => 'array',
+    //         'items.*.qty' => 'required|integer|min:1|max:500',
+    //         'items.*.category_id' => 'required|exists:categories,id',
+
+    //         // allow numeric OR text (select2 tags)
+    //         'items.*.manufacturer_id' => 'nullable',
+    //         'items.*.manufacturer_text' => 'nullable|string|max:120',
+    //         'items.*.product_model_id' => 'nullable',
+    //         'items.*.model_text' => 'nullable|string|max:120',
+
+    //         'items.*.serial_number' => 'nullable|string|max:255',
+    //         'items.*.asset_tags' => 'nullable|string|max:255',
+    //         'items.*.dimensions' => 'nullable|string|max:255',
+    //         'items.*.weight_kg' => 'nullable|numeric|min:0',
+    //         'items.*.erasure_required' => 'nullable|boolean',
+
+    //         'new_items' => 'array',
+    //         'new_items.*.qty' => 'required|integer|min:1|max:500',
+    //         'new_items.*.category_id' => 'required|exists:categories,id',
+
+    //         // allow numeric OR text (select2 tags)
+    //         'new_items.*.manufacturer_id' => 'nullable',
+    //         'new_items.*.manufacturer_text' => 'nullable|string|max:120',
+    //         'new_items.*.product_model_id' => 'nullable',
+    //         'new_items.*.model_text' => 'nullable|string|max:120',
+
+    //         'new_items.*.serial_number' => 'nullable|string|max:255',
+    //         'new_items.*.asset_tags' => 'nullable|string|max:255',
+    //         'new_items.*.dimensions' => 'nullable|string|max:255',
+    //         'new_items.*.weight_kg' => 'nullable|numeric|min:0',
+    //         'new_items.*.erasure_required' => 'nullable|boolean',
+    //     ]);
+
+    //     // ✅ numeric-id safety check (only if numeric)
+    //     $checkNumericIds = function (array $row) {
+    //         if (!empty($row['manufacturer_id']) && is_numeric($row['manufacturer_id'])) {
+    //             abort_unless(Manufacturer::whereKey($row['manufacturer_id'])->exists(), 422, 'Invalid manufacturer');
+    //         }
+    //         if (!empty($row['product_model_id']) && is_numeric($row['product_model_id'])) {
+    //             abort_unless(ProductModel::whereKey($row['product_model_id'])->exists(), 422, 'Invalid model');
+    //         }
+    //     };
+
+    //     foreach (($data['items'] ?? []) as $row) $checkNumericIds($row);
+    //     foreach (($data['new_items'] ?? []) as $row) $checkNumericIds($row);
+
+    //     DB::transaction(function () use ($collection, $data) {
+
+    //         // -------------------------
+    //         // Update existing
+    //         // -------------------------
+    //         foreach (($data['items'] ?? []) as $id => $row) {
+
+    //             /** @var CollectionItem $item */
+    //             $item = $collection->items()->whereKey($id)->lockForUpdate()->firstOrFail();
+
+    //             [$manId, $modelId] = $this->resolveManufacturerModel($row);
+
+    //             $item->update([
+    //                 'qty' => $row['qty'],
+    //                 'category_id' => $row['category_id'],
+    //                 'manufacturer_id' => $manId,
+    //                 'product_model_id' => $modelId,
+
+    //                 // keep texts too (optional)
+    //                 'manufacturer_text' => $row['manufacturer_text'] ?? null,
+    //                 'model_text' => $row['model_text'] ?? null,
+
+    //                 'serial_number' => $row['serial_number'] ?? null,
+    //                 'asset_tags' => $row['asset_tags'] ?? null,
+    //                 'dimensions' => $row['dimensions'] ?? null,
+    //                 'weight_kg' => $row['weight_kg'] ?? 0,
+    //                 'erasure_required' => (bool)($row['erasure_required'] ?? false),
+    //             ]);
+    //         }
+
+    //         // -------------------------
+    //         // Create new rows
+    //         // -------------------------
+    //         foreach (($data['new_items'] ?? []) as $row) {
+
+    //             [$manId, $modelId] = $this->resolveManufacturerModel($row);
+
+    //             $collection->items()->create([
+    //                 'qty' => $row['qty'],
+    //                 'category_id' => $row['category_id'],
+    //                 'manufacturer_id' => $manId,
+    //                 'product_model_id' => $modelId,
+
+    //                 // keep texts too (optional)
+    //                 'manufacturer_text' => $row['manufacturer_text'] ?? null,
+    //                 'model_text' => $row['model_text'] ?? null,
+
+    //                 'serial_number' => $row['serial_number'] ?? null,
+    //                 'asset_tags' => $row['asset_tags'] ?? null,
+    //                 'dimensions' => $row['dimensions'] ?? null,
+    //                 'weight_kg' => $row['weight_kg'] ?? 0,
+    //                 'erasure_required' => (bool)($row['erasure_required'] ?? false),
+
+    //                 'status' => 'created',
+    //                 'collected' => false,
+    //             ]);
+    //             // ✅ item_number will auto-generate in CollectionItem::creating()
+    //         }
+
+    //         // ✅ DO NOT call renumberItems() here (seq column doesn't exist and item_number is auto-generated)
+    //     });
+
+    //     return back()->with('success', 'Items saved.');
+    // }
 
     // private function resolveManufacturerModel(array $row): array
     // {
+    //     $categoryId = $row['category_id'] ?? null;
+
     //     $manId = $row['manufacturer_id'] ?? null;
+    //     if ($manId && !is_numeric($manId)) {
+    //         $row['manufacturer_text'] = $manId;
+    //         $manId = null;
+    //     }
+
     //     if (!$manId && !empty($row['manufacturer_text'])) {
-    //         $m = Manufacturer::firstOrCreate(['name' => trim($row['manufacturer_text'])]);
+    //         $m = Manufacturer::firstOrCreate(
+    //             ['name' => trim($row['manufacturer_text'])],
+    //             ['is_active' => 1]
+    //         );
     //         $manId = $m->id;
     //     }
 
     //     $modelId = $row['product_model_id'] ?? null;
-    //     if (!$modelId && $manId && !empty($row['model_text'])) {
-    //         $pm = ProductModel::firstOrCreate([
-    //             'category_id' => $row['category_id'],
-    //             'manufacturer_id' => $manId,
-    //             'name' => trim($row['model_text']),
-    //         ]);
+    //     if ($modelId && !is_numeric($modelId)) {
+    //         $row['model_text'] = $modelId;
+    //         $modelId = null;
+    //     }
+
+    //     if (!$modelId && $manId && $categoryId && !empty($row['model_text'])) {
+    //         $pm = ProductModel::firstOrCreate(
+    //             [
+    //                 'category_id' => $categoryId,
+    //                 'manufacturer_id' => $manId,
+    //                 'name' => trim($row['model_text']),
+    //             ],
+    //             ['is_active' => 1]
+    //         );
     //         $modelId = $pm->id;
     //     }
 
     //     return [$manId, $modelId];
     // }
+
+    
 
 
     private function renumberItems(Collection $collection): void
