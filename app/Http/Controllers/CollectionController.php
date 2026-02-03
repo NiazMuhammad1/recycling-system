@@ -11,7 +11,7 @@ class CollectionController extends Controller
 {
     public function index()
     {
-        $collections = Collection::with('client')->latest()->paginate(20);
+        $collections = Collection::with(['client', 'partner'])->latest()->paginate(20);
         return view('collections.index', compact('collections'));
     }
 
@@ -25,10 +25,12 @@ class CollectionController extends Controller
     {
         $data = $this->validateCollection($request);
 
-        DB::transaction(function () use (&$collection, $data, $request) {
-            // If client_id not selected => create client from form fields
-            $clientId = $data['client_id'] ?? null;
+        $collection = null;
 
+        DB::transaction(function () use (&$collection, $data, $request) {
+
+            // CLIENT (your existing logic)
+            $clientId = $data['client_id'] ?? null;
             if (!$clientId) {
                 $clientId = Client::create([
                     'name' => $request->input('client_name'),
@@ -47,13 +49,36 @@ class CollectionController extends Controller
                 ])->id;
             }
 
+            // PARTNER (new logic)
+            $partnerId = $data['partner_id'] ?? null;
+
+            // create partner only if partner not selected AND partner_name provided
+            if (!$partnerId && $request->filled('partner_name')) {
+                $partnerId = \App\Models\Partner::create([
+                    'name' => $request->input('partner_name'),
+                    'county' => $request->input('partner_county'),
+                    'country' => $request->input('partner_country', 'UK'),
+                    'address_line_1' => $request->input('partner_address_line_1'),
+                    'address_line_2' => $request->input('partner_address_line_2'),
+                    'town' => $request->input('partner_town'),
+                    'postcode' => $request->input('partner_postcode'),
+                    'contact_name' => $request->input('partner_contact_name'),
+                    'contact_email' => $request->input('partner_contact_email'),
+                    'contact_number' => $request->input('partner_contact_number'),
+                    'on_site_contact_name' => $request->input('partner_on_site_contact_name'),
+                    'on_site_contact_number' => $request->input('partner_on_site_contact_number'),
+                    'is_active' => 1,
+                ])->id;
+            }
+
             $collection = Collection::create(array_merge($data, [
                 'client_id' => $clientId,
-                'collection_number' => NumberService::next('collection', 'J', 5), // J00001
+                'partner_id' => $partnerId, // 👈 attach partner
+                'collection_number' => NumberService::next('collection', 'J', 5),
             ]));
 
-            // snapshot from selected client if selected
             $this->snapshotClientIfSelected($collection);
+            // optional: $this->snapshotPartnerIfSelected($collection);
         });
 
         return redirect()->route('collections.show', $collection)->with('success','Collection created.');
@@ -78,9 +103,9 @@ class CollectionController extends Controller
         $data = $this->validateCollection($request, true);
 
         DB::transaction(function () use ($collection, $data, $request) {
-            // same rule: if client_id empty => create a new client from fields
-            $clientId = $data['client_id'] ?? null;
 
+            // CLIENT (your existing logic)
+            $clientId = $data['client_id'] ?? null;
             if (!$clientId) {
                 $clientId = Client::create([
                     'name' => $request->input('client_name'),
@@ -99,8 +124,34 @@ class CollectionController extends Controller
                 ])->id;
             }
 
-            $collection->update(array_merge($data, ['client_id' => $clientId]));
+            // PARTNER (new logic)
+            $partnerId = $data['partner_id'] ?? null;
+
+            if (!$partnerId && $request->filled('partner_name')) {
+                $partnerId = \App\Models\Partner::create([
+                    'name' => $request->input('partner_name'),
+                    'county' => $request->input('partner_county'),
+                    'country' => $request->input('partner_country', 'UK'),
+                    'address_line_1' => $request->input('partner_address_line_1'),
+                    'address_line_2' => $request->input('partner_address_line_2'),
+                    'town' => $request->input('partner_town'),
+                    'postcode' => $request->input('partner_postcode'),
+                    'contact_name' => $request->input('partner_contact_name'),
+                    'contact_email' => $request->input('partner_contact_email'),
+                    'contact_number' => $request->input('partner_contact_number'),
+                    'on_site_contact_name' => $request->input('partner_on_site_contact_name'),
+                    'on_site_contact_number' => $request->input('partner_on_site_contact_number'),
+                    'is_active' => 1,
+                ])->id;
+            }
+
+            $collection->update(array_merge($data, [
+                'client_id' => $clientId,
+                'partner_id' => $partnerId, // 👈 attach partner
+            ]));
+
             $this->snapshotClientIfSelected($collection);
+            // optional: $this->snapshotPartnerIfSelected($collection);
         });
 
         return redirect()->route('collections.show', $collection)->with('success','Collection updated.');

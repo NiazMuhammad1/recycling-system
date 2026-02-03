@@ -27,6 +27,7 @@
                         </div>
                     </div>
 
+                    
                     {{-- Client --}}
                     <div class="form-group row align-items-center">
                         <label class="col-sm-4 col-form-label font-weight-normal">Client</label>
@@ -47,16 +48,29 @@
                         </div>
                     </div>
 
-                    {{-- Collection Date --}}
+                    {{-- Partner --}}
                     <div class="form-group row align-items-center">
-                        <label class="col-sm-4 col-form-label font-weight-normal">Collection Date</label>
+                        <label class="col-sm-4 col-form-label font-weight-normal">Partner</label>
                         <div class="col-sm-8">
-                            <input type="datetime-local" name="collection_date"
-                                   value="{{ old('collection_date', optional($collection?->collection_date)->format('Y-m-d\TH:i')) }}"
-                                   class="form-control form-control-sm @error('collection_date') is-invalid @enderror">
-                            @error('collection_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <select id="partner_id" name="partner_id"
+                                    class="form-control form-control-sm @error('partner_id') is-invalid @enderror"
+                                    style="width:100%;">
+                                @if($collection?->partner)
+                                    <option value="{{ $collection->partner->id }}" selected>
+                                        {{ $collection->partner->name }}
+                                    </option>
+                                @endif
+                            </select>
+
+                            @error('partner_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+
+                            {{-- hidden partner_name used when partner_id is empty --}}
+                            <input type="hidden" name="partner_name" id="partner_name"
+                                value="{{ old('partner_name', $collection?->partner?->name ?? '') }}">
                         </div>
                     </div>
+
+                    
 
                     {{-- Address Line 1 --}}
                     <div class="form-group row align-items-center">
@@ -119,6 +133,30 @@
                         </div>
                     </div>
 
+                    <div class="itad-title mt-4">Collection Date</div>
+                    <div class="form-group row align-items-center">
+                        <label class="col-sm-4 col-form-label font-weight-normal">Collection Date</label>
+                        <div class="col-sm-8">
+                            <input type="date" id="collected_at" name="collected_at"
+                                   value="{{ old('collected_at', $collection?->collected_at) }}"
+                                   class="form-control form-control-sm @error('collected_at') is-invalid @enderror">
+                        </div>
+                    </div>
+                    {{-- SLA Target --}}
+                    <div class="form-group row align-items-center">
+                        <label class="col-sm-4 col-form-label font-weight-normal">SLA Target</label>
+                        <div class="col-sm-8 d-flex">
+                            <input type="number" min="0" name="sla_target"
+                                value="{{ old('sla_target', $collection?->sla_target) }}"
+                                class="form-control form-control-sm @error('sla_target') is-invalid @enderror">
+                            <div class="ml-2 align-self-center small text-muted">Working Days</div>
+                        </div>
+                        @error('sla_target')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        <small class="text-muted ml-auto d-block">
+                            Time in which the collection should be processed. (set to 0 to ignore SLA tracking)
+                        </small>
+                    </div>
+
                 </div>
             </div>
 
@@ -171,7 +209,31 @@
                                    class="form-control form-control-sm @error('on_site_contact_number') is-invalid @enderror">
                         </div>
                     </div>
+                    <div class="itad-title mt-4">Internal Use - Transport Provider</div>
+                        <div class="form-group row align-items-center">
+                            <label class="col-sm-4 col-form-label font-weight-normal">Name</label>
+                            <div class="col-sm-8">
+                                <input type="text" name="transport_provider_name"
+                                    value="{{ old('transport_provider_name', $collection?->transport_provider_name ?? 'Eco Green IT Recycling') }}"
+                                    class="form-control form-control-sm @error('transport_provider_name') is-invalid @enderror">
+                            </div>
+                        </div>
 
+                        <div class="form-group row align-items-center">
+                            <label class="col-sm-4 col-form-label font-weight-normal">Registration No.</label>
+                            <div class="col-sm-8">
+                                <input type="text" name="transport_provider_registration_no"
+                                    value="{{ old('transport_provider_registration_no', $collection?->transport_provider_registration_no) }}"
+                                    class="form-control form-control-sm @error('transport_provider_registration_no') is-invalid @enderror">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label font-weight-normal">Address</label>
+                            <div class="col-sm-8">
+                                <textarea name="transport_provider_address" class="form-control form-control-sm" rows="3">{{ old('transport_provider_address', $collection?->transport_provider_address) }}</textarea>
+                            </div>
+                        </div>
                     <div class="itad-title mt-4">Internal Use</div>
 
                     <div class="form-group row align-items-center">
@@ -233,12 +295,9 @@
                 @php
                     $sanOptions = [
                         'No Sanitisation Required',
-                        'Basic Erasure – HMG Infosec Level 5 Lower',
-                        'Premium Erasure – HMG Infosec Level 5 Enhanced (CESG)',
-                        'Physical Destruction',
-                        'Physical Destruction (On Site)',
-                        'Degaussing',
                         'On Site Data Destruction',
+                        'Physical Destruction',
+                        'Premium Erasure - HMG Infosec Level 5 Enhanced (CESG)'
                     ];
                     $sanVal = old('data_sanitisation', $collection?->data_sanitisation);
                 @endphp
@@ -297,12 +356,60 @@
 
         <div class="row">
             <div class="col-md-6">
-                <label class="font-weight-normal">Pre-Collection Audit</label>
-                <textarea name="pre_collection_audit" class="form-control form-control-sm" rows="3">{{ old('pre_collection_audit', $collection?->pre_collection_audit) }}</textarea>
+                <div class="mt-3">
+                    <label class="font-weight-normal">Pre-Collection Audit</label>
+                    @php
+                        $auditOptions = [
+                            'Customer To Audit Equipment & Enter Into OCS Prior To Collection',
+                            'Customer Has Requested Eco Green IT Recycling to Audit Post Collection',
+                        ];
+                        $auditVal = old('pre_collection_audit', $collection?->pre_collection_audit);
+                    @endphp
+
+                    @foreach($auditOptions as $opt)
+                        <div class="custom-control custom-radio">
+                            <input class="custom-control-input" type="radio"
+                                id="audit_{{ md5($opt) }}" name="pre_collection_audit" value="{{ $opt }}"
+                                {{ $auditVal === $opt ? 'checked' : '' }}>
+                            <label class="custom-control-label" for="audit_{{ md5($opt) }}">{{ $opt }}</label>
+                        </div>
+                    @endforeach
+                </div>
             </div>
             <div class="col-md-6">
-                <label class="font-weight-normal">Equipment Classification</label>
-                <textarea name="equipment_classification" class="form-control form-control-sm" rows="3">{{ old('equipment_classification', $collection?->equipment_classification) }}</textarea>
+                {{-- ADISA DIAL Rating --}}
+                <div class="form-group">
+                    <label class="font-weight-normal">ADISA DIAL Rating</label>
+                    @php
+                        $dialOptions = ['Not Specified', 'DIAL Rating 1', 'DIAL Rating 2', 'DIAL Rating 2'];
+                        $dialVal = old('adisa_dial_rating', $collection?->adisa_dial_rating);
+                    @endphp
+                    <select name="adisa_dial_rating" class="form-control form-control-sm">
+                        @foreach($dialOptions as $opt)
+                            <option value="{{ $opt }}" {{ $dialVal === $opt ? 'selected' : '' }}>
+                                {{ $opt }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Equipment Classification --}}
+                <div class="form-group">
+                    <label class="font-weight-normal">Equipment Classification</label>
+                    @php $eqVal = old('equipment_classification', $collection?->equipment_classification); @endphp
+
+                    <div class="custom-control custom-radio">
+                        <input class="custom-control-input" type="radio" id="eq_eee" name="equipment_classification" value="EEE"
+                            {{ $eqVal === 'EEE' ? 'checked' : '' }}>
+                        <label class="custom-control-label" for="eq_eee">EEE - Re-use wherever possible</label>
+                    </div>
+
+                    <div class="custom-control custom-radio">
+                        <input class="custom-control-input" type="radio" id="eq_weee" name="equipment_classification" value="WEEE"
+                            {{ $eqVal === 'WEEE' ? 'checked' : '' }}>
+                        <label class="custom-control-label" for="eq_weee">WEEE - Waste Electrical</label>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -349,6 +456,7 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
+    
 (function () {
     const $client = $('#client_id');
 
@@ -416,4 +524,72 @@
     });
 })();
 </script>
+<script>
+(function () {
+    const $partner = $('#partner_id');
+
+    $partner.select2({
+        placeholder: 'Search partner name...',
+        allowClear: true,
+        ajax: {
+            url: '{{ route('ajax.partners.select2') }}',
+            dataType: 'json',
+            delay: 250,
+            data: params => ({ q: params.term || '' }),
+            processResults: data => data,
+            cache: true
+        },
+        width: '100%'
+    });
+
+    function setVal(id, v) {
+        const el = document.getElementById(id);
+        if (el) el.value = v ?? '';
+    }
+
+    function fillFromPartner(p) {
+        // store name in hidden partner_name for validation/creation
+        setVal('partner_name', p.name);
+
+        // OPTIONAL: If you also add partner fields in the form, fill them here:
+        // setVal('partner_address_line_1', p.address_line_1);
+        // setVal('partner_address_line_2', p.address_line_2);
+        // setVal('partner_town', p.town);
+        // setVal('partner_county', p.county);
+        // setVal('partner_postcode', p.postcode);
+        // setVal('partner_country', p.country || 'UK');
+        // setVal('partner_contact_name', p.contact_name);
+        // setVal('partner_contact_email', p.contact_email);
+        // setVal('partner_contact_number', p.contact_number);
+        // setVal('partner_on_site_contact_name', p.on_site_contact_name);
+        // setVal('partner_on_site_contact_number', p.on_site_contact_number);
+    }
+
+    async function loadPartner(id) {
+        const url = '{{ route('ajax.partners.show', ':id') }}'.replace(':id', id);
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error('Failed');
+        return await res.json();
+    }
+
+    $partner.on('change', async function () {
+        const id = $(this).val();
+
+        // If cleared => new partner mode
+        if (!id) {
+            setVal('partner_name', '');
+            return;
+        }
+
+        try {
+            const data = await loadPartner(id);
+            fillFromPartner(data);
+        } catch (e) {
+            console.error(e);
+            alert('Unable to load partner details.');
+        }
+    });
+})();
+</script>
+
 @endpush

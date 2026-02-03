@@ -8,6 +8,7 @@ use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\CollectionItemController;
 
 use App\Http\Controllers\ClientAjaxController;
+use App\Http\Controllers\PartnerAjaxController;
 use App\Http\Controllers\AjaxController;
 use App\Http\Controllers\CatalogAjaxController;
 
@@ -81,6 +82,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/ajax/clients/{client}', [ClientAjaxController::class, 'show'])
         ->name('ajax.clients.show');
+
+    Route::get('/ajax/partners/select2', [PartnerAjaxController::class, 'select2'])->name('ajax.partners.select2');
+    Route::post('/ajax/partners', [PartnerAjaxController::class, 'store'])->name('ajax.partners.store');
+    Route::get('/ajax/partners/{partner}', [PartnerAjaxController::class, 'show'])->name('ajax.partners.show');
 
     // Catalog (keep ONE source of truth: CatalogAjaxController)
     Route::get('/ajax/manufacturers', [CatalogAjaxController::class, 'manufacturers'])

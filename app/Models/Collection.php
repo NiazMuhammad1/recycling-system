@@ -70,4 +70,9 @@ class Collection extends Model
     {
         return $this->morphMany(ActivityLog::class, 'subject');
     }
+
+    public function partner()
+    {
+        return $this->belongsTo(\App\Models\Partner::class);
+    }
 }
