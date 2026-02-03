@@ -6,7 +6,7 @@ use App\Models\Collection;
 use App\Services\NumberService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Validation\Rule;
 class CollectionController extends Controller
 {
     public function index()
@@ -100,8 +100,8 @@ class CollectionController extends Controller
 
     public function update(Request $request, Collection $collection)
     {
+        
         $data = $this->validateCollection($request, true);
-
         DB::transaction(function () use ($collection, $data, $request) {
 
             // CLIENT (your existing logic)
@@ -144,7 +144,7 @@ class CollectionController extends Controller
                     'is_active' => 1,
                 ])->id;
             }
-
+           
             $collection->update(array_merge($data, [
                 'client_id' => $clientId,
                 'partner_id' => $partnerId, // 👈 attach partner
@@ -195,45 +195,82 @@ class CollectionController extends Controller
         ];
     }
 
-    private function validateCollection(Request $request, bool $updating=false): array
+    private function validateCollection(Request $request, bool $updating = false): array
     {
         return $request->validate([
-            'status' => 'required|in:created,collected,processed',
 
-            // IMPORTANT: client can be null if user is creating new client from fields
-            'client_id' => 'nullable|exists:clients,id',
-            'client_name' => 'nullable|required_without:client_id|string|max:255',
+            /* =====================
+            | CORE
+            ===================== */
+            'status' => ['required', Rule::in(['created','collected','processed'])],
 
-            'collection_date' => 'nullable|date',
+            /* =====================
+            | CLIENT (existing)
+            ===================== */
+            // client can be null if user creates a new one
+            'client_id'   => ['nullable', 'exists:clients,id'],
+            'client_name' => ['required_without:client_id', 'nullable', 'string', 'max:255'],
 
-            'address_line_1' => 'nullable|string|max:255',
-            'address_line_2' => 'nullable|string|max:255',
-            'town' => 'nullable|string|max:255',
-            'county' => 'nullable|string|max:255',
-            'postcode' => 'nullable|string|max:50',
-            'country' => 'required|string|max:100',
+            /* =====================
+            | PARTNER (NEW – same pattern as client)
+            ===================== */
+            'partner_id'   => ['nullable', 'exists:partners,id'],
+            'partner_name' => ['required_without:partner_id', 'nullable', 'string', 'max:255'],
 
-            'contact_name' => 'nullable|string|max:255',
-            'contact_email' => 'nullable|email|max:255',
-            'contact_number' => 'nullable|string|max:100',
-            'on_site_contact_name' => 'nullable|string|max:255',
-            'on_site_contact_number' => 'nullable|string|max:100',
+            /* =====================
+            | COLLECTION DETAILS
+            ===================== */
+            'collection_date' => ['nullable', 'date'],
 
-            'vehicles_used' => 'nullable|string|max:255',
-            'staff_members' => 'nullable|string|max:255',
+            /* =====================
+            | ADDRESS / LOCATION
+            ===================== */
+            'address_line_1' => ['nullable', 'string', 'max:255'],
+            'address_line_2' => ['nullable', 'string', 'max:255'],
+            'town'           => ['nullable', 'string', 'max:255'],
+            'county'         => ['nullable', 'string', 'max:255'],
+            'postcode'       => ['nullable', 'string', 'max:50'],
+            'country'        => ['required', 'string', 'max:100'],
 
-            'equipment_location' => 'nullable|string',
-            'access_elevator' => 'nullable|string',
-            'route_restrictions' => 'nullable|string',
-            'other_information' => 'nullable|string',
-            'internal_notes' => 'nullable|string',
+            /* =====================
+            | CONTACT DETAILS
+            ===================== */
+            'contact_name'             => ['nullable', 'string', 'max:255'],
+            'contact_email'            => ['nullable', 'email', 'max:255'],
+            'contact_number'           => ['nullable', 'string', 'max:100'],
+            'on_site_contact_name'     => ['nullable', 'string', 'max:255'],
+            'on_site_contact_number'   => ['nullable', 'string', 'max:100'],
 
-            'data_sanitisation' => 'nullable|string|max:255',
-            'collection_type' => 'nullable|string|max:255',
-            'logistics' => 'nullable|string|max:255',
+            /* =====================
+            | INTERNAL USE
+            ===================== */
+            'vehicles_used' => ['nullable', 'string', 'max:255'],
+            'staff_members' => ['nullable', 'string', 'max:255'],
 
-            'pre_collection_audit' => 'nullable|string',
-            'equipment_classification' => 'nullable|string',
+            /* =====================
+            | COLLECTION QUESTIONS
+            ===================== */
+            'equipment_location'  => ['nullable', 'string'],
+            'access_elevator'     => ['nullable', 'string'],
+            'route_restrictions'  => ['nullable', 'string'],
+            'other_information'   => ['nullable', 'string'],
+            'internal_notes'      => ['nullable', 'string'],
+
+            /* =====================
+            | ITAD OPTIONS
+            ===================== */
+            'data_sanitisation' => ['nullable', 'string', 'max:255'],
+            'collection_type'   => ['nullable', 'string', 'max:255'],
+            'logistics'         => ['nullable', 'string', 'max:255'],
+
+            /* =====================
+            | ITAD COMPLIANCE
+            ===================== */
+            'pre_collection_audit' => ['nullable', 'string', 'max:255'],
+
+            // limit to expected values (safer than free text)
+            'equipment_classification' => ['nullable', Rule::in(['EEE','WEEE'])],
         ]);
     }
+
 }

@@ -137,9 +137,9 @@
                     <div class="form-group row align-items-center">
                         <label class="col-sm-4 col-form-label font-weight-normal">Collection Date</label>
                         <div class="col-sm-8">
-                            <input type="date" id="collected_at" name="collected_at"
-                                   value="{{ old('collected_at', $collection?->collected_at) }}"
-                                   class="form-control form-control-sm @error('collected_at') is-invalid @enderror">
+                            <input type="date" id="collection_date" name="collection_date"
+                                   value="{{ old('collection_date', $collection?->collection_date) }}"
+                                   class="form-control form-control-sm @error('collection_date') is-invalid @enderror">
                         </div>
                     </div>
                     {{-- SLA Target --}}
