@@ -127,7 +127,7 @@ class CollectionItemController extends Controller
     public function processItemForm(Collection $collection, CollectionItem $item)
     {
         abort_unless($item->collection_id === $collection->id, 404);
-        $item->load(['category','manufacturer','productModel','stockItem']);
+        $item->load(['category','manufacturerRel','productModel','stockItem']);
 
         return view('collections.items.process_item', compact('collection','item'));
     }
@@ -196,12 +196,12 @@ class CollectionItemController extends Controller
 
                     $item->update([
                         'stock_item_id' => $stock->id,
-                        'status' => 'added_to_stock',
+                        'status' => 'add_to_stock',
                         'processed_at' => now(),
                     ]);
                 } else {
                     $item->update([
-                        'status' => 'added_to_stock',
+                        'status' => 'add_to_stock',
                         'processed_at' => now(),
                     ]);
                 }
@@ -263,6 +263,8 @@ class CollectionItemController extends Controller
             'new_items.*.dimensions' => 'nullable|string|max:255',
             'new_items.*.weight_kg' => 'nullable|numeric|min:0',
             'new_items.*.erasure_required' => 'nullable|boolean',
+            'items.*.is_collected' => 'nullable|boolean',
+            'new_items.*.is_collected' => 'nullable|boolean',
         ]);
 
         // ✅ numeric-id safety check ONLY when numeric
@@ -308,6 +310,7 @@ class CollectionItemController extends Controller
                     'dimensions' => $row['dimensions'] ?? null,
                     'weight_kg' => $row['weight_kg'] ?? 0,
                     'erasure_required' => (bool)($row['erasure_required'] ?? false),
+                    'status' => (bool)($row['is_collected'] ?? false) ? 'collected' : 'created',
                     'is_collected' => (bool)($row['is_collected'] ?? false),
                 ]);
             }
@@ -335,8 +338,8 @@ class CollectionItemController extends Controller
                     'weight_kg' => $row['weight_kg'] ?? 0,
                     'erasure_required' => (bool)($row['erasure_required'] ?? false),
                     'is_collected' => (bool)($row['is_collected'] ?? false),
-                    'status' => 'created',
-                    'collected' => false,
+                    'status' => (bool)($row['is_collected'] ?? false) ? 'collected' : 'created',
+                    'is_collected' => (bool)($row['is_collected'] ?? false),
                 ]);
             }
 

@@ -13,7 +13,7 @@ class CollectionItem extends Model
         'serial_number','asset_tags','dimensions','weight_kg',
         'erasure_required','status','collected','collected_at','processed_at',
         'process_action','item_valuation','refurb_cost','hdd_serial','erasure_report_path',
-        'stock_item_id',
+        'stock_item_id', 'is_collected'
     ];
 
     protected $casts = [
