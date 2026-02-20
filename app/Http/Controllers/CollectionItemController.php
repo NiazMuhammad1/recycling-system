@@ -127,8 +127,7 @@ class CollectionItemController extends Controller
     public function processItemForm(Collection $collection, CollectionItem $item)
     {
         abort_unless($item->collection_id === $collection->id, 404);
-        $item->load(['category','manufacturerRel','productModel','stockItem']);
-
+        $item->load(['manufacturerRel','productModel','hdds.manufacturerRel','hdds.productModel']);
         return view('collections.items.process_item', compact('collection','item'));
     }
 
@@ -152,6 +151,28 @@ class CollectionItemController extends Controller
             'condition_notes' => 'nullable|string',
             'price' => 'nullable|numeric|min:0',
             'fully_functional' => 'nullable|boolean',
+
+            // existing hdds
+            'hdds' => 'array',
+            'hdds.*.manufacturer_id' => 'nullable',
+            'hdds.*.manufacturer_text' => 'nullable|string|max:120',
+            'hdds.*.product_model_id' => 'nullable',
+            'hdds.*.model_text' => 'nullable|string|max:120',
+            'hdds.*.serial' => 'nullable|string|max:255',
+            'hdds.*.status' => 'nullable|string|max:30',
+            'hdds.*.delete' => 'nullable|in:0,1',
+            'hdds.*.erasure_report' => 'nullable|file|max:5120', // 5MB
+
+            // new hdds
+            'new_hdds' => 'array',
+            'new_hdds.*.manufacturer_id' => 'nullable',
+            'new_hdds.*.manufacturer_text' => 'nullable|string|max:120',
+            'new_hdds.*.product_model_id' => 'nullable',
+            'new_hdds.*.model_text' => 'nullable|string|max:120',
+            'new_hdds.*.serial' => 'nullable|string|max:255',
+            'new_hdds.*.status' => 'nullable|string|max:30',
+            'new_hdds.*.erasure_report' => 'nullable|file|max:5120',
+
         ]);
 
         DB::transaction(function () use ($collection, $item, $data, $request) {
@@ -222,6 +243,66 @@ class CollectionItemController extends Controller
                 ]);
             }
         });
+
+       
+        // hdd
+        foreach (($data['hdds'] ?? []) as $hddId => $row) {
+            $hdd = $item->hdds()->whereKey($hddId)->lockForUpdate()->first();
+            if (!$hdd) continue;
+
+            if (!empty($row['delete']) && $row['delete'] == '1') {
+                $hdd->clearMediaCollection('erasure_reports'); // optional
+                $hdd->delete();
+                continue;
+            }
+
+            [$manId, $modelId, $manText, $modelText] = $this->resolveManufacturerModel($row);
+
+            // ✅ Spatie media upload (replaces store + path column)
+            if ($request->hasFile("hdds.$hddId.erasure_report")) {
+                $hdd
+                    ->clearMediaCollection('erasure_reports') // safe, even with singleFile
+                    ->addMediaFromRequest("hdds.$hddId.erasure_report")
+                    ->toMediaCollection('erasure_reports');
+            }
+
+            $hdd->update([
+                'manufacturer_id' => $manId,
+                'product_model_id' => $modelId,
+                'manufacturer_text' => $manText,
+                'model_text' => $modelText,
+                'serial' => $row['serial'] ?? null,
+                'status' => $row['status'] ?? 'not_processed',
+                // ❌ remove 'erasure_report_path'
+            ]);
+        }
+
+        // create new
+        foreach (($data['new_hdds'] ?? []) as $key => $row) {
+
+            $hasSomething = !empty($row['serial']) || !empty($row['manufacturer_id']) || !empty($row['manufacturer_text']) || !empty($row['product_model_id']) || !empty($row['model_text']);
+            if (!$hasSomething) continue;
+
+            [$manId, $modelId, $manText, $modelText] = $this->resolveManufacturerModel($row);
+
+            $hdd = $item->hdds()->create([
+                'manufacturer_id' => $manId,
+                'product_model_id' => $modelId,
+                'manufacturer_text' => $manText,
+                'model_text' => $modelText,
+                'serial' => $row['serial'] ?? null,
+                'status' => $row['status'] ?? 'not_processed',
+                // ❌ remove 'erasure_report_path'
+            ]);
+
+            // ✅ attach media after create
+            if ($request->hasFile("new_hdds.$key.erasure_report")) {
+                $hdd
+                    ->addMediaFromRequest("new_hdds.$key.erasure_report")
+                    ->toMediaCollection('erasure_reports');
+            }
+        }
+
 
         return redirect()->route('collections.process.index', $collection)->with('success','Item processed.');
     }

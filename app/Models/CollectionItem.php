@@ -92,4 +92,11 @@ class CollectionItem extends Model
     {
         return $this->morphMany(ActivityLog::class, 'subject');
     }
+
+    public function hdds()
+    {
+        return $this->hasMany(\App\Models\CollectionItemHdd::class, 'collection_item_id');
+    }
+
+
 }
