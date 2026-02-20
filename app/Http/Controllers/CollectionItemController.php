@@ -172,6 +172,54 @@ class CollectionItemController extends Controller
             'new_hdds.*.serial' => 'nullable|string|max:255',
             'new_hdds.*.status' => 'nullable|string|max:30',
             'new_hdds.*.erasure_report' => 'nullable|file|max:5120',
+            'quantity' => 'nullable|integer|min:1',
+            'carbon_footprint' => 'nullable|numeric|min:0',
+
+            // HDD extra columns (from table)
+            'hdds.*.size' => 'nullable|string|max:50',
+            'hdds.*.notes' => 'nullable|string|max:255',
+            'hdds.*.create_separate_stock_item' => 'nullable|boolean',
+
+            'new_hdds.*.size' => 'nullable|string|max:50',
+            'new_hdds.*.notes' => 'nullable|string|max:255',
+            'new_hdds.*.create_separate_stock_item' => 'nullable|boolean',
+
+            // Stock Item Details (screen)
+            'sku' => 'nullable|string|max:100',
+            'serial_number' => 'nullable|string|max:255',
+            'asset_tags' => 'nullable|string|max:255',
+
+            // Model Details (screen)
+            'category_id' => 'nullable|integer',
+            'manufacturer_id' => 'nullable|integer',
+            'product_model_id' => 'nullable|integer',
+            'model' => 'nullable|string|max:255',
+            'year' => 'nullable|string|max:50',
+            'chassis' => 'nullable|string|max:50',
+
+            // Specs (screen)
+            'processor_manufacturer' => 'nullable|string|max:120',
+            'processor_type' => 'nullable|string|max:120',
+            'processor_speed_ghz' => 'nullable|numeric|min:0',
+
+            'ram_type' => 'nullable|string|max:120',
+            'ram_gb' => 'nullable|numeric|min:0',
+
+            'hdd_gb' => 'nullable|numeric|min:0',
+            'ssd_gb' => 'nullable|numeric|min:0',
+            'nvme_gb' => 'nullable|numeric|min:0',
+
+            'operating_system' => 'nullable|string|max:255',
+            'optical_drives' => 'nullable|string|max:255',
+
+            // Checkboxes (screen)
+            'charger_included' => 'nullable|boolean',
+            'accessories_included' => 'nullable|boolean',
+
+            // Bottom section (screen)
+            'product_images' => 'nullable|array',
+            'product_images.*' => 'file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
+            'notes' => 'nullable|string',
 
         ]);
 
@@ -213,17 +261,93 @@ class CollectionItemController extends Controller
                         'status' => 'in_stock',
                         'source_collection_id' => $collection->id,
                         'source_collection_item_id' => $item->id,
+                        'sku' => $data['sku'] ?? null,
+                        'serial_number' => $data['serial_number'] ?? ($item->serial_number ?? null),
+                        'asset_tags' => $data['asset_tags'] ?? ($item->asset_tags ?? null),
+
+                        'category_id' => $data['category_id'] ?? $item->category_id,
+                        'manufacturer_id' => $data['manufacturer_id'] ?? $item->manufacturer_id,
+                        'product_model_id' => $data['product_model_id'] ?? $item->product_model_id,
+                        'model' => $data['model'] ?? null,
+                        'year' => $data['year'] ?? null,
+                        'chassis' => $data['chassis'] ?? null,
+
+                        'processor_manufacturer' => $data['processor_manufacturer'] ?? null,
+                        'processor_type' => $data['processor_type'] ?? null,
+                        'processor_speed_ghz' => $data['processor_speed_ghz'] ?? null,
+
+                        'ram_type' => $data['ram_type'] ?? null,
+                        'ram_gb' => $data['ram_gb'] ?? null,
+
+                        'hdd_gb' => $data['hdd_gb'] ?? null,
+                        'ssd_gb' => $data['ssd_gb'] ?? null,
+                        'nvme_gb' => $data['nvme_gb'] ?? null,
+
+                        'operating_system' => $data['operating_system'] ?? null,
+                        'optical_drives' => $data['optical_drives'] ?? null,
+
+                        'charger_included' => !empty($data['charger_included']),
+                        'accessories_included' => !empty($data['accessories_included']),
+
+                        'notes' => $data['notes'] ?? null,
                     ]);
 
                     $item->update([
                         'stock_item_id' => $stock->id,
                         'status' => 'add_to_stock',
                         'processed_at' => now(),
+                        'quantity' => $data['quantity'] ?? $item->quantity,
+                        'carbon_footprint' => $data['carbon_footprint'] ?? $item->carbon_footprint,
                     ]);
                 } else {
+                    if ($item->stock_item_id) {
+                        $stock = StockItem::find($item->stock_item_id);
+
+                        if ($stock) {
+                            $stock->update([
+                                'price' => $data['price'] ?? $stock->price,
+                                'warehouse_location' => $data['warehouse_location'] ?? $stock->warehouse_location,
+                                'cosmetic_condition' => $data['cosmetic_condition'] ?? $stock->cosmetic_condition,
+                                'condition_notes' => $data['condition_notes'] ?? $stock->condition_notes,
+                                'fully_functional' => !empty($data['fully_functional']),
+
+                                'sku' => $data['sku'] ?? $stock->sku,
+                                'serial_number' => $data['serial_number'] ?? $stock->serial_number,
+                                'asset_tags' => $data['asset_tags'] ?? $stock->asset_tags,
+
+                                'category_id' => $data['category_id'] ?? $stock->category_id,
+                                'manufacturer_id' => $data['manufacturer_id'] ?? $stock->manufacturer_id,
+                                'product_model_id' => $data['product_model_id'] ?? $stock->product_model_id,
+                                'model' => $data['model'] ?? $stock->model,
+                                'year' => $data['year'] ?? $stock->year,
+                                'chassis' => $data['chassis'] ?? $stock->chassis,
+
+                                'processor_manufacturer' => $data['processor_manufacturer'] ?? $stock->processor_manufacturer,
+                                'processor_type' => $data['processor_type'] ?? $stock->processor_type,
+                                'processor_speed_ghz' => $data['processor_speed_ghz'] ?? $stock->processor_speed_ghz,
+
+                                'ram_type' => $data['ram_type'] ?? $stock->ram_type,
+                                'ram_gb' => $data['ram_gb'] ?? $stock->ram_gb,
+
+                                'hdd_gb' => $data['hdd_gb'] ?? $stock->hdd_gb,
+                                'ssd_gb' => $data['ssd_gb'] ?? $stock->ssd_gb,
+                                'nvme_gb' => $data['nvme_gb'] ?? $stock->nvme_gb,
+
+                                'operating_system' => $data['operating_system'] ?? $stock->operating_system,
+                                'optical_drives' => $data['optical_drives'] ?? $stock->optical_drives,
+
+                                'charger_included' => !empty($data['charger_included']),
+                                'accessories_included' => !empty($data['accessories_included']),
+                                'notes' => $data['notes'] ?? $stock->notes,
+                            ]);
+                        }
+                    }
+
                     $item->update([
                         'status' => 'add_to_stock',
                         'processed_at' => now(),
+                        'quantity' => $data['quantity'] ?? $item->quantity,
+                        'carbon_footprint' => $data['carbon_footprint'] ?? $item->carbon_footprint,
                     ]);
                 }
             } else {
@@ -231,6 +355,8 @@ class CollectionItemController extends Controller
                 $item->update([
                     'status' => 'processed',
                     'processed_at' => now(),
+                    'quantity' => $data['quantity'] ?? $item->quantity,
+                    'carbon_footprint' => $data['carbon_footprint'] ?? $item->carbon_footprint,
                 ]);
             }
 
@@ -240,6 +366,7 @@ class CollectionItemController extends Controller
                 $collection->update([
                     'status' => 'processed',
                     'processed_at' => now(),
+                    
                 ]);
             }
         });
@@ -273,6 +400,9 @@ class CollectionItemController extends Controller
                 'model_text' => $modelText,
                 'serial' => $row['serial'] ?? null,
                 'status' => $row['status'] ?? 'not_processed',
+                'size' => $row['size'] ?? null,
+                'notes' => $row['notes'] ?? null,
+                'create_separate_stock_item' => !empty($row['create_separate_stock_item']),
                 // ❌ remove 'erasure_report_path'
             ]);
         }
@@ -292,6 +422,9 @@ class CollectionItemController extends Controller
                 'model_text' => $modelText,
                 'serial' => $row['serial'] ?? null,
                 'status' => $row['status'] ?? 'not_processed',
+                'size' => $row['size'] ?? null,
+                'notes' => $row['notes'] ?? null,
+                'create_separate_stock_item' => !empty($row['create_separate_stock_item']),
                 // ❌ remove 'erasure_report_path'
             ]);
 

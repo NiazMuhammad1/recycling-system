@@ -2,6 +2,13 @@
 @section('title', 'Process Item')
 @section('plugins.Select2', true) 
 @section('content')
+@php
+    // if you have relationship:
+    $stock = $item->stockItem ?? null;
+
+    // if you DON'T have relationship, use this instead:
+    // $stock = $item->stock_item_id ? \App\Models\StockItem::find($item->stock_item_id) : null;
+@endphp
 <div class="container-fluid">
 
     <h1>{{ $item->item_number }} - {{ $item->manufacturer?->name ?? $item->manufacturer_text }} {{ $item->productModel?->name ?? $item->model_text }}</h1>
@@ -37,8 +44,13 @@
                         <div class="form-group">
                             <label>Erasure Report</label>
                             <input type="file" class="form-control-file" name="erasure_report">
-                            @if($item->erasure_report_path)
-                                <div class="small text-muted mt-1">Uploaded: {{ $item->erasure_report_path }}</div>
+
+                            @php $itemMedia = method_exists($item,'getFirstMedia') ? $item->getFirstMedia('erasure_reports') : null; @endphp
+                            @if($itemMedia)
+                                <div class="small text-muted mt-1">
+                                    Uploaded:
+                                    <a href="{{ $itemMedia->getUrl() }}" target="_blank">{{ $itemMedia->file_name }}</a>
+                                </div>
                             @endif
                         </div>
                     </div>
@@ -84,17 +96,25 @@
                 <table class="table table-sm table-bordered" id="hddTable">
                     <thead class="thead-light">
                         <tr>
-                            <th style="width:240px;">Manufacturer</th>
-                            <th style="width:240px;">Model</th>
-                            <th style="width:220px;">Serial</th>
-                            <th style="width:180px;">Status</th>
+                            <th style="width:140px;">Item No.</th>
+                            <th style="width:200px;">Manufacturer</th>
+                            <th style="width:200px;">Model</th>
+                            <th style="width:180px;">Serial</th>
+                            <th style="width:120px;">Size</th>
+                            <th style="width:160px;">Status</th>
+                            <th style="width:220px;">Notes</th>
                             <th style="width:240px;">Erasure Report</th>
+                            <th style="width:120px;">Create Separate Stock Item</th>
                             <th style="width:60px;"></th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($item->hdds as $hdd)
                             <tr data-row="existing" data-hdd-id="{{ $hdd->id }}">
+                                <td>
+                                    <input class="form-control form-control-sm" value="{{ $hdd->item_no ?? ($item->item_number ?? '') }}" readonly>
+                                </td>
+
                                 <td>
                                     <select class="form-control hddManSel" name="hdds[{{ $hdd->id }}][manufacturer_id]" style="width:100%">
                                         @if($hdd->manufacturerRel)
@@ -118,11 +138,15 @@
                                 </td>
 
                                 <td>
-                                    <input class="form-control" name="hdds[{{ $hdd->id }}][serial]" value="{{ $hdd->serial }}">
+                                    <input class="form-control form-control-sm" name="hdds[{{ $hdd->id }}][serial]" value="{{ $hdd->serial }}">
                                 </td>
 
                                 <td>
-                                    <select class="form-control" name="hdds[{{ $hdd->id }}][status]">
+                                    <input class="form-control form-control-sm" name="hdds[{{ $hdd->id }}][size]" value="{{ old("hdds.$hdd->id.size", $hdd->size ?? '') }}">
+                                </td>
+
+                                <td>
+                                    <select class="form-control form-control-sm" name="hdds[{{ $hdd->id }}][status]">
                                         @foreach(['not_processed'=>'Not Processed','erased'=>'Erased','failed'=>'Failed'] as $k=>$v)
                                             <option value="{{ $k }}" {{ $hdd->status===$k?'selected':'' }}>{{ $v }}</option>
                                         @endforeach
@@ -130,12 +154,24 @@
                                 </td>
 
                                 <td>
+                                    <input class="form-control form-control-sm" name="hdds[{{ $hdd->id }}][notes]" value="{{ old("hdds.$hdd->id.notes", $hdd->notes ?? '') }}">
+                                </td>
+
+                                <td>
                                     <input type="file" name="hdds[{{ $hdd->id }}][erasure_report]" class="form-control-file">
                                     @php $media = $hdd->getFirstMedia('erasure_reports'); @endphp
-
                                     @if($media)
-                                        <img src="{{ $media->getUrl() }}" width="120">
+                                        <div class="small mt-1">
+                                            <a href="{{ $media->getUrl() }}" target="_blank">{{ $media->file_name }}</a>
+                                        </div>
                                     @endif
+                                </td>
+
+                                <td class="text-center">
+                                    <input type="checkbox"
+                                        name="hdds[{{ $hdd->id }}][create_separate_stock_item]"
+                                        value="1"
+                                        {{ old("hdds.$hdd->id.create_separate_stock_item", $hdd->create_separate_stock_item ?? false) ? 'checked' : '' }}>
                                 </td>
 
                                 <td class="text-center">
@@ -143,14 +179,33 @@
                                     <input type="hidden" name="hdds[{{ $hdd->id }}][delete]" value="0" class="hddDeleteFlag">
                                 </td>
                             </tr>
-                        @endforeach
+                            @endforeach
                     </tbody>
                 </table>
 
                 <button type="button" class="btn btn-primary btn-sm" id="addHddBtn">Add HDD</button>
                 <hr>
                 <h5 class="mb-3">Stock Item Details (only used when Action = Add To Stock)</h5>
-
+                <div class="form-row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>SKU</label>
+                            <input class="form-control form-control-sm" name="sku" value="{{ old('sku', $stock->sku ?? '') }}">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Serial Number</label>
+                            <input class="form-control form-control-sm" name="serial_number" value="{{ old('serial_number', $stock->serial_number ?? $item->serial_number ?? '') }}">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Asset Tags</label>
+                            <input class="form-control form-control-sm" name="asset_tags" value="{{ old('asset_tags', $stock->asset_tags ?? $item->asset_tags ?? '') }}">
+                        </div>
+                    </div>
+                </div>
                 <div class="form-row">
                     <div class="col-md-4">
                         <div class="form-group">
@@ -189,6 +244,172 @@
                         <input type="checkbox" class="custom-control-input" id="fully_functional"
                                name="fully_functional" value="1" {{ old('fully_functional',1) ? 'checked':'' }}>
                         <label class="custom-control-label" for="fully_functional">Fully Functional</label>
+                    </div>
+                </div>
+                <h5 class="mb-3">Model Details</h5>
+
+                <div class="form-row">
+                    <div class="col-md-6">
+
+                        {{-- Category * --}}
+                        <div class="form-group">
+                            <label>Category <span class="text-danger">*</span></label>
+                            <select class="form-control form-control-sm" name="category_id" required>
+                                {{-- If you already have $categories list, use it; otherwise keep simple --}}
+                                @foreach(($categories ?? []) as $cat)
+                                    <option value="{{ $cat->id }}"
+                                        {{ (string)old('category_id', $stock->category_id ?? $item->category_id ?? '') === (string)$cat->id ? 'selected' : '' }}>
+                                        {{ $cat->name }}
+                                    </option>
+                                @endforeach
+
+                                {{-- Fallback if you don't pass $categories --}}
+                                @if(empty($categories))
+                                    <option value="{{ old('category_id', $stock->category_id ?? $item->category_id ?? '') }}" selected>
+                                        {{ old('category_id', $stock->category_id ?? $item->category_id ?? 'Please Select') }}
+                                    </option>
+                                @endif
+                            </select>
+                        </div>
+
+                        {{-- Manufacturer (text in screenshot) --}}
+                        <div class="form-group">
+                            <label>Manufacturer</label>
+                            <input class="form-control form-control-sm" name="manufacturer"
+                                value="{{ old('manufacturer', $stock->manufacturer ?? ($item->manufacturer?->name ?? $item->manufacturer_text ?? '')) }}">
+                        </div>
+
+                        {{-- Model (text in screenshot) --}}
+                        <div class="form-group">
+                            <label>Model</label>
+                            <input class="form-control form-control-sm" name="model"
+                                value="{{ old('model', $stock->model ?? ($item->productModel?->name ?? $item->model_text ?? '')) }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Year</label>
+                            <input class="form-control form-control-sm" name="year" value="{{ old('year', $stock->year ?? '') }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Chassis</label>
+                            <select class="form-control form-control-sm" name="chassis">
+                                @foreach(['Desktop','Laptop','All-in-One','Server','Other'] as $c)
+                                    <option value="{{ $c }}" {{ old('chassis', $stock->chassis ?? 'Desktop') === $c ? 'selected' : '' }}>
+                                        {{ $c }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- Processor: Manufacturer / Type / GHz --}}
+                        <div class="form-group">
+                            <label>Processor</label>
+
+                            <input class="form-control form-control-sm mb-2" name="processor_manufacturer"
+                                placeholder="Manufacturer"
+                                value="{{ old('processor_manufacturer', $stock->processor_manufacturer ?? '') }}">
+
+                            <div class="form-row">
+                                <div class="col-md-7">
+                                    <input class="form-control form-control-sm" name="processor_type"
+                                        placeholder="Type"
+                                        value="{{ old('processor_type', $stock->processor_type ?? '') }}">
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="input-group input-group-sm">
+                                        <input class="form-control" name="processor_speed_ghz"
+                                            value="{{ old('processor_speed_ghz', $stock->processor_speed_ghz ?? 0) }}">
+                                        <div class="input-group-append"><span class="input-group-text">Ghz</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- RAM: Type / GB --}}
+                        <div class="form-group">
+                            <label>RAM</label>
+                            <div class="form-row">
+                                <div class="col-md-7">
+                                    <input class="form-control form-control-sm" name="ram_type"
+                                        placeholder="Type"
+                                        value="{{ old('ram_type', $stock->ram_type ?? '') }}">
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="input-group input-group-sm">
+                                        <input class="form-control" name="ram_gb"
+                                            value="{{ old('ram_gb', $stock->ram_gb ?? 0) }}">
+                                        <div class="input-group-append"><span class="input-group-text">Gb</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- HDD / SSD / NVMe --}}
+                        <div class="form-group">
+                            <label>HDD</label>
+                            <div class="input-group input-group-sm">
+                                <input class="form-control" name="hdd_gb" value="{{ old('hdd_gb', $stock->hdd_gb ?? 0) }}">
+                                <div class="input-group-append"><span class="input-group-text">Gb</span></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>SSD</label>
+                            <div class="input-group input-group-sm">
+                                <input class="form-control" name="ssd_gb" value="{{ old('ssd_gb', $stock->ssd_gb ?? 0) }}">
+                                <div class="input-group-append"><span class="input-group-text">Gb</span></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>NVMe</label>
+                            <div class="input-group input-group-sm">
+                                <input class="form-control" name="nvme_gb" value="{{ old('nvme_gb', $stock->nvme_gb ?? 0) }}">
+                                <div class="input-group-append"><span class="input-group-text">Gb</span></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Operating System</label>
+                            <input class="form-control form-control-sm" name="operating_system"
+                                value="{{ old('operating_system', $stock->operating_system ?? '') }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Optical Drives</label>
+                            <input class="form-control form-control-sm" name="optical_drives"
+                                value="{{ old('optical_drives', $stock->optical_drives ?? '') }}">
+                        </div>
+
+                        {{-- Checkboxes (match screenshot) --}}
+                        <div class="form-group">
+                            <div class="custom-control custom-checkbox mb-2">
+                                <input type="checkbox" class="custom-control-input" id="fully_functional"
+                                    name="fully_functional" value="1"
+                                    {{ old('fully_functional', $stock->fully_functional ?? false) ? 'checked' : '' }}>
+                                <label class="custom-control-label" for="fully_functional">Fully Functional</label>
+                            </div>
+
+                            <div class="custom-control custom-checkbox mb-2">
+                                <input type="checkbox" class="custom-control-input" id="charger_included"
+                                    name="charger_included" value="1"
+                                    {{ old('charger_included', $stock->charger_included ?? false) ? 'checked' : '' }}>
+                                <label class="custom-control-label" for="charger_included">Charger / Power Supply Included</label>
+                            </div>
+
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="accessories_included"
+                                    name="accessories_included" value="1"
+                                    {{ old('accessories_included', $stock->accessories_included ?? false) ? 'checked' : '' }}>
+                                <label class="custom-control-label" for="accessories_included">Accessories Included</label>
+                            </div>
+                        </div>
+
+                        <hr>
+                        <h6 class="mb-2">Product Images</h6>
+                        <input type="file" name="product_images[]" multiple class="form-control-file">
+
                     </div>
                 </div>
 
@@ -310,25 +531,33 @@ $(function () {
 
         var $tr = $(`
             <tr data-row="new">
-                <td>
-                    <select class="form-control hddManSel" name="new_hdds[${key}][manufacturer_id]" style="width:100%"></select>
-                    <input type="hidden" class="hddManText" name="new_hdds[${key}][manufacturer_text]" value="">
-                </td>
-                <td>
-                    <select class="form-control hddModelSel" name="new_hdds[${key}][product_model_id]" style="width:100%"></select>
-                    <input type="hidden" class="hddModelText" name="new_hdds[${key}][model_text]" value="">
-                </td>
-                <td><input class="form-control" name="new_hdds[${key}][serial]" value=""></td>
-                <td>
-                    <select class="form-control" name="new_hdds[${key}][status]">
-                        <option value="not_processed">Not Processed</option>
-                        <option value="erased">Erased</option>
-                        <option value="failed">Failed</option>
-                    </select>
-                </td>
-                <td><input type="file" name="new_hdds[${key}][erasure_report]" class="form-control-file"></td>
-                <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger removeHddRow">&times;</button></td>
-            </tr>
+            <td><input class="form-control form-control-sm" value="" readonly></td>
+            <td>
+                <select class="form-control hddManSel" name="new_hdds[${key}][manufacturer_id]" style="width:100%"></select>
+                <input type="hidden" class="hddManText" name="new_hdds[${key}][manufacturer_text]" value="">
+            </td>
+            <td>
+                <select class="form-control hddModelSel" name="new_hdds[${key}][product_model_id]" style="width:100%"></select>
+                <input type="hidden" class="hddModelText" name="new_hdds[${key}][model_text]" value="">
+            </td>
+            <td><input class="form-control form-control-sm" name="new_hdds[${key}][serial]" value=""></td>
+            <td><input class="form-control form-control-sm" name="new_hdds[${key}][size]" value=""></td>
+            <td>
+                <select class="form-control form-control-sm" name="new_hdds[${key}][status]">
+                    <option value="not_processed">Not Processed</option>
+                    <option value="erased">Erased</option>
+                    <option value="failed">Failed</option>
+                </select>
+            </td>
+            <td><input class="form-control form-control-sm" name="new_hdds[${key}][notes]" value=""></td>
+            <td><input type="file" name="new_hdds[${key}][erasure_report]" class="form-control-file"></td>
+            <td class="text-center">
+                <input type="checkbox" name="new_hdds[${key}][create_separate_stock_item]" value="1">
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-outline-danger removeHddRow">&times;</button>
+            </td>
+        </tr>
         `);
 
         $('#hddTable tbody').append($tr);
