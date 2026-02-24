@@ -11,7 +11,7 @@ use App\Http\Controllers\ClientAjaxController;
 use App\Http\Controllers\PartnerAjaxController;
 use App\Http\Controllers\AjaxController;
 use App\Http\Controllers\CatalogAjaxController;
-
+use App\Http\Controllers\UserController;
 Route::get('/', function () {
     return view('welcome');
 });
@@ -19,6 +19,7 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::middleware('auth')->group(function () {
+    Route::resource('users', UserController::class);
     Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
     Route::resource('clients', ClientController::class);

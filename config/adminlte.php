@@ -329,7 +329,12 @@ return [
             'text' => 'Collections',
             'url'  => 'collections',
             'icon' => 'fas fa-truck',
-            ],
+        ],
+        [
+            'text' => 'Users',
+            'route' => 'users.index',
+            'icon' => 'fas fa-users',
+        ],
         [
             'text' => 'pages',
             'url' => 'admin/pages',
