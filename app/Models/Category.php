@@ -6,17 +6,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
-    protected $fillable = ['name','slug','is_active'];
+    protected $fillable = [
+        'name',
+        'ewc_code',
+        'default_weight_kg',
+        'component',
+        'concentration',
+        'physical_form',
+        'hazard_codes',
+        'type',
+        'is_active',
+    ];
 
-    protected $casts = ['is_active' => 'boolean'];
-
-    public function collectionItems()
-    {
-        return $this->hasMany(CollectionItem::class);
-    }
-
-    public function stockItems()
-    {
-        return $this->hasMany(StockItem::class);
-    }
+    protected $casts = [
+        'default_weight_kg' => 'decimal:2',
+        'is_active' => 'boolean',
+    ];
 }

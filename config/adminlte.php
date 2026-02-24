@@ -354,12 +354,12 @@ return [
             'icon' => 'fas fa-fw fa-lock',
         ],
         [
-            'text' => 'multilevel',
+            'text' => 'Admin',
             'icon' => 'fas fa-fw fa-share',
             'submenu' => [
                 [
-                    'text' => 'level_one',
-                    'url' => '#',
+                    'text' => 'Categories',
+                    'route' => 'categories.index',
                 ],
                 [
                     'text' => 'level_one',

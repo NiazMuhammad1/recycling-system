@@ -20,6 +20,7 @@ Auth::routes();
 
 Route::middleware('auth')->group(function () {
     Route::resource('users', UserController::class);
+    Route::resource('categories', \App\Http\Controllers\CategoryController::class);
     Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
     Route::resource('clients', ClientController::class);
