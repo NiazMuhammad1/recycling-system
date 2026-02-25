@@ -11,22 +11,6 @@
             <div class="col-lg-6 pr-lg-5">
                 <div class="itad-section">
                     <div class="itad-title">Client Details &amp; Location</div>
-
-                    {{-- Status --}}
-                    <div class="form-group row align-items-center">
-                        <label class="col-sm-4 col-form-label font-weight-normal">Collection Status *</label>
-                        <div class="col-sm-8">
-                            <select name="status" class="form-control form-control-sm @error('status') is-invalid @enderror">
-                                @foreach($statuses as $k => $label)
-                                    <option value="{{ $k }}" {{ old('status', $collection?->status ?? 'created') === $k ? 'selected' : '' }}>
-                                        {{ $label }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                    </div>
-
                     
                     {{-- Client --}}
                     <div class="form-group row align-items-center">
@@ -47,30 +31,6 @@
                                    value="{{ old('client_name', $collection?->client?->name ?? '') }}">
                         </div>
                     </div>
-
-                    {{-- Partner --}}
-                    <div class="form-group row align-items-center">
-                        <label class="col-sm-4 col-form-label font-weight-normal">Partner</label>
-                        <div class="col-sm-8">
-                            <select id="partner_id" name="partner_id"
-                                    class="form-control form-control-sm @error('partner_id') is-invalid @enderror"
-                                    style="width:100%;">
-                                @if($collection?->partner)
-                                    <option value="{{ $collection->partner->id }}" selected>
-                                        {{ $collection->partner->name }}
-                                    </option>
-                                @endif
-                            </select>
-
-                            @error('partner_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-
-                            {{-- hidden partner_name used when partner_id is empty --}}
-                            <input type="hidden" name="partner_name" id="partner_name"
-                                value="{{ old('partner_name', $collection?->partner?->name ?? '') }}">
-                        </div>
-                    </div>
-
-                    
 
                     {{-- Address Line 1 --}}
                     <div class="form-group row align-items-center">
@@ -209,31 +169,7 @@
                                    class="form-control form-control-sm @error('on_site_contact_number') is-invalid @enderror">
                         </div>
                     </div>
-                    <div class="itad-title mt-4">Internal Use - Transport Provider</div>
-                        <div class="form-group row align-items-center">
-                            <label class="col-sm-4 col-form-label font-weight-normal">Name</label>
-                            <div class="col-sm-8">
-                                <input type="text" name="transport_provider_name"
-                                    value="{{ old('transport_provider_name', $collection?->transport_provider_name ?? 'Eco Green IT Recycling') }}"
-                                    class="form-control form-control-sm @error('transport_provider_name') is-invalid @enderror">
-                            </div>
-                        </div>
-
-                        <div class="form-group row align-items-center">
-                            <label class="col-sm-4 col-form-label font-weight-normal">Registration No.</label>
-                            <div class="col-sm-8">
-                                <input type="text" name="transport_provider_registration_no"
-                                    value="{{ old('transport_provider_registration_no', $collection?->transport_provider_registration_no) }}"
-                                    class="form-control form-control-sm @error('transport_provider_registration_no') is-invalid @enderror">
-                            </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <label class="col-sm-4 col-form-label font-weight-normal">Address</label>
-                            <div class="col-sm-8">
-                                <textarea name="transport_provider_address" class="form-control form-control-sm" rows="3">{{ old('transport_provider_address', $collection?->transport_provider_address) }}</textarea>
-                            </div>
-                        </div>
+                    
                     <div class="itad-title mt-4">Internal Use</div>
 
                     <div class="form-group row align-items-center">
@@ -248,9 +184,14 @@
                     <div class="form-group row align-items-center mb-0">
                         <label class="col-sm-4 col-form-label font-weight-normal">Staff Members</label>
                         <div class="col-sm-8">
-                            <input type="text" name="staff_members"
-                                   value="{{ old('staff_members', $collection?->staff_members) }}"
-                                   class="form-control form-control-sm @error('staff_members') is-invalid @enderror">
+                            <select name="driver_id" id="driver_id" class="form-control select2">
+                                <option value="">-- Select Driver --</option>
+                                @foreach($drivers as $driver)
+                                    <option value="{{ $driver->id }}">
+                                        {{ $driver->name }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
 
@@ -316,7 +257,6 @@
                 @php
                     $typeOptions = [
                         'IT Asset Disposal (ITAD)',
-                        'IT Asset Remarketing (Resale)',
                         'IT Asset Redeployment',
                     ];
                     $typeVal = old('collection_type', $collection?->collection_type);
@@ -449,14 +389,13 @@
         top: 0;
     }
 </style>
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+
 @endpush
 
 @push('js')
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
-    
+
 (function () {
     const $client = $('#client_id');
 
@@ -520,73 +459,6 @@
         } catch (e) {
             console.error(e);
             alert('Unable to load client details.');
-        }
-    });
-})();
-</script>
-<script>
-(function () {
-    const $partner = $('#partner_id');
-
-    $partner.select2({
-        placeholder: 'Search partner name...',
-        allowClear: true,
-        ajax: {
-            url: '{{ route('ajax.partners.select2') }}',
-            dataType: 'json',
-            delay: 250,
-            data: params => ({ q: params.term || '' }),
-            processResults: data => data,
-            cache: true
-        },
-        width: '100%'
-    });
-
-    function setVal(id, v) {
-        const el = document.getElementById(id);
-        if (el) el.value = v ?? '';
-    }
-
-    function fillFromPartner(p) {
-        // store name in hidden partner_name for validation/creation
-        setVal('partner_name', p.name);
-
-        // OPTIONAL: If you also add partner fields in the form, fill them here:
-        // setVal('partner_address_line_1', p.address_line_1);
-        // setVal('partner_address_line_2', p.address_line_2);
-        // setVal('partner_town', p.town);
-        // setVal('partner_county', p.county);
-        // setVal('partner_postcode', p.postcode);
-        // setVal('partner_country', p.country || 'UK');
-        // setVal('partner_contact_name', p.contact_name);
-        // setVal('partner_contact_email', p.contact_email);
-        // setVal('partner_contact_number', p.contact_number);
-        // setVal('partner_on_site_contact_name', p.on_site_contact_name);
-        // setVal('partner_on_site_contact_number', p.on_site_contact_number);
-    }
-
-    async function loadPartner(id) {
-        const url = '{{ route('ajax.partners.show', ':id') }}'.replace(':id', id);
-        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-        if (!res.ok) throw new Error('Failed');
-        return await res.json();
-    }
-
-    $partner.on('change', async function () {
-        const id = $(this).val();
-
-        // If cleared => new partner mode
-        if (!id) {
-            setVal('partner_name', '');
-            return;
-        }
-
-        try {
-            const data = await loadPartner(id);
-            fillFromPartner(data);
-        } catch (e) {
-            console.error(e);
-            alert('Unable to load partner details.');
         }
     });
 })();

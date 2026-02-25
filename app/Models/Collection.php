@@ -17,7 +17,7 @@ class Collection extends Model
         'vehicles_used','staff_members',
         'equipment_location','access_elevator','route_restrictions','other_information',
         'internal_notes','data_sanitisation','collection_type','logistics',
-        'pre_collection_audit','equipment_classification', 'collected_at','processed_at', 'partner_id', 'sla_target', 'transport_provider_name', 'transport_provider_registration_no','transport_provider_address','adisa_dial_rating'
+        'pre_collection_audit','equipment_classification', 'collected_at','processed_at', 'sla_target', 'adisa_dial_rating'
     ];
 
     protected $casts = [
@@ -43,6 +43,11 @@ class Collection extends Model
     public function client()
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function items()

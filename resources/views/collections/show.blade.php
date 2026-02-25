@@ -46,18 +46,18 @@
                         <tr><td style="width:200px;">Collection Type</td><td>{{ $collection->collection_type ?? '-' }}</td></tr>
                         <tr><td>Logistics</td><td>{{ $collection->logistics ?? '-' }}</td></tr>
                         <tr><td>Equipment Location</td><td>{{ $collection->equipment_location ?? '-' }}</td></tr>
-                        <tr><td>Access Elevator</td><td>{{ $collection->access_elevator ? 'Yes' : 'No' }}</td></tr>
-                        <tr><td>Route Restrictions</td><td>{{ $collection->route_restrictions ? 'Yes' : 'No' }}</td></tr>
+                        <tr><td>Access Elevator</td><td>{{ $collection->access_elevator ?? '-'  }}</td></tr>
+                        <tr><td>Route Restrictions</td><td>{{ $collection->route_restrictions ?? '-'  }}</td></tr>
                         <tr><td>Other Information</td><td>{{ $collection->other_information ?? '-' }}</td></tr>
                     </table>
                 </div>
 
                 <div class="col-md-6">
-                    <h5>Transport Provider & Compliance</h5>
+                    <h5>Vehicle Used</h5>
                     <table class="table table-borderless table-sm mb-0">
-                        <tr><td style="width:200px;">Transport Provider</td><td>{{ $collection->transport_provider_name ?? '-' }}</td></tr>
-                        <tr><td>Registration No</td><td>{{ $collection->transport_provider_registration_no ?? '-' }}</td></tr>
-                        <tr><td>Address</td><td>{{ $collection->transport_provider_address ?? '-' }}</td></tr>
+                        <tr><td style="width:200px;">Vehicles Used</td><td>{{ $collection->vehicles_used ?? '-' }}</td></tr>
+                        <tr><td>Driver Name</td><td>{{ $collection->client?->name ?? '-' }}</td></tr>
+                        <tr><td>Created By</td><td>{{ $collection->user?->name ?? '-' }}</td></tr>
                         <tr><td>ADISA / DIAL Rating</td><td>{{ $collection->adisa_dial_rating ?? '-' }}</td></tr>
                     </table>
                 </div>
@@ -69,11 +69,11 @@
                     <table class="table table-borderless table-sm mb-0">
                         <tr>
                             <td style="width:200px;">Data Sanitisation</td>
-                            <td>{{ $collection->data_sanitisation ? 'Yes' : 'No' }}</td>
+                            <td>{{ $collection->data_sanitisation ?? '-'  }}</td>
                         </tr>
                         <tr>
                             <td>Pre-Collection Audit</td>
-                            <td>{{ $collection->pre_collection_audit ? 'Yes' : 'No' }}</td>
+                            <td>{{ $collection->pre_collection_audit ?? '-'  }}</td>
                         </tr>
                         
                     </table>

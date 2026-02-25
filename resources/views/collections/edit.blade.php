@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 @section('title','Edit Collection')
-
+@section('plugins.Select2', true)
 @section('content_header')
 <h1>Edit Collection {{ $collection->collection_code }}</h1>
 @stop

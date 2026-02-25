@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 @section('title','Create Collection')
-
+@section('plugins.Select2', true)
 @section('content_header')
 <h1>Create New Collection</h1>
 @stop
