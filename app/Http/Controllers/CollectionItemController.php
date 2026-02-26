@@ -16,7 +16,7 @@ class CollectionItemController extends Controller
     {
         $mode = 'edit';
         $collection->load(['items.category','items.manufacturerRel','items.productModel']);
-        $categories = \App\Models\Category::where('is_active',1)->orderBy('sort_order')->get();
+        $categories = \App\Models\Category::where('is_active',1)->get();
         return view('collections.items.edit', compact('collection','categories','mode'));
     }
 
@@ -75,12 +75,18 @@ class CollectionItemController extends Controller
     }
 
     // STEP 3: Collect form (screenshot #4)
+
     public function collectForm(Collection $collection)
     {
         $mode = 'collect';
-        $collection->load(['items.category','items.manufacturerRel','items.productModel']);
-        $categories = \App\Models\Category::where('is_active',1)->orderBy('sort_order')->get();
-        return view('collections.items.edit', compact('collection','categories','mode'));
+        $collection->load(['items.category']);
+
+        $categories = \App\Models\Category::query()
+            ->where('is_active', 1)
+            ->orderBy('name')
+            ->get();
+
+        return view('collections.items.edit', compact('collection', 'categories', 'mode'));
     }
 
     public function collectSave(Request $request, Collection $collection)
@@ -442,143 +448,54 @@ class CollectionItemController extends Controller
 
     public function updateGrid(Request $request, Collection $collection)
     {
-        //echo "<pre>"; print_r($request->all()); exit;
         $data = $request->validate([
-           
+            'items' => ['array'],
+            'items.*.qty' => ['required','integer','min:1','max:500'],
+            'items.*.category_id' => ['required','exists:categories,id'],
+            'items.*.weight_kg' => ['nullable','numeric','min:0'],
+            'items.*.is_collected' => ['nullable','boolean'],
 
-            'items' => 'array',
-            'items.*.qty' => 'required|integer|min:1|max:500',
-            'items.*.category_id' => 'required|exists:categories,id',
-
-            // allow numeric OR text (select2 tags)
-            'items.*.manufacturer_id' => 'nullable',
-            'items.*.manufacturer_text' => 'nullable|string|max:120',
-            'items.*.product_model_id' => 'nullable',
-            'items.*.model_text' => 'nullable|string|max:120',
-
-            'items.*.serial_number' => 'nullable|string|max:255',
-            'items.*.asset_tags' => 'nullable|string|max:255',
-            'items.*.dimensions' => 'nullable|string|max:255',
-            'items.*.weight_kg' => 'nullable|numeric|min:0',
-            'items.*.erasure_required' => 'nullable|boolean',
-
-            'new_items' => 'array',
-            'new_items.*.qty' => 'required|integer|min:1|max:500',
-            'new_items.*.category_id' => 'required|exists:categories,id',
-
-            // allow numeric OR text (select2 tags)
-            'new_items.*.manufacturer_id' => 'nullable',
-            'new_items.*.manufacturer_text' => 'nullable|string|max:120',
-            'new_items.*.product_model_id' => 'nullable',
-            'new_items.*.model_text' => 'nullable|string|max:120',
-
-            'new_items.*.serial_number' => 'nullable|string|max:255',
-            'new_items.*.asset_tags' => 'nullable|string|max:255',
-            'new_items.*.dimensions' => 'nullable|string|max:255',
-            'new_items.*.weight_kg' => 'nullable|numeric|min:0',
-            'new_items.*.erasure_required' => 'nullable|boolean',
-            'items.*.is_collected' => 'nullable|boolean',
-            'new_items.*.is_collected' => 'nullable|boolean',
+            'new_items' => ['array'],
+            'new_items.*.qty' => ['required','integer','min:1','max:500'],
+            'new_items.*.category_id' => ['required','exists:categories,id'],
+            'new_items.*.weight_kg' => ['nullable','numeric','min:0'],
+            'new_items.*.is_collected' => ['nullable','boolean'],
         ]);
 
-        // ✅ numeric-id safety check ONLY when numeric
-        $checkNumericIds = function (array $row) {
-            if (!empty($row['manufacturer_id']) && is_numeric($row['manufacturer_id'])) {
-                abort_unless(Manufacturer::whereKey($row['manufacturer_id'])->exists(), 422, 'Invalid manufacturer');
-            }
-            if (!empty($row['product_model_id']) && is_numeric($row['product_model_id'])) {
-                abort_unless(ProductModel::whereKey($row['product_model_id'])->exists(), 422, 'Invalid model');
-            }
-        };
+        \DB::transaction(function () use ($collection, $data) {
 
-        foreach (($data['items'] ?? []) as $row) $checkNumericIds($row);
-        foreach (($data['new_items'] ?? []) as $row) $checkNumericIds($row);
-
-        $collectIds = collect($data['collect_ids'] ?? [])->map(fn($v)=>(int)$v)->all();
-
-        DB::transaction(function () use ($collection, $data, $collectIds) {
-
-            // -------------------------
-            // Update existing rows
-            // -------------------------
+            // Update existing items
             foreach (($data['items'] ?? []) as $id => $row) {
-
-                /** @var CollectionItem $item */
                 $item = $collection->items()->whereKey($id)->lockForUpdate()->firstOrFail();
 
-                [$manId, $modelId, $manText, $modelText] = $this->resolveManufacturerModel($row);
+                $isCollected = (bool)($row['is_collected'] ?? false);
 
                 $item->update([
                     'qty' => $row['qty'],
                     'category_id' => $row['category_id'],
-
-                    'manufacturer_id' => $manId,
-                    'product_model_id' => $modelId,
-
-                    // store texts also
-                    'manufacturer_text' => $manText,
-                    'model_text' => $modelText,
-
-                    'serial_number' => $row['serial_number'] ?? null,
-                    'asset_tags' => $row['asset_tags'] ?? null,
-                    'dimensions' => $row['dimensions'] ?? null,
                     'weight_kg' => $row['weight_kg'] ?? 0,
-                    'erasure_required' => (bool)($row['erasure_required'] ?? false),
-                    'status' => (bool)($row['is_collected'] ?? false) ? 'collected' : 'created',
-                    'is_collected' => (bool)($row['is_collected'] ?? false),
+                    'is_collected' => $isCollected,
+                    'status' => $isCollected ? 'collected' : 'created',
                 ]);
             }
 
-            // -------------------------
-            // Create new rows
-            // -------------------------
+            // Create new items
             foreach (($data['new_items'] ?? []) as $row) {
+                $isCollected = (bool)($row['is_collected'] ?? false);
 
-                [$manId, $modelId, $manText, $modelText] = $this->resolveManufacturerModel($row);
-
-                 $created = $collection->items()->create([
+                $collection->items()->create([
                     'qty' => $row['qty'],
                     'category_id' => $row['category_id'],
-
-                    'manufacturer_id' => $manId,
-                    'product_model_id' => $modelId,
-
-                    'manufacturer_text' => $manText,
-                    'model_text' => $modelText,
-
-                    'serial_number' => $row['serial_number'] ?? null,
-                    'asset_tags' => $row['asset_tags'] ?? null,
-                    'dimensions' => $row['dimensions'] ?? null,
                     'weight_kg' => $row['weight_kg'] ?? 0,
-                    'erasure_required' => (bool)($row['erasure_required'] ?? false),
-                    'is_collected' => (bool)($row['is_collected'] ?? false),
-                    'status' => (bool)($row['is_collected'] ?? false) ? 'collected' : 'created',
-                    'is_collected' => (bool)($row['is_collected'] ?? false),
+                    'is_collected' => $isCollected,
+                    'status' => $isCollected ? 'collected' : 'created',
                 ]);
             }
 
-            // -------------------------
-            // If collect page submitted => update collected flags
-            // -------------------------
-            if (!empty($collectIds)) {
-                // reset all items first
-                $collection->items()->update([
-                    'collected' => false,
-                    'collected_at' => null,
-                ]);
-
-                // mark selected
-                $collection->items()->whereIn('id', $collectIds)->update([
-                    'collected' => true,
-                    'collected_at' => now(),
-                    'status' => 'collected',
-                ]);
-
-                // update collection status
-                $collection->update(['status' => 'collected']);
-            }
-
-            // ✅ DO NOT call renumberItems() (you said seq column not exists)
+            // If you want: when collect mode, set collection status automatically if all collected
+            // (optional)
+            // $allCollected = $collection->items()->where('is_collected', false)->count() === 0;
+            // if ($allCollected) $collection->update(['status' => 'collected']);
         });
 
         return back()->with('success', 'Saved successfully.');
