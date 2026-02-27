@@ -12,12 +12,19 @@ use Illuminate\Support\Facades\Storage;
 class CollectionItemController extends Controller
 {
     // STEP 2: Edit items grid (screenshot #2)
+   
     public function edit(Collection $collection)
     {
         $mode = 'edit';
-        $collection->load(['items.category','items.manufacturerRel','items.productModel']);
-        $categories = \App\Models\Category::where('is_active',1)->get();
-        return view('collections.items.edit', compact('collection','categories','mode'));
+        $collection->load(['items.category', 'driver', 'user']);
+        $driver = auth()->user();
+        $categories = \App\Models\Category::query()
+            ->where('is_active', 1)
+            ->orderBy('name')
+            ->get();
+       
+
+        return view('collections.items.edit', compact('collection', 'categories', 'mode'));
     }
 
     // Add many items when qty typed and button clicked
@@ -79,12 +86,14 @@ class CollectionItemController extends Controller
     public function collectForm(Collection $collection)
     {
         $mode = 'collect';
-        $collection->load(['items.category']);
-
+        $collection->load(['items.category', 'driver','user']);
+        $driver = auth()->user();
         $categories = \App\Models\Category::query()
             ->where('is_active', 1)
             ->orderBy('name')
             ->get();
+
+        // If collection doesn't already have saved driver signature, prefill from user
 
         return view('collections.items.edit', compact('collection', 'categories', 'mode'));
     }
@@ -460,6 +469,11 @@ class CollectionItemController extends Controller
             'new_items.*.category_id' => ['required','exists:categories,id'],
             'new_items.*.weight_kg' => ['nullable','numeric','min:0'],
             'new_items.*.is_collected' => ['nullable','boolean'],
+            'client_signature' => ['nullable','string'],
+            'driver_signature' => ['nullable','string'],
+            'client_print_name' => ['nullable','string','max:255'],
+            'mode' => ['nullable','string'],
+            'driver_print_name' => ['nullable','string','max:255'],
         ]);
 
         \DB::transaction(function () use ($collection, $data) {
@@ -491,6 +505,15 @@ class CollectionItemController extends Controller
                     'status' => $isCollected ? 'collected' : 'created',
                 ]);
             }
+            if (($data['mode'] ?? '') === 'collect') {
+                $collection->update([
+                    'client_signature' => $data['client_signature'] ?? null,
+                    'client_print_name' => $data['client_print_name'] ?? null,
+                    'driver_signature' => $data['driver_signature'] ?? null,
+                    'driver_print_name' => $data['driver_print_name'] ?? null,
+                ]);
+            }
+
 
             // If you want: when collect mode, set collection status automatically if all collected
             // (optional)

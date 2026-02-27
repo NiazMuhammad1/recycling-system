@@ -75,6 +75,50 @@
 
             </div>
 
+            <div class="col-md-6 pr-lg-5">
+
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <strong>Driver Signature</strong>
+                        <small class="text-muted">(draw with mouse/touch)</small>
+                    </div>
+
+                    <div class="card-body">
+                        <input type="hidden" name="signature" id="signature_png" value="{{ old('signature', $user?->signature) }}">
+
+                        <div class="border rounded p-2" style="background:#fff;">
+                            <canvas id="sigCanvas" height="160" style="width:100%;"></canvas>
+                        </div>
+
+                        <div class="mt-2 d-flex">
+                            <button type="button" class="btn btn-outline-secondary btn-sm mr-2" id="sigClear">
+                                <i class="fas fa-eraser"></i> Clear
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="sigSaveToHidden">
+                                <i class="fas fa-save"></i> Use this signature
+                            </button>
+                        </div>
+
+                        
+
+                        <small class="text-muted d-block mt-2">
+                            Tip: click “Use this signature” after signing.
+                        </small>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-md-6 pr-lg-5">
+
+                <div class="mt-3">
+                    <label>Signature Print Name</label>
+                    <input class="form-control form-control-sm"
+                        name="signature_print_name"
+                        value="{{ old('signature_print_name', $user?->signature_print_name) }}">
+                </div>
+
+            </div>
+
             {{-- PERMISSIONS (FULL WIDTH) --}}
             <div class="col-12 px-2 mt-2">
                 <div class="card card-outline card-secondary">
@@ -158,5 +202,83 @@
     document.getElementById('uncheckAllPerms')?.addEventListener('click', function () {
         document.querySelectorAll('input[name="permissions[]"]').forEach(cb => cb.checked = false);
     });
+    (function () {
+    const canvas = document.getElementById('sigCanvas');
+    if (!canvas) return;
+
+    // make canvas match container width (retina safe)
+    function resizeCanvas() {
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * ratio;
+        canvas.height = 160 * ratio;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(ratio, ratio);
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#000';
+        // redraw existing
+        const existing = document.getElementById('signature_png')?.value;
+        if (existing) {
+            const img = new Image();
+            img.onload = () => ctx.drawImage(img, 0, 0, rect.width, 160);
+            img.src = existing;
+        }
+    }
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    let last = {x:0,y:0};
+
+    function pos(e) {
+        const r = canvas.getBoundingClientRect();
+        const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+        const y = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+        return {x,y};
+    }
+
+    function start(e) {
+        drawing = true;
+        last = pos(e);
+        e.preventDefault();
+    }
+
+    function move(e) {
+        if (!drawing) return;
+        const p = pos(e);
+        ctx.beginPath();
+        ctx.moveTo(last.x, last.y);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+        last = p;
+        e.preventDefault();
+    }
+
+    function stop(e) {
+        drawing = false;
+        e.preventDefault();
+    }
+
+    canvas.addEventListener('mousedown', start);
+    canvas.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', stop);
+
+    canvas.addEventListener('touchstart', start, {passive:false});
+    canvas.addEventListener('touchmove', move, {passive:false});
+    window.addEventListener('touchend', stop, {passive:false});
+
+    document.getElementById('sigClear')?.addEventListener('click', () => {
+        const r = canvas.getBoundingClientRect();
+        ctx.clearRect(0, 0, r.width, 160);
+        document.getElementById('signature_png').value = '';
+    });
+
+    document.getElementById('sigSaveToHidden')?.addEventListener('click', () => {
+        document.getElementById('signature_png').value = canvas.toDataURL('image/png');
+    });
+})();
 </script>
 @endpush

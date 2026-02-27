@@ -38,12 +38,16 @@ class UserController extends Controller
             'role' => ['required','string','exists:roles,name'],
             'permissions' => ['array'],
             'permissions.*' => ['string','exists:permissions,name'],
+            'signature' => ['nullable','string'], // data url
+            'signature_print_name' => ['nullable','string','max:255'],
         ]);
 
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => bcrypt($data['password']),
+            'signature' => $data['signature'] ?? null,
+            'signature_print_name' => $data['signature_print_name'] ?? null,
         ]);
 
         $user->syncRoles([$data['role']]);
@@ -84,6 +88,8 @@ class UserController extends Controller
             'role' => ['required','string','exists:roles,name'],
             'permissions' => ['array'],
             'permissions.*' => ['string','exists:permissions,name'],
+            'signature' => ['nullable','string'], // data url
+            'signature_print_name' => ['nullable','string','max:255'],
         ]);
 
         $user->name = $data['name'];
@@ -93,6 +99,8 @@ class UserController extends Controller
             $user->password = bcrypt($data['password']);
         }
 
+        $user->signature = $data['signature'] ?? null;
+        $user->signature_print_name = $data['signature_print_name'] ?? null;
         $user->save();
 
         $user->syncRoles([$data['role']]);
