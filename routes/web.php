@@ -12,6 +12,7 @@ use App\Http\Controllers\PartnerAjaxController;
 use App\Http\Controllers\AjaxController;
 use App\Http\Controllers\CatalogAjaxController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CollectionPdfController;
 Route::get('/', function () {
     return view('welcome');
 });
@@ -19,6 +20,12 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::middleware('auth')->group(function () {
+    Route::get('/collections/{collection}/pdf/duty-of-care', [CollectionPdfController::class, 'dutyOfCare'])
+    ->name('collections.pdf.duty_of_care');
+
+    Route::get('/collections/{collection}/pdf/hazardous', [CollectionPdfController::class, 'hazardous'])
+    ->name('collections.pdf.hazardous');
+
     Route::resource('users', UserController::class);
     Route::resource('categories', \App\Http\Controllers\CategoryController::class);
     Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
