@@ -21,7 +21,7 @@
     </div>
 
     <div class="card-body p-0">
-        <table class="table table-striped mb-0">
+        <table class="table table-striped table-hover table-sm mb-0">
             <thead>
                 <tr>
                     <th>Code</th>
