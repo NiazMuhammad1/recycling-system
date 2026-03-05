@@ -3,51 +3,81 @@
 <head>
 <meta charset="UTF-8">
 <style>
-    body { font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #000; margin: 8px; }
-    table { border-collapse: collapse; width: 100%; }
-    .section-header { background-color: #000; color: #fff; font-weight: bold; font-size: 10px; padding: 3px 5px; }
-    .bordered { border: 1.5px solid #000; }
-    .bordered td, .bordered th { border: 1px solid #000; padding: 2px 4px; vertical-align: top; }
-    .bordered th { background-color: #e0e0e0; font-weight: bold; text-align: center; font-size: 9px; }
-    .label { font-weight: bold; font-size: 9px; }
-    .value { font-size: 10px; }
-    .checkbox { display: inline-block; width: 11px; height: 11px; border: 1px solid #000; text-align: center; font-size: 9px; line-height: 11px; margin-right: 2px; }
-    .checkbox-checked { display: inline-block; width: 11px; height: 11px; border: 1px solid #000; text-align: center; font-size: 9px; line-height: 11px; margin-right: 2px; background-color: #000; color: #fff; }
-    .sig-line { border-bottom: 1px solid #000; min-width: 120px; display: inline-block; padding-bottom: 1px; }
-    h1 { font-size: 15px; font-weight: bold; margin: 0; text-align: center; }
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 10px;
+        color: #000;
+        margin: 8px;
+    }
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+    .section-header {
+        background-color: #000;
+        color: #fff;
+        font-weight: bold;
+        font-size: 10px;
+        padding: 3px 5px;
+    }
+    .bordered {
+        border: 1.5px solid #000;
+    }
+    .bordered td, .bordered th {
+        border: 1px solid #000;
+        padding: 2px 4px;
+        vertical-align: top;
+    }
+    .bordered th {
+        background-color: #e0e0e0;
+        font-weight: bold;
+        text-align: center;
+        font-size: 9px;
+    }
+    .label {
+        font-weight: bold;
+        font-size: 9px;
+    }
+    .value {
+        font-size: 10px;
+    }
+    .checkbox {
+        display: inline-block;
+        width: 11px;
+        height: 11px;
+        border: 1px solid #000;
+        text-align: center;
+        font-size: 9px;
+        line-height: 11px;
+        margin-right: 2px;
+    }
+    .checkbox-checked {
+        display: inline-block;
+        width: 11px;
+        height: 11px;
+        border: 1px solid #000;
+        text-align: center;
+        font-size: 9px;
+        line-height: 11px;
+        margin-right: 2px;
+        background-color: #000;
+        color: #fff;
+    }
+    .sig-line {
+        border-bottom: 1px solid #000;
+        min-width: 120px;
+        display: inline-block;
+        padding-bottom: 1px;
+    }
+    h1 {
+        font-size: 15px;
+        font-weight: bold;
+        margin: 0;
+        text-align: center;
+    }
 </style>
 </head>
 <body>
-
-@php
-    // Collection/site address (you store it on collections table)
-    $siteName = optional($collection->client)->name ?? 'Client';
-    $siteAddr = trim(collect([
-        $collection->address_line_1,
-        $collection->address_line_2,
-        $collection->town,
-        $collection->county,
-        $collection->postcode,
-    ])->filter()->implode(', '));
-
-    $date = optional($collection->collected_at)->format('d/m/Y') ?? now()->format('d/m/Y');
-    $time = optional($collection->collected_at)->format('H:i') ?? now()->format('H:i');
-
-    // driver info
-    $driverName = $collection->driver_print_name
-        ?? optional($collection->user)->signature_print_name
-        ?? optional($collection->user)->name
-        ?? 'Driver';
-
-    // signatures
-    $driverSig = $collection->driver_signature; // data:image/png;base64,...
-    $clientSig = $collection->client_signature;
-
-    // some defaults (you can move to config later)
-    $carrierLicence = 'CBDU457511';
-    $vehicleReg = $collection->vehicles_used ?? '________';
-    $wasteOperation = $collection->waste_operation_code ?? 'R13';
-@endphp
 
 <!-- HEADER -->
 <table style="width:100%; margin-bottom: 4px;">
@@ -70,26 +100,23 @@
     <tr>
         <td style="width: 50%; padding: 4px; line-height: 1.6;">
             <span class="label">2. The waste described below is to be removed from:</span><br/>
-            <span class="value">{{ $siteName }}</span><br/>
-            <span class="value">{{ $siteAddr }}</span><br/><br/>
+            <span class="value">WSF Group</span><br/>
+            <span class="value">3D Park Road East, NG14 6LL</span><br/><br/>
             <span class="label">3. Premises code (if applicable):</span>
             <span class="sig-line" style="min-width: 100px;">________</span>
         </td>
         <td style="width: 50%; padding: 4px; line-height: 1.6;">
-            <span class="label">1. Consignment Note Code</span>
-            <strong>{{ $consignmentCode }}</strong><br/><br/>
-
+            <span class="label">1. Consignment Note Code</span> <strong>OLE954 / 14647</strong><br/><br/>
             <span class="label">4. The waste will be taken to:</span><br/>
             <span class="value">Commercial IT Recycling LTD</span><br/>
             <span class="value">Unit 3, 3 Gibbons Street, Dunkirk Industrial Estate, Nottingham, NG7 2SB</span><br/><br/>
-
             <span class="label">5. The waste producer was (if different from 2.):</span><br/>
             <span class="value">AS A2</span>
         </td>
     </tr>
 </table>
 
-<!-- PART B header -->
+<!-- PART B -->
 <table class="bordered" style="margin-bottom: 4px;">
     <tr>
         <td colspan="7" class="section-header">PART B: Description of the waste</td>
@@ -109,9 +136,18 @@
             <span class="label">3. WASTE DETAILS:</span>
         </td>
     </tr>
+    <tr>
+        <th>Description</th>
+        <th>EWC Code</th>
+        <th>Quantity</th>
+        <th>Approx Weight (kg)</th>
+        <th>Total Weight (kg):</th>
+        <th>Component</th>
+        <th>Concentration</th>
+    </tr>
 </table>
 
-<!-- Waste details table -->
+<!-- Waste details table (separate for clarity) -->
 <table class="bordered" style="margin-bottom: 0; margin-top: -2px;">
     <tr>
         <th style="width: 16%;">Description</th>
@@ -124,24 +160,86 @@
         <th style="width: 9%;">Physical Form</th>
         <th style="width: 9%;">Hazard Code(s)</th>
     </tr>
-
-    @foreach($rows as $r)
-        <tr>
-            <td>{{ $r->category->name }}</td>
-            <td style="text-align: center;">{{ $r->category->ewc_code }}</td>
-            <td style="text-align: center;">{{ $r->qty ?: '' }}</td>
-            <td style="text-align: center;">{{ $r->per_item_weight ?: '' }}</td>
-            <td style="text-align: center;">{{ $r->total_weight ?: '' }}</td>
-            <td>{{ $r->category->component }}</td>
-            <td>{{ $r->category->concentration }}</td>
-            <td style="text-align: center;">{{ $r->category->physical_form }}</td>
-            <td style="text-align: center;">{{ $r->category->hazard_codes }}</td>
-        </tr>
-    @endforeach
-
+    <tr>
+        <td>CRT Monitor / TV</td>
+        <td style="text-align: center;">20:01:35</td>
+        <td style="text-align: center;"></td>
+        <td style="text-align: center;">15</td>
+        <td style="text-align: center;"></td>
+        <td>Lead</td>
+        <td>(up to 2.2kg)</td>
+        <td style="text-align: center;">Solid</td>
+        <td style="text-align: center;">H6</td>
+    </tr>
+    <tr>
+        <td>Laptop/Tablet</td>
+        <td style="text-align: center;">20:01:35</td>
+        <td style="text-align: center;"></td>
+        <td style="text-align: center;">2.5</td>
+        <td style="text-align: center;"></td>
+        <td>Lead, Mercury</td>
+        <td>Approx 0.5KG</td>
+        <td style="text-align: center;">Solid</td>
+        <td style="text-align: center;">H6</td>
+    </tr>
+    <tr>
+        <td>All in One PC</td>
+        <td style="text-align: center;">20:01:35</td>
+        <td style="text-align: center;"></td>
+        <td style="text-align: center;">15</td>
+        <td style="text-align: center;"></td>
+        <td>Mercury</td>
+        <td>Up to 2%</td>
+        <td style="text-align: center;">Solid</td>
+        <td style="text-align: center;">H6</td>
+    </tr>
+    <tr>
+        <td>LCD / TFT Monitor</td>
+        <td style="text-align: center;">20:01:35</td>
+        <td style="text-align: center;"></td>
+        <td style="text-align: center;">5</td>
+        <td style="text-align: center;"></td>
+        <td>Mercury</td>
+        <td>Up to 2%</td>
+        <td style="text-align: center;">Solid</td>
+        <td style="text-align: center;">H6</td>
+    </tr>
+    <tr>
+        <td>Batteries</td>
+        <td style="text-align: center;">20:01:33</td>
+        <td style="text-align: center;">1 Pallet</td>
+        <td style="text-align: center;"></td>
+        <td style="text-align: center;">341.619</td>
+        <td>Lead</td>
+        <td>Approx 50%</td>
+        <td style="text-align: center;">Solid</td>
+        <td style="text-align: center;">H6</td>
+    </tr>
+    <tr>
+        <td>UPS Systems</td>
+        <td style="text-align: center;">20:01:33</td>
+        <td style="text-align: center;"></td>
+        <td style="text-align: center;">15</td>
+        <td style="text-align: center;"></td>
+        <td>Lead</td>
+        <td>Approx 50%</td>
+        <td style="text-align: center;">Solid</td>
+        <td style="text-align: center;">H6</td>
+    </tr>
+    <tr>
+        <td>Misc</td>
+        <td style="text-align: center;">20:01:35</td>
+        <td style="text-align: center;"></td>
+        <td style="text-align: center;"></td>
+        <td style="text-align: center;"></td>
+        <td></td>
+        <td></td>
+        <td style="text-align: center;">Solid</td>
+        <td style="text-align: center;">H6</td>
+    </tr>
     <tr>
         <td colspan="2" style="font-size: 9px;">All waste is contained loose in the vehicle</td>
-        <td colspan="3" style="font-size: 9px;"><strong>Total Weight KG =</strong> {{ number_format($totalWeight, 3) }}</td>
+        <td colspan="3" style="font-size: 9px;"><strong>Total Weight KG =</strong> 341.619</td>
         <td colspan="4" style="font-size: 9px;">None of the waste is dangerous for carriage</td>
     </tr>
 </table>
@@ -191,27 +289,19 @@
                         Where this note comprises part of a multiple collection the round number
                         and collection number are: <span class="sig-line">____</span> / <span class="sig-line">____</span>
                         <br/><br/>
-                        <span class="label">1. Carrier name:</span> {{ $driverName }}<br/>
+                        <span class="label">1. Carrier name:</span> Sarosh<br/>
                         <span class="value">Commercial IT Recycling LTD</span><br/>
                         <span class="value">Unit 3, 3 Gibbons Street, Dunkirk Industrial Estate, Nottingham, NG7 2SB</span>
                         <br/><br/>
-                        <span class="label">2. Waste carriers license:</span> {{ $carrierLicence }}<br/>
-                        <span class="label">3. Vehicle Registration number:</span> {{ $vehicleReg }}<br/>
-                        <span class="label">4. Carriers Signature:</span>
-                        @if($driverSig)
-                            <div style="margin-top:4px;">
-                                <img src="{{ $driverSig }}" style="height:35px;">
-                            </div>
-                        @else
-                            <span class="sig-line">________</span>
-                        @endif
+                        <span class="label">2. Waste carriers license:</span> CBDU457511<br/>
+                        <span class="label">3. Vehicle Registration number:</span> DC19 OOH<br/>
+                        <span class="label">4. Carriers Signature:</span> <span style="font-style: italic;">Sarosh</span>
                         <br/><br/>
-                        <span class="label">Date:</span> {{ $date }} &nbsp;&nbsp; <span class="label">Time:</span> {{ $time }}
+                        <span class="label">Date:</span> 15/12/2025 &nbsp;&nbsp; <span class="label">Time:</span> 15:05
                     </td>
                 </tr>
             </table>
         </td>
-
         <td style="width: 52%; vertical-align: top; padding-left: 3px;">
             <table class="bordered" style="width: 100%;">
                 <tr>
@@ -227,20 +317,12 @@
                         I confirm that I have fulfilled my duty to apply the waste hierarchy as required
                         by Regulation 12 of the Waste (England and Wales) Regulations 2011.
                         <br/><br/>
-                        <span class="label">Consignor name:</span>
-                        <span class="sig-line">{{ $collection->client_print_name ?: '________' }}</span><br/>
-                        On behalf of (Organisation stated in Part A/1): {{ $siteName }}
+                        <span class="label">Consignor name:</span> <span class="sig-line">Archie Sun</span><br/>
+                        On behalf of (Organisation stated in Part A/1):
                         <br/><br/>
-                        <span class="label">Signature:</span>
-                        @if($clientSig)
-                            <div style="margin-top:4px;">
-                                <img src="{{ $clientSig }}" style="height:35px;">
-                            </div>
-                        @else
-                            <span class="sig-line">________</span>
-                        @endif
+                        <span class="label">Signature:</span> <span style="font-style: italic; font-size: 12px;">Archie Sun</span>
                         <br/><br/>
-                        <span class="label">Date:</span> {{ $date }} &nbsp;&nbsp; <span class="label">Time:</span> {{ $time }}
+                        <span class="label">Date:</span> 15/12/2025 &nbsp;&nbsp; <span class="label">Time:</span> 15:22
                     </td>
                 </tr>
             </table>
@@ -251,9 +333,7 @@
 <!-- PART E -->
 <table class="bordered" style="margin-bottom: 4px;">
     <tr>
-        <td colspan="4" class="section-header">
-            PART E – Consignee's certificate (where more than one waste type is collected all of the information given below must be completed for each EWC)
-        </td>
+        <td colspan="4" class="section-header">PART E – Consignee's certificate (where more than one waste type is collected all of the information given below must be completed for each EWC)</td>
     </tr>
     <tr>
         <th>EWC Code(s) Received</th>
@@ -261,14 +341,18 @@
         <th>Accepted / Rejected</th>
         <th>Waste Operation (R or D code)</th>
     </tr>
-    @foreach($rows as $r)
-        <tr>
-            <td style="height: 18px;">{{ $r->category->ewc_code }}</td>
-            <td></td>
-            <td style="text-align: center;">A</td>
-            <td style="text-align: center;">{{ $wasteOperation }}</td>
-        </tr>
-    @endforeach
+    <tr>
+        <td style="height: 18px;">20:01:35</td>
+        <td></td>
+        <td style="text-align: center;">A</td>
+        <td style="text-align: center;">R13</td>
+    </tr>
+    <tr>
+        <td style="height: 18px;">20:01:33</td>
+        <td></td>
+        <td style="text-align: center;"></td>
+        <td style="text-align: center;"></td>
+    </tr>
 </table>
 
 <!-- Bottom section -->
@@ -276,24 +360,16 @@
     <tr>
         <td style="width: 50%; padding: 4px; font-size: 9px; line-height: 1.6; vertical-align: top;">
             <span class="label">1. I RECEIVED WASTE AT THE ADDRESS GIVEN IN A4</span><br/>
-            <span class="label">2. VEHICLE REGISTRATION:</span> {{ $vehicleReg }}<br/>
+            <span class="label">2. VEHICLE REGISTRATION:</span> DC19 OOH<br/>
             <span class="label">3. WHERE THE WASTE IS REJECTED, PLEASE PROVIDE DETAILS:</span><br/><br/>
             <span class="label">Data to be processed?</span>
             <span class="checkbox"> </span> Yes
             <span class="checkbox-checked">✓</span> No
         </td>
         <td style="width: 25%; padding: 4px; font-size: 9px; line-height: 1.8; vertical-align: top;">
-            <span class="label">Name:</span> <span class="sig-line">{{ $driverName }}</span><br/>
-            <span class="label">Signature:</span>
-            @if($driverSig)
-                <div style="margin-top:4px;">
-                    <img src="{{ $driverSig }}" style="height:30px;">
-                </div>
-            @else
-                <span class="sig-line">________</span>
-            @endif
-            <br/>
-            <span class="label">Date:</span> {{ $date }}
+            <span class="label">Name:</span> <span class="sig-line">Sarosh</span><br/>
+            <span class="label">Signature:</span> <span style="font-style: italic;">Sarosh</span><br/>
+            <span class="label">Date:</span> 15/12/2025
         </td>
         <td style="width: 25%; padding: 4px; font-size: 9px; line-height: 1.4; vertical-align: top;">
             <strong>Commercial IT Recycling LTD</strong><br/>

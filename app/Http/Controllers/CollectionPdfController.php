@@ -38,17 +38,22 @@ class CollectionPdfController extends Controller
 
     public function hazardous(Collection $collection)
     {
-        $collection->load(['items.category', 'user', 'client']); // adjust relations if needed
+        $collection->load(['items.category', 'user', 'client']); // ok
 
-        // Only categories relevant to Hazardous
         $items = $collection->items
             ->filter(fn($it) => $it->category && in_array($it->category->type, ['hazard', 'both'], true));
 
         $rows = $this->groupItemsByCategory($items);
 
         $totalWeight = $rows->sum('total_weight');
+        $consignmentCode = $collection->collection_code ?: $collection->collection_number ?: ($collection->id);
 
-        $html = view('pdf.hazardous', compact('collection', 'rows', 'totalWeight'))->render();
+        $html = view('pdf.hazardous', compact(
+            'collection',
+            'rows',
+            'totalWeight',
+            'consignmentCode'
+        ))->render();
 
         $mpdf = $this->makeMpdf();
         $mpdf->WriteHTML($html);
@@ -57,6 +62,27 @@ class CollectionPdfController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="hazardous_'.$collection->id.'.pdf"',
         ]);
+    }
+
+    private function groupItemsByCategory($items)
+    {
+        return $items->groupBy('category_id')->map(function ($group) {
+            $cat = $group->first()->category;
+
+            $qty = (int) $group->sum('qty');
+
+            // total weight is sum of row weights
+            $totalWeight = (float) $group->sum(fn($it) => (float) ($it->weight_kg ?? 0));
+
+            $perItem = $qty > 0 ? $totalWeight / $qty : 0;
+
+            return (object)[
+                'category' => $cat,
+                'qty' => $qty,
+                'per_item_weight' => round($perItem, 3),
+                'total_weight' => round($totalWeight, 3),
+            ];
+        })->values();
     }
 
     private function makeMpdf(): Mpdf
@@ -69,27 +95,5 @@ class CollectionPdfController extends Controller
             'margin_bottom' => 8,
             'default_font' => 'dejavusans',
         ]);
-    }
-
-    private function groupItemsByCategory($items)
-    {
-        // groups by category_id and sums qty and weight
-        return $items->groupBy('category_id')->map(function ($group) {
-            $cat = $group->first()->category;
-
-            $qty = $group->sum('qty');
-            $totalWeight = $group->sum(function ($it) {
-                return (float)($it->weight_kg ?? 0);
-            });
-
-            $perItem = $qty > 0 ? ($totalWeight / $qty) : 0;
-
-            return (object)[
-                'category' => $cat,
-                'qty' => $qty,
-                'total_weight' => round($totalWeight, 2),
-                'per_item_weight' => round($perItem, 2),
-            ];
-        })->values();
     }
 }
