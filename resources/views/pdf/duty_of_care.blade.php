@@ -33,14 +33,14 @@
         background-color: #e0e0e0;
         font-weight: bold;
         text-align: center;
-        font-size: 10px;
+        font-size: 12px;
     }
     .label {
         font-weight: bold;
-        font-size: 10px;
+        font-size: 12px;
     }
     .value {
-        font-size: 11px;
+        font-size: 13px;
         min-height: 16px;
     }
     .checkbox {
@@ -49,7 +49,7 @@
         height: 12px;
         border: 1px solid #000;
         text-align: center;
-        font-size: 10px;
+        font-size: 12px;
         line-height: 12px;
         margin-right: 3px;
     }
@@ -59,7 +59,7 @@
         height: 12px;
         border: 1px solid #000;
         text-align: center;
-        font-size: 10px;
+        font-size: 12px;
         line-height: 12px;
         margin-right: 3px;
         background-color: #000;
@@ -151,7 +151,7 @@
                     <td class="section-header">SECTION B – CURRENT HOLDER OF WASTE</td>
                 </tr>
                 <tr>
-                    <td style="padding: 5px; font-size: 10px; line-height: 1.6;">
+                    <td style="padding: 5px; font-size: 12px; line-height: 1.6;">
                         By signing in section D below I confirm that I have fulfilled my
                         duty to apply the waste hierarchy as required by Regulations
                         12 of the Waste (England and Wales) Regulations 2011
@@ -178,7 +178,7 @@
                 </tr>
                 <tr>
                     <td style="padding: 5px;">
-                        <table style="width: 100%; font-size: 10px; line-height: 1.8;">
+                        <table style="width: 100%; font-size: 12px; line-height: 1.8;">
                             <tr>
                                 <td style="width: 40%;"><span class="label">Full Name:</span></td>
                                 <td>{{ $collection->driver_print_name }}</td>
@@ -230,7 +230,7 @@
         <td colspan="2" class="section-header">SECTION D – THE TRANSFER</td>
     </tr>
     <tr>
-        <td style="width: 50%; padding: 5px; font-size: 10px; line-height: 1.8; vertical-align: top;">
+        <td style="width: 50%; padding: 5px; font-size: 12px; line-height: 1.8; vertical-align: top;">
             <span class="label">Transfer Address Or Collection Point:</span><br/>
             <span class="value"></span>
             <br/><br/>
@@ -256,9 +256,9 @@
         <td style="width: 50%; vertical-align: top; padding: 0;">
             <table class="bordered" style="width: 100%; margin: 0;">
                 <tr>
-                    <td style="padding: 8px; line-height: 1.8; font-size: 10px;">
+                    <td style="padding: 8px; line-height: 1.8; font-size: 12px;">
                         <span class="label">Transferee's Signature:</span><br/>
-                        <div style="height: 30px; font-style: italic; font-size: 14px; color: #333;">
+                        <div style="height: 30px; font-style: italic; font-size: 13px; color: #333;">
                             @if($collection->driver_signature)
                                 <img src="{{ $collection->driver_signature }}" style="height:70px;">
                             @else
@@ -270,9 +270,9 @@
                     </td>
                 </tr>
                 <tr>
-                    <td style="padding: 8px; line-height: 1.8; font-size: 10px; border-top: 1.5px solid #000;">
+                    <td style="padding: 8px; line-height: 1.8; font-size: 12px; border-top: 1.5px solid #000;">
                         <span class="label">Transferors Signature:</span><br/>
-                        <div style="height: 30px; font-style: italic; font-size: 14px; color: #333;">
+                        <div style="height: 30px; font-style: italic; font-size: 13px; color: #333;">
                             @if($collection->client_signature)
                                 <img src="{{ $collection->client_signature }}" style="height:70px;">
                             @else
