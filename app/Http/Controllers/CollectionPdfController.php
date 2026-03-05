@@ -17,7 +17,15 @@ class CollectionPdfController extends Controller
 
         $rows = $this->groupItemsByCategory($items);
 
-        $html = view('pdf.duty_of_care', compact('collection', 'rows'))->render();
+        $totalItems = $rows->sum('qty');
+        $totalWeight = $rows->sum('total_weight');    
+
+        $html = view('pdf.duty_of_care', compact(
+            'collection',
+            'rows',
+            'totalItems',
+            'totalWeight'
+        ))->render();
 
         $mpdf = $this->makeMpdf();
         $mpdf->WriteHTML($html);

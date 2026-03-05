@@ -114,7 +114,9 @@
     <tr>
         <td colspan="6" style="padding: 4px 6px;">
             <span class="label">A2: How much waste (items and weight):</span>
-            <span class="value">87 items, approx 76 kg</span>
+            <span class="value">
+                {{ $totalItems }} items, approx {{ number_format($totalWeight, 0) }} kg
+            </span>
         </td>
     </tr>
     <tr>
@@ -129,69 +131,15 @@
         <th style="width: 15%;">PER ITEM (KG)</th>
         <th colspan="2" style="width: 25%;">EWC CODE</th>
     </tr>
-    <tr>
-        <td>BASE UNIT</td>
-        <td style="text-align: center;">3</td>
-        <td style="text-align: center;"></td>
-        <td style="text-align: center;">10</td>
-        <td colspan="2" style="text-align: center;">20:01:36</td>
-    </tr>
-    <tr>
-        <td>PHOTOCOPIER / TFT</td>
-        <td style="text-align: center;">4</td>
-        <td style="text-align: center;"></td>
-        <td style="text-align: center;">30</td>
-        <td colspan="2" style="text-align: center;">20:01:36</td>
-    </tr>
-    <tr>
-        <td>SERVER</td>
-        <td style="text-align: center;"></td>
-        <td style="text-align: center;"></td>
-        <td style="text-align: center;">20</td>
-        <td colspan="2" style="text-align: center;">20:01:36</td>
-    </tr>
-    <tr>
-        <td>LAPTOP</td>
-        <td style="text-align: center;">80</td>
-        <td style="text-align: center;"></td>
-        <td style="text-align: center;">15</td>
-        <td colspan="2" style="text-align: center;">20:01:36</td>
-    </tr>
-    <tr>
-        <td>DATA CARRYING MEDIA</td>
-        <td style="text-align: center;"></td>
-        <td style="text-align: center;"></td>
-        <td style="text-align: center;"></td>
-        <td colspan="2" style="text-align: center;">20:01:36</td>
-    </tr>
-    <tr>
-        <td>KEYBOARD</td>
-        <td style="text-align: center;"></td>
-        <td style="text-align: center;">1</td>
-        <td style="text-align: center;"></td>
-        <td colspan="2" style="text-align: center;">20:01:36</td>
-    </tr>
-    <tr>
-        <td>INK / TONER CARTRIDGES</td>
-        <td style="text-align: center;"></td>
-        <td style="text-align: center;"></td>
-        <td style="text-align: center;"></td>
-        <td colspan="2" style="text-align: center;">08:03:18</td>
-    </tr>
-    <tr>
-        <td>MOBILE PHONE</td>
-        <td style="text-align: center;"></td>
-        <td style="text-align: center;"></td>
-        <td style="text-align: center;"></td>
-        <td colspan="2" style="text-align: center;">20:01:35</td>
-    </tr>
-    <tr>
-        <td>MISCELLANEOUS</td>
-        <td style="text-align: center;"></td>
-        <td style="text-align: center;"></td>
-        <td style="text-align: center;"></td>
-        <td colspan="2" style="text-align: center;">20:01:36</td>
-    </tr>
+    @foreach($rows as $r)
+        <tr>
+            <td>{{ $r->category->name }}</td>
+            <td style="text-align:center;">{{ $r->qty }}</td>
+            <td style="text-align:center;">{{ number_format($r->total_weight, 2) }}</td>
+            <td style="text-align:center;">{{ number_format($r->per_item_weight, 2) }}</td>
+            <td colspan="2" style="text-align:center;">{{ $r->category->ewc_code }}</td>
+        </tr>
+    @endforeach
 </table>
 
 <!-- SECTION B & C side by side -->
@@ -210,10 +158,12 @@
                         <br/><br/>
                         YES <span class="checkbox">✓</span>
                         <br/><br/>
-                        <span class="label">Full Name:</span> <span class="sig-line">Joanne Aristide</span>
+                        <span class="label">Full Name:</span> <span class="sig-line">{{ $collection->client_print_name }}</span>
                         <br/><br/>
                         <span class="label">Company Name &amp; Address:</span><br/>
-                        <span class="value">Globe Primary School, E2 0JY</span>
+                        <span class="value">{{ optional($collection->client)->name }}
+                        {{ optional($collection->client)->address_line_1 }}
+                        {{ optional($collection->client)->postcode }}</span>
                         <br/><br/>
                         <span class="label">What are you:</span><br/>
                         <span style="font-size: 9px;">(Producers of waste / importer of waste / local authority / holder of environmental permit.)</span>
@@ -231,7 +181,7 @@
                         <table style="width: 100%; font-size: 10px; line-height: 1.8;">
                             <tr>
                                 <td style="width: 40%;"><span class="label">Full Name:</span></td>
-                                <td>Sarosh</td>
+                                <td>{{ $collection->driver_print_name }}</td>
                             </tr>
                             <tr>
                                 <td><span class="label">Company And Address:</span></td>
@@ -282,7 +232,7 @@
     <tr>
         <td style="width: 50%; padding: 5px; font-size: 10px; line-height: 1.8; vertical-align: top;">
             <span class="label">Transfer Address Or Collection Point:</span><br/>
-            <span class="value">Globe Primary School, E2 0JY</span>
+            <span class="value"></span>
             <br/><br/>
             <span class="label">Who arranged the transfer:</span> Commercial IT Recycling LTD<br/>
             <span style="margin-left: 140px;">Registration number: CBDU457511</span>
@@ -308,17 +258,29 @@
                 <tr>
                     <td style="padding: 8px; line-height: 1.8; font-size: 10px;">
                         <span class="label">Transferee's Signature:</span><br/>
-                        <div style="height: 30px; font-style: italic; font-size: 14px; color: #333;">Sarosh</div>
-                        <span class="label">Name:</span> <span class="sig-line">Sarosh</span><br/><br/>
+                        <div style="height: 30px; font-style: italic; font-size: 14px; color: #333;">
+                            @if($collection->driver_signature)
+                                <img src="{{ $collection->driver_signature }}" style="height:70px;">
+                            @else
+                                <span class="muted">No signature</span>
+                            @endif
+                        </div>
+                        <span class="label">Name:</span> <span class="sig-line">{{ $collection->driver_print_name }}</span><br/><br/>
                         <span class="label">Representing:</span> <span class="sig-line">Computer IT Disposal</span>
                     </td>
                 </tr>
                 <tr>
                     <td style="padding: 8px; line-height: 1.8; font-size: 10px; border-top: 1.5px solid #000;">
                         <span class="label">Transferors Signature:</span><br/>
-                        <div style="height: 30px; font-style: italic; font-size: 14px; color: #333;">J. Aristide</div>
-                        <span class="label">Name:</span> <span class="sig-line">J. Aristide</span><br/><br/>
-                        <span class="label">Representing:</span> <span class="sig-line">Globe Primary School</span>
+                        <div style="height: 30px; font-style: italic; font-size: 14px; color: #333;">
+                            @if($collection->client_signature)
+                                <img src="{{ $collection->client_signature }}" style="height:70px;">
+                            @else
+                               
+                            @endif
+                        </div>
+                        <span class="label">Name:</span> <span class="sig-line">{{  $collection->client_print_name ? $collection->client_print_name: $collection->client?->name }}</span><br/><br/>
+                        <span class="label">Representing:</span> <span class="sig-line">Company Name</span>
                     </td>
                 </tr>
             </table>
