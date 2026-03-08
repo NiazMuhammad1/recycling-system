@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+use App\Models\Client;
+use App\Models\Collection;
 class HomeController extends Controller
 {
     /**
@@ -23,6 +25,7 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        $collections = Collection::with(['client', 'partner'])->latest()->limit(10)->get();
+        return view('home', compact('collections'));
     }
 }

@@ -28,6 +28,7 @@
                     <th>Client</th>
                     <th>Date</th>
                     <th>Status</th>
+                    <th>Assign To</th>
                     <th class="text-right" style="width: 220px;">Actions</th>
                 </tr>
             </thead>
@@ -38,6 +39,7 @@
                     <td>{{ $c->client?->name }}</td>
                     <td>{{ optional($c->collection_date)->format('d/m/Y H:i') }}</td>
                     <td>{{ ucfirst(str_replace('_',' ',$c->status)) }}</td>
+                    <td>{{ $c->user?->name }}</td>
                     <td class="text-right">
                         <a class="btn btn-sm btn-info" href="{{ route('collections.show',$c) }}">View</a>
                         <a class="btn btn-sm btn-warning" href="{{ route('collections.edit',$c) }}">Edit</a>

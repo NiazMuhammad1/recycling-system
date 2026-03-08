@@ -102,7 +102,7 @@
     <tr>
         <td colspan="5" class="section-header">SECTION A – DESCRIPTION OF WASTE</td>
         <td style="text-align: right; border: 1.5px solid #000; padding: 4px 6px;">
-            <strong>Date:</strong> 19/02/2026
+            <strong>Date:</strong> {{ \Carbon\Carbon::parse($collection->collection_date)->format('Y-m-d') }}
         </td>
     </tr>
     <tr>
