@@ -458,28 +458,49 @@ class CollectionItemController extends Controller
     public function updateGrid(Request $request, Collection $collection)
     {
         $data = $request->validate([
+
             'items' => ['array'],
+
             'items.*.qty' => ['required','integer','min:1','max:500'],
-            'items.*.category_id' => ['required','exists:categories,id'],
+            'items.*.category_id' => ['nullable','exists:categories,id'],
+            'items.*.category_name' => ['required','string','max:255'],
             'items.*.weight_kg' => ['nullable','numeric','min:0'],
+
+            'items.*.ewc_code' => ['nullable','string','max:50'],
+            'items.*.component' => ['nullable','string','max:255'],
+            'items.*.concentration' => ['nullable','string','max:255'],
+            'items.*.physical_form' => ['nullable','string','max:100'],
+            'items.*.hazard_codes' => ['nullable','string','max:100'],
+
             'items.*.is_collected' => ['nullable','boolean'],
 
             'new_items' => ['array'],
+
             'new_items.*.qty' => ['required','integer','min:1','max:500'],
-            'new_items.*.category_id' => ['required','exists:categories,id'],
+            'new_items.*.category_id' => ['nullable','exists:categories,id'],
+            'new_items.*.category_name' => ['required','string','max:255'],
             'new_items.*.weight_kg' => ['nullable','numeric','min:0'],
+
+            'new_items.*.ewc_code' => ['nullable','string','max:50'],
+            'new_items.*.component' => ['nullable','string','max:255'],
+            'new_items.*.concentration' => ['nullable','string','max:255'],
+            'new_items.*.physical_form' => ['nullable','string','max:100'],
+            'new_items.*.hazard_codes' => ['nullable','string','max:100'],
+
             'new_items.*.is_collected' => ['nullable','boolean'],
+
             'client_signature' => ['nullable','string'],
             'driver_signature' => ['nullable','string'],
             'client_print_name' => ['nullable','string','max:255'],
-            'mode' => ['nullable','string'],
             'driver_print_name' => ['nullable','string','max:255'],
+            'mode' => ['nullable','string'],
         ]);
 
-        \DB::transaction(function () use ($collection, $data) {
+        
+        \DB::transaction(function () use ($collection,$data) {
 
-            // Update existing items
             foreach (($data['items'] ?? []) as $id => $row) {
+
                 $item = $collection->items()->whereKey($id)->lockForUpdate()->firstOrFail();
 
                 $isCollected = (bool)($row['is_collected'] ?? false);
@@ -487,25 +508,39 @@ class CollectionItemController extends Controller
                 $item->update([
                     'qty' => $row['qty'],
                     'category_id' => $row['category_id'],
+                    'category_name' => $row['category_name'],
                     'weight_kg' => $row['weight_kg'] ?? 0,
+                    'ewc_code' => $row['ewc_code'] ?? null,
+                    'component' => $row['component'] ?? null,
+                    'concentration' => $row['concentration'] ?? null,
+                    'physical_form' => $row['physical_form'] ?? null,
+                    'hazard_codes' => $row['hazard_codes'] ?? null,
                     'is_collected' => $isCollected,
                     'status' => $isCollected ? 'collected' : 'created',
                 ]);
             }
 
-            // Create new items
             foreach (($data['new_items'] ?? []) as $row) {
+
                 $isCollected = (bool)($row['is_collected'] ?? false);
 
                 $collection->items()->create([
-                    'qty' => $row['qty'],
                     'category_id' => $row['category_id'],
+                    'category_name' => $row['category_name'],
+                    'qty' => $row['qty'],
                     'weight_kg' => $row['weight_kg'] ?? 0,
+                    'ewc_code' => $row['ewc_code'] ?? null,
+                    'component' => $row['component'] ?? null,
+                    'concentration' => $row['concentration'] ?? null,
+                    'physical_form' => $row['physical_form'] ?? null,
+                    'hazard_codes' => $row['hazard_codes'] ?? null,
                     'is_collected' => $isCollected,
                     'status' => $isCollected ? 'collected' : 'created',
                 ]);
             }
+
             if (($data['mode'] ?? '') === 'collect') {
+
                 $collection->update([
                     'client_signature' => $data['client_signature'] ?? null,
                     'client_print_name' => $data['client_print_name'] ?? null,
@@ -514,14 +549,9 @@ class CollectionItemController extends Controller
                 ]);
             }
 
-
-            // If you want: when collect mode, set collection status automatically if all collected
-            // (optional)
-            // $allCollected = $collection->items()->where('is_collected', false)->count() === 0;
-            // if ($allCollected) $collection->update(['status' => 'collected']);
         });
 
-        return back()->with('success', 'Saved successfully.');
+        return back()->with('success','Saved successfully.');
     }
 
     /**

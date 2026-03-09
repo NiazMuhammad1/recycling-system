@@ -38,7 +38,7 @@
                                     data-form="{{ $c->physical_form }}"
                                     data-hazard="{{ $c->hazard_codes }}"
                                     data-type="{{ $c->type }}">
-                                {{ $c->name }}
+                                {{ $c->name }} / {{ str_replace('_', ' ', $c->type)}}
                             </option>
                         @endforeach
                     </select>
@@ -92,23 +92,36 @@
                             </td>
 
                             <td>
+
                                 <select class="form-control form-control-sm categorySel"
                                         name="items[{{ $it->id }}][category_id]">
-                                    @foreach($categories as $c)
-                                        <option value="{{ $c->id }}"
-                                                data-ewc="{{ $c->ewc_code }}"
-                                                data-def-weight="{{ $c->default_weight_kg }}"
-                                                data-component="{{ $c->component }}"
-                                                data-concentration="{{ $c->concentration }}"
-                                                data-form="{{ $c->physical_form }}"
-                                                data-hazard="{{ $c->hazard_codes }}"
-                                                data-type="{{ $c->type }}"
-                                                {{ $it->category_id == $c->id ? 'selected' : '' }}>
-                                            {{ $c->name }}
-                                        </option>
-                                    @endforeach
+
+                                @foreach($categories as $c)
+
+                                <option value="{{ $c->id }}"
+                                        data-name="{{ $c->name }}"
+                                        data-ewc="{{ $c->ewc_code }}"
+                                        data-def-weight="{{ $c->default_weight_kg }}"
+                                        data-component="{{ $c->component }}"
+                                        data-concentration="{{ $c->concentration }}"
+                                        data-form="{{ $c->physical_form }}"
+                                        data-hazard="{{ $c->hazard_codes }}"
+                                        data-type="{{ $c->type }}"
+                                        {{ $it->category_id == $c->id ? 'selected':'' }}>
+
+                                {{ $c->name }} / {{ str_replace('_',' ',$c->type) }}
+
+                                </option>
+
+                                @endforeach
+
                                 </select>
-                            </td>
+
+                                <input class="form-control form-control-sm mt-1 categoryNameInput"
+                                    name="items[{{ $it->id }}][category_name]"
+                                    value="{{ $it->category_name ?? $it->category?->name }}">
+
+                                </td>
 
                             <td>
                                 <input class="form-control form-control-sm weightInput"
@@ -117,11 +130,35 @@
                             </td>
 
                             {{-- Read-only category info columns --}}
-                            <td class="ewcCell"></td>
-                            <td class="componentCell"></td>
-                            <td class="concentrationCell"></td>
-                            <td class="formCell"></td>
-                            <td class="hazardCell"></td>
+                            <td>
+                                <input class="form-control form-control-sm ewcInput"
+                                    name="items[{{ $it->id }}][ewc_code]"
+                                    value="{{ $it->ewc_code ?? $it->category?->ewc_code }}">
+                                </td>
+
+                                <td>
+                                <input class="form-control form-control-sm componentInput"
+                                    name="items[{{ $it->id }}][component]"
+                                    value="{{ $it->component ?? $it->category?->component }}">
+                                </td>
+
+                                <td>
+                                <input class="form-control form-control-sm concentrationInput"
+                                    name="items[{{ $it->id }}][concentration]"
+                                    value="{{ $it->concentration ?? $it->category?->concentration }}">
+                                </td>
+
+                                <td>
+                                <input class="form-control form-control-sm formInput"
+                                    name="items[{{ $it->id }}][physical_form]"
+                                    value="{{ $it->physical_form ?? $it->category?->physical_form }}">
+                                </td>
+
+                                <td>
+                                <input class="form-control form-control-sm hazardInput"
+                                    name="items[{{ $it->id }}][hazard_codes]"
+                                    value="{{ $it->hazard_codes ?? $it->category?->hazard_codes }}">
+                                </td>
 
                             @if($isCollect)
                                 <td class="text-center">
@@ -336,45 +373,91 @@ $(function () {
 
     // Read category data-* from selected option
     function getCategoryMeta($select) {
-        var $opt = $select.find('option:selected');
-        return {
-            ewc: $opt.data('ewc') || '',
-            defWeight: $opt.data('def-weight') || '',
-            component: $opt.data('component') || '',
-            concentration: $opt.data('concentration') || '',
-            form: $opt.data('form') || '',
-            hazard: $opt.data('hazard') || '',
-            type: $opt.data('type') || ''
-        };
-    }
+    var $opt = $select.find('option:selected');
+    return {
+        name: $opt.data('name') || '',
+        ewc: $opt.data('ewc') || '',
+        defWeight: $opt.data('def-weight') || '',
+        component: $opt.data('component') || '',
+        concentration: $opt.data('concentration') || '',
+        form: $opt.data('form') || '',
+        hazard: $opt.data('hazard') || '',
+        type: $opt.data('type') || ''
+    };
+}
+
+// only fill empty fields
+function fillEmptyFieldsFromCategory($row) {
+    var meta = getCategoryMeta($row.find('.categorySel'));
+
+    var $categoryName = $row.find('.categoryNameInput');
+    var $ewc = $row.find('.ewcInput');
+    var $weight = $row.find('.weightInput');
+    var $component = $row.find('.componentInput');
+    var $concentration = $row.find('.concentrationInput');
+    var $form = $row.find('.formInput');
+    var $hazard = $row.find('.hazardInput');
+
+    if (!$categoryName.val()) $categoryName.val(meta.name);
+    if (!$ewc.val()) $ewc.val(meta.ewc);
+    if (!$weight.val() && meta.defWeight !== '') $weight.val(meta.defWeight);
+    if (!$component.val()) $component.val(meta.component);
+    if (!$concentration.val()) $concentration.val(meta.concentration);
+    if (!$form.val()) $form.val(meta.form);
+    if (!$hazard.val()) $hazard.val(meta.hazard);
+}
+
+// overwrite fields when user changes category
+function overwriteFieldsFromCategory($row) {
+    var meta = getCategoryMeta($row.find('.categorySel'));
+
+    $row.find('.categoryNameInput').val(meta.name);
+    $row.find('.ewcInput').val(meta.ewc);
+    $row.find('.weightInput').val(meta.defWeight);
+    $row.find('.componentInput').val(meta.component);
+    $row.find('.concentrationInput').val(meta.concentration);
+    $row.find('.formInput').val(meta.form);
+    $row.find('.hazardInput').val(meta.hazard);
+}
+
+function initRow($row) {
+    // existing rows: keep DB values, only fill blanks
+    fillEmptyFieldsFromCategory($row);
+
+    // when category changes manually, overwrite with selected category defaults
+    $row.find('.categorySel').on('change', function () {
+        overwriteFieldsFromCategory($row);
+    });
+}
 
     // Fill info columns in a row
     function applyCategoryMetaToRow($row) {
-        var meta = getCategoryMeta($row.find('.categorySel'));
 
-        $row.find('.ewcCell').text(meta.ewc);
-        $row.find('.componentCell').text(meta.component);
-        $row.find('.concentrationCell').text(meta.concentration);
-        $row.find('.formCell').text(meta.form);
-        $row.find('.hazardCell').text(meta.hazard);
+        var $opt = $row.find('.categorySel option:selected');
 
-        // If weight is empty, set default category weight
+        var name = $opt.data('name') || '';
+        var ewc = $opt.data('ewc') || '';
+        var weight = $opt.data('def-weight') || '';
+        var component = $opt.data('component') || '';
+        var concentration = $opt.data('concentration') || '';
+        var form = $opt.data('form') || '';
+        var hazard = $opt.data('hazard') || '';
+
+        $row.find('.categoryNameInput').val(name);
+        $row.find('.ewcInput').val(ewc);
+        $row.find('.componentInput').val(component);
+        $row.find('.concentrationInput').val(concentration);
+        $row.find('.formInput').val(form);
+        $row.find('.hazardInput').val(hazard);
+
         var $weight = $row.find('.weightInput');
-        if (!$weight.val() && meta.defWeight !== '') {
-            $weight.val(meta.defWeight);
+
+        if (!$weight.val() && weight) {
+            $weight.val(weight);
         }
     }
 
-    // Init one row
-    function initRow($row) {
-        // initial fill
-        applyCategoryMetaToRow($row);
-
-        // when category changes, update info & maybe default weight
-        $row.find('.categorySel').on('change', function () {
-            applyCategoryMetaToRow($row);
-        });
-    }
+ 
 
     // Init all existing rows on page load
     $('#itemsTbody tr').each(function () {
@@ -400,51 +483,83 @@ $(function () {
 
             var $tr = $(`
                 <tr data-row="new">
-                    <td><em>new</em></td>
 
-                    <td>
-                        <input class="form-control form-control-sm"
-                               name="new_items[${key}][qty]" value="1">
-                    </td>
+                <td><em>new</em></td>
 
-                    <td>
-                        <select class="form-control form-control-sm categorySel"
-                                name="new_items[${key}][category_id]">
-                            @foreach($categories as $c)
-                                <option value="{{ $c->id }}"
-                                        data-ewc="{{ $c->ewc_code }}"
-                                        data-def-weight="{{ $c->default_weight_kg }}"
-                                        data-component="{{ $c->component }}"
-                                        data-concentration="{{ $c->concentration }}"
-                                        data-form="{{ $c->physical_form }}"
-                                        data-hazard="{{ $c->hazard_codes }}"
-                                        data-type="{{ $c->type }}">
-                                    {{ $c->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </td>
+                <td>
+                <input class="form-control form-control-sm"
+                    name="new_items[${key}][qty]" value="1">
+                </td>
 
-                    <td>
-                        <input class="form-control form-control-sm weightInput"
-                               name="new_items[${key}][weight_kg]" value="">
-                    </td>
+                <td>
 
-                    <td class="ewcCell"></td>
-                    <td class="componentCell"></td>
-                    <td class="concentrationCell"></td>
-                    <td class="formCell"></td>
-                    <td class="hazardCell"></td>
+                <select class="form-control form-control-sm categorySel"
+                        name="new_items[${key}][category_id]">
 
-                    ${collectedTd}
+                @foreach($categories as $c)
 
-                    <td class="text-center">
-                        <button type="button" class="btn btn-sm btn-outline-danger removeNew">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </td>
+                <option value="{{ $c->id }}"
+                        data-name="{{ $c->name }}"
+                        data-ewc="{{ $c->ewc_code }}"
+                        data-def-weight="{{ $c->default_weight_kg }}"
+                        data-component="{{ $c->component }}"
+                        data-concentration="{{ $c->concentration }}"
+                        data-form="{{ $c->physical_form }}"
+                        data-hazard="{{ $c->hazard_codes }}">
+
+                {{ $c->name }}
+
+                </option>
+
+                @endforeach
+
+                </select>
+
+                <input class="form-control form-control-sm mt-1 categoryNameInput"
+                    name="new_items[${key}][category_name]" value="">
+
+                </td>
+
+                <td>
+                <input class="form-control form-control-sm weightInput"
+                    name="new_items[${key}][weight_kg]" value="">
+                </td>
+
+                <td>
+                <input class="form-control form-control-sm ewcInput"
+                    name="new_items[${key}][ewc_code]" value="">
+                </td>
+
+                <td>
+                <input class="form-control form-control-sm componentInput"
+                    name="new_items[${key}][component]" value="">
+                </td>
+
+                <td>
+                <input class="form-control form-control-sm concentrationInput"
+                    name="new_items[${key}][concentration]" value="">
+                </td>
+
+                <td>
+                <input class="form-control form-control-sm formInput"
+                    name="new_items[${key}][physical_form]" value="">
+                </td>
+
+                <td>
+                <input class="form-control form-control-sm hazardInput"
+                    name="new_items[${key}][hazard_codes]" value="">
+                </td>
+
+                ${collectedTd}
+
+                <td class="text-center">
+                <button type="button" class="btn btn-sm btn-outline-danger removeNew">
+                <i class="fas fa-times"></i>
+                </button>
+                </td>
+
                 </tr>
-            `);
+                `);
 
             $('#itemsTbody').append($tr);
 

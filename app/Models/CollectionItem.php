@@ -13,7 +13,14 @@ class CollectionItem extends Model
         'serial_number','asset_tags','dimensions','weight_kg',
         'erasure_required','status','collected','collected_at','processed_at',
         'process_action','item_valuation','refurb_cost','hdd_serial','erasure_report_path',
-        'stock_item_id', 'is_collected'
+        'stock_item_id', 'is_collected', 'collection_id',
+        'category_name',
+        'ewc_code',
+        'component',
+        'concentration',
+        'physical_form',
+        'hazard_codes',
+        
     ];
 
     protected $casts = [
@@ -67,6 +74,7 @@ class CollectionItem extends Model
         return $this->belongsTo(Collection::class);
     }
 
+    
     public function category()
     {
         return $this->belongsTo(Category::class);
