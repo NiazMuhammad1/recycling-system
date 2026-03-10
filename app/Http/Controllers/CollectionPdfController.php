@@ -9,16 +9,53 @@ class CollectionPdfController extends Controller
 {
     public function dutyOfCare(Collection $collection)
     {
-        $collection->load(['items.category', 'user', 'client']); // adjust relations if needed
+        $collection->load(['items.category', 'user', 'client']);
 
-        // Only categories relevant to Duty of Care
-        $items = $collection->items
-            ->filter(fn($it) => $it->category && in_array($it->category->type, ['duty_of_care', 'both'], true));
+        // All duty of care categories
+        $categories = \App\Models\Category::whereIn('type', ['duty_of_care','both'])->get();
 
-        $rows = $this->groupItemsByCategory($items);
+        // Items belonging to this collection
+        $items = $collection->items;
 
-        $totalItems = $rows->sum('qty');
-        $totalWeight = $rows->sum('total_weight');    
+        // Prepare rows
+        $rows = [];
+
+        foreach ($categories as $cat) {
+
+            $catItems = $items->where('category_id', $cat->id);
+
+            if ($catItems->count()) {
+
+                $qty = $catItems->sum('qty');
+
+                $totalWeight = $catItems->sum(function ($it) {
+                    return $it->weight_kg ?? 0;
+                });
+
+                $perItem = $qty ? ($totalWeight / $qty) : 0;
+
+                // if renamed category_name exists use it
+                $displayName = $catItems->first()->category_name ?: $cat->name;
+
+            } else {
+
+                $qty = 0;
+                $totalWeight = 0;
+                $perItem = 0;
+                $displayName = $cat->name;
+            }
+
+            $rows[] = (object)[
+                'name' => $displayName,
+                'qty' => $qty,
+                'total_weight' => $totalWeight,
+                'per_item_weight' => $perItem,
+                'ewc_code' => $cat->ewc_code,
+            ];
+        }
+
+        $totalItems = collect($rows)->sum('qty');
+        $totalWeight = collect($rows)->sum('total_weight');
 
         $html = view('pdf.duty_of_care', compact(
             'collection',
@@ -38,15 +75,56 @@ class CollectionPdfController extends Controller
 
     public function hazardous(Collection $collection)
     {
-        $collection->load(['items.category', 'user', 'client']); // ok
+        $collection->load(['items.category','user','client']);
 
-        $items = $collection->items
-            ->filter(fn($it) => $it->category && in_array($it->category->type, ['hazard', 'both'], true));
+        // All hazardous categories
+        $categories = \App\Models\Category::whereIn('type',['hazard','both'])->get();
 
-        $rows = $this->groupItemsByCategory($items);
+        $items = $collection->items;
 
-        $totalWeight = $rows->sum('total_weight');
-        $consignmentCode = $collection->collection_code ?: $collection->collection_number ?: ($collection->id);
+        $rows = [];
+
+        foreach ($categories as $cat) {
+
+            $catItems = $items->where('category_id',$cat->id);
+
+            if ($catItems->count()) {
+
+                $qty = $catItems->sum('qty');
+
+                $totalWeight = $catItems->sum(fn($it) => $it->weight_kg ?? 0);
+
+                $perItem = $qty ? ($totalWeight / $qty) : 0;
+
+                $displayName = $catItems->first()->category_name ?: $cat->name;
+
+            } else {
+
+                $qty = 0;
+                $totalWeight = 0;
+                $perItem = 0;
+                $displayName = $cat->name;
+            }
+
+            $rows[] = (object)[
+                'name' => $displayName,
+                'qty' => $qty,
+                'per_item_weight' => $perItem,
+                'total_weight' => $totalWeight,
+                'ewc_code' => $cat->ewc_code,
+                'component' => $cat->component,
+                'concentration' => $cat->concentration,
+                'physical_form' => $cat->physical_form,
+                'hazard_codes' => $cat->hazard_codes,
+            ];
+        }
+
+        $totalWeight = collect($rows)->sum('total_weight');
+
+        $consignmentCode =
+            $collection->collection_code
+            ?: $collection->collection_number
+            ?: $collection->id;
 
         $html = view('pdf.hazardous', compact(
             'collection',
@@ -58,9 +136,9 @@ class CollectionPdfController extends Controller
         $mpdf = $this->makeMpdf();
         $mpdf->WriteHTML($html);
 
-        return response($mpdf->Output("hazardous_{$collection->id}.pdf", 'S'), 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="hazardous_'.$collection->id.'.pdf"',
+        return response($mpdf->Output("hazardous_{$collection->id}.pdf",'S'),200,[
+            'Content-Type'=>'application/pdf',
+            'Content-Disposition'=>'inline; filename="hazardous_'.$collection->id.'.pdf"',
         ]);
     }
 

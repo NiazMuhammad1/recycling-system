@@ -192,12 +192,12 @@
                                 <th>#</th>
                                 <th>Qty</th>
                                 <th>Category</th>
-                                <th>Manufacturer</th>
-                                <th>Model</th>
-                                <th>Serial</th>
-                                <th>Asset Tag(s)</th>
-                                <th>Dimensions</th>
-                                <th>Weight</th>
+                                <th>Weight (kg)</th>
+                                <th>EWC</th>
+                                <th>Component</th>
+                                <th>Concentration</th>
+                                <th>Form</th>
+                                <th>Hazard</th>
                                 <th>Erasure Req.</th>
                                 <th>Status</th>
                             </tr>
@@ -207,13 +207,13 @@
                             <tr>
                                 <td>{{ $it->item_code }}</td>
                                 <td>{{ $it->qty }}</td>
-                                <td>{{ $it->category?->name }}</td>
-                                <td>{{ $it->manufacturerRel?->name ?? $it->manufacturer_text }}</td>
-                                <td>{{ $it->productModel?->name ?? $it->model_text }}</td>
-                                <td>{{ $it->serial_number }}</td>
-                                <td>{{ $it->asset_tags }}</td>
-                                <td>{{ $it->dimensions }}</td>
-                                <td>{{ number_format((float)$it->weight_kg,2) }} Kg</td>
+                                <td>{{ $it->category_name ?? $it->category?->name }}</td>
+                                <td>{{ $it->weight_kg ?? $it->category?->weight_kg }}</td>
+                                <td>{{ $it->ewc_code ?? $it->category?->ewc_code }}</td>
+                                <td>{{ $it->component ?? $it->category?->component }}</td>
+                                <td>{{ $it->concentration ?? $it->category?->concentration }}</td>
+                                <td>{{ $it->physical_form ?? $it->category?->physical_form }}</td>
+                                <td>{{ $it->hazard_codes ?? $it->category?->hazard_codes }}</td>
                                 <td>{{ $it->erasure_required ? 'Yes' : 'No' }}</td>
                                 <td>
                                     @if($it->status === 'added_to_stock')

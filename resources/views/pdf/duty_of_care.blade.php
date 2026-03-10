@@ -132,13 +132,25 @@
         <th colspan="2" style="width: 25%;">EWC CODE</th>
     </tr>
     @foreach($rows as $r)
-        <tr>
-            <td>{{ $r->category->name }}</td>
-            <td style="text-align:center;">{{ $r->qty }}</td>
-            <td style="text-align:center;">{{ number_format($r->total_weight, 2) }}</td>
-            <td style="text-align:center;">{{ number_format($r->per_item_weight, 2) }}</td>
-            <td colspan="2" style="text-align:center;">{{ $r->category->ewc_code }}</td>
-        </tr>
+    <tr>
+        <td>{{ $r->name }}</td>
+
+        <td style="text-align:center;">
+            {{ $r->qty }}
+        </td>
+
+        <td style="text-align:center;">
+            {{ $r->total_weight !== '' ? number_format($r->total_weight,2) : '' }}
+        </td>
+
+        <td style="text-align:center;">
+            {{ $r->per_item_weight !== '' ? number_format($r->per_item_weight,2) : '' }}
+        </td>
+
+        <td colspan="2" style="text-align:center;">
+            {{ $r->ewc_code }}
+        </td>
+    </tr>
     @endforeach
 </table>
 

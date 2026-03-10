@@ -126,17 +126,37 @@
     </tr>
 
     @foreach($rows as $r)
-        <tr>
-            <td>{{ $r->category->name }}</td>
-            <td style="text-align: center;">{{ $r->category->ewc_code }}</td>
-            <td style="text-align: center;">{{ $r->qty ?: '' }}</td>
-            <td style="text-align: center;">{{ $r->per_item_weight ?: '' }}</td>
-            <td style="text-align: center;">{{ $r->total_weight ?: '' }}</td>
-            <td>{{ $r->category->component }}</td>
-            <td>{{ $r->category->concentration }}</td>
-            <td style="text-align: center;">{{ $r->category->physical_form }}</td>
-            <td style="text-align: center;">{{ $r->category->hazard_codes }}</td>
-        </tr>
+    <tr>
+        <td>{{ $r->name }}</td>
+
+        <td style="text-align:center;">
+            {{ $r->ewc_code }}
+        </td>
+
+        <td style="text-align:center;">
+            {{ $r->qty ?: '' }}
+        </td>
+
+        <td style="text-align:center;">
+            {{ $r->per_item_weight ? number_format($r->per_item_weight,2) : '' }}
+        </td>
+
+        <td style="text-align:center;">
+            {{ $r->total_weight ? number_format($r->total_weight,2) : '' }}
+        </td>
+
+        <td>{{ $r->component }}</td>
+
+        <td>{{ $r->concentration }}</td>
+
+        <td style="text-align:center;">
+            {{ $r->physical_form }}
+        </td>
+
+        <td style="text-align:center;">
+            {{ $r->hazard_codes }}
+        </td>
+    </tr>
     @endforeach
 
     <tr>
@@ -263,7 +283,7 @@
     </tr>
     @foreach($rows as $r)
         <tr>
-            <td style="height: 18px;">{{ $r->category->ewc_code }}</td>
+            <td style="height: 18px;">{{ $r->ewc_code }}</td>
             <td></td>
             <td style="text-align: center;">A</td>
             <td style="text-align: center;">{{ $wasteOperation }}</td>

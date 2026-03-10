@@ -91,7 +91,7 @@
                                     value="{{ old("items.$it->id.qty", $it->qty) }}">
                             </td>
 
-                            <td>
+                            <td style="display:flex; width: 350px;">
 
                                 <select class="form-control form-control-sm categorySel"
                                         name="items[{{ $it->id }}][category_id]">
@@ -116,8 +116,8 @@
                                 @endforeach
 
                                 </select>
-
-                                <input class="form-control form-control-sm mt-1 categoryNameInput"
+                                &nbsp;&nbsp;
+                                <input class="form-control form-control-sm categoryNameInput"
                                     name="items[{{ $it->id }}][category_name]"
                                     value="{{ $it->category_name ?? $it->category?->name }}">
 
@@ -491,7 +491,7 @@ function initRow($row) {
                     name="new_items[${key}][qty]" value="1">
                 </td>
 
-                <td>
+                <td style="display:flex; width: 350px;">
 
                 <select class="form-control form-control-sm categorySel"
                         name="new_items[${key}][category_id]">
@@ -507,15 +507,15 @@ function initRow($row) {
                         data-form="{{ $c->physical_form }}"
                         data-hazard="{{ $c->hazard_codes }}">
 
-                {{ $c->name }}
+                {{ $c->name }} / {{ str_replace('_', ' ', $c->type) }}
 
                 </option>
 
                 @endforeach
 
                 </select>
-
-                <input class="form-control form-control-sm mt-1 categoryNameInput"
+                &nbsp;&nbsp;
+                <input class="form-control form-control-sm categoryNameInput"
                     name="new_items[${key}][category_name]" value="">
 
                 </td>
