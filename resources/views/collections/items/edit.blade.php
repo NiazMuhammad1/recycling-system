@@ -83,8 +83,25 @@
                     {{-- Existing rows --}}
                     @foreach($collection->items->sortBy('item_code') as $it)
                         <tr data-row="existing" data-id="{{ $it->id }}">
-                            <td>{{ $it->item_code ?? $collection->collection_number }}</td>
+                           
+                            <td>
+                                @if($it->codes->count())
+                                    @foreach($it->codes->sortBy('seq') as $code)
+                                        <span class="badge badge-info">
+                                            {{ $code->item_prefix }}/{{ str_pad($code->seq,3,'0',STR_PAD_LEFT) }}
+                                        </span>
+                                    @endforeach
+                                @else
+                                    {{ $collection->collection_number }}
+                                @endif
 
+                                <a href="#"
+                                class="assign-code ml-1"
+                                data-id="{{ $it->id }}"
+                                title="Assign Code">
+                                <i class="fas fa-hashtag text-primary"></i>
+                                </a>
+                            </td>
                             <td>
                                 <input class="form-control form-control-sm"
                                     name="items[{{ $it->id }}][qty]"
@@ -574,6 +591,24 @@ function initRow($row) {
                 $(this).closest('tr').remove();
             });
         }
+    });
+
+});
+let assignUrlTemplate = "{{ route('collection-items.assignCode', ':id') }}";
+$(document).on('click','.assign-code',function(e){
+
+    e.preventDefault();
+
+    let id = $(this).data('id');
+
+    let url = assignUrlTemplate.replace(':id', id);
+
+    $.post(url,{
+        _token:'{{ csrf_token() }}'
+    },function(res){
+
+        location.reload();
+
     });
 
 });

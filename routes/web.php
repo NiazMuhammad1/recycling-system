@@ -33,6 +33,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('clients', ClientController::class);
     Route::resource('collections', CollectionController::class);
 
+    Route::post('/collection-items/{item}/assign-code',[CollectionItemController::class,'assignCode'])->name('collection-items.assignCode');
+
     /*
     |--------------------------------------------------------------------------
     | Collection Items (bulk/edit/update)

@@ -269,7 +269,7 @@
 </table>
 
 <!-- PART E -->
-<table class="bordered" style="margin-bottom: 4px;">
+<!-- <table class="bordered" style="margin-bottom: 4px;">
     <tr>
         <td colspan="4" class="section-header">
             PART E – Consignee's certificate (where more than one waste type is collected all of the information given below must be completed for each EWC)
@@ -289,7 +289,7 @@
             <td style="text-align: center;">{{ $wasteOperation }}</td>
         </tr>
     @endforeach
-</table>
+</table> -->
 
 <!-- Bottom section -->
 <table class="bordered" style="width: 100%;">

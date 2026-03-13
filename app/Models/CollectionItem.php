@@ -68,6 +68,17 @@ class CollectionItem extends Model
             $item->item_code = CodeGenerator::nextCollectionItemCode($collection->collection_code, $nextIndex);
         });
     }
+
+    public function codes() {
+        return $this->hasMany(CollectionItemCode::class);
+    }
+
+    // computed property
+    public function getItemCodesAttribute() {
+        return $this->codes->sortBy('seq')->map(function($c){
+            return $c->item_prefix.'/'.$c->seq;
+        })->implode(', ');
+    }
     
     public function collection()
     {
