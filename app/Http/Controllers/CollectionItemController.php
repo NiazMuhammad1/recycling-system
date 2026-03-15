@@ -620,15 +620,15 @@ class CollectionItemController extends Controller
         }
     }
 
-    public function destroy(CollectionItem $item)
-    {
-        $collection = $item->collection;
-        $item->delete();
+    // public function destroy(CollectionItem $item)
+    // {
+    //     $collection = $item->collection;
+    //     $item->delete();
 
-        $this->renumberItems($collection);
+    //     $this->renumberItems($collection);
 
-        return back()->with('success','Item deleted.');
-    }
+    //     return back()->with('success','Item deleted.');
+    // }
 
     public function assignCode(CollectionItem $item)
     {
@@ -655,6 +655,24 @@ class CollectionItemController extends Controller
         return response()->json([
             'status'=>'assigned',
             'codes'=>$item->codes()->pluck('seq')->map(fn($s) => $prefix.'/'.$s)
+        ]);
+    }
+
+    public function destroy(CollectionItem $item)
+    {
+        $item->delete(); // codes auto deleted via cascade
+
+        return response()->json([
+            'success' => true
+        ]);
+    }
+
+    public function destroyitemcode(CollectionItemCode $code)
+    {
+        $code->delete();
+
+        return response()->json([
+            'success' => true
         ]);
     }
 

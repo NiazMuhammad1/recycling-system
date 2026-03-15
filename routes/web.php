@@ -34,6 +34,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('collections', CollectionController::class);
 
     Route::post('/collection-items/{item}/assign-code',[CollectionItemController::class,'assignCode'])->name('collection-items.assignCode');
+    Route::delete('/collection-items/{item}', [CollectionItemController::class,'destroy'])->name('collection-items.destroy');
+    Route::delete('/collection-item-codes/{code}',[CollectionItemController::class,'destroyitemcode'])->name('collection-items.codes.destroy');
 
     /*
     |--------------------------------------------------------------------------

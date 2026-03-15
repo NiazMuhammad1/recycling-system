@@ -87,12 +87,19 @@
                             <td>
                                 @if($it->codes->count())
                                     @foreach($it->codes->sortBy('seq') as $code)
-                                        <span class="badge badge-info">
+                                        <span class="badge badge-info mr-1">
                                             {{ $code->item_prefix }}/{{ str_pad($code->seq,3,'0',STR_PAD_LEFT) }}
+
+                                            <i class="fas fa-times text-white ml-1 delete-code"
+                                            style="cursor:pointer;"
+                                            data-url="{{ route('collection-items.codes.destroy',$code->id) }}">
+                                            </i>
                                         </span>
                                     @endforeach
+                                    
                                 @else
-                                    {{ $collection->collection_number }}
+                                    ____
+                                    <!-- {{ $collection->collection_number }} -->
                                 @endif
 
                                 <a href="#"
@@ -101,6 +108,8 @@
                                 title="Assign Code">
                                 <i class="fas fa-hashtag text-primary"></i>
                                 </a>
+                                
+
                             </td>
                             <td>
                                 <input class="form-control form-control-sm"
@@ -187,7 +196,15 @@
                             @endif
 
                             <td class="text-center">
-                                {{-- keep empty or add delete later --}}
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-danger delete-item"
+                                        data-id="{{ $it->id }}"
+                                        data-url="{{ route('collection-items.destroy',$it->id) }}">
+
+                                        <i class="fas fa-trash"></i>
+
+                                    </button>
+                               
                             </td>
                         </tr>
                     @endforeach
@@ -609,6 +626,48 @@ $(document).on('click','.assign-code',function(e){
 
         location.reload();
 
+    });
+
+});
+$(document).on('click','.delete-item',function(){
+
+    if(!confirm('Delete this item?')) return;
+
+    let url = $(this).data('url');
+    let row = $(this).closest('tr');
+
+    $.ajax({
+        url:url,
+        type:'DELETE',
+        data:{
+            _token:'{{ csrf_token() }}'
+        },
+        success:function(){
+
+            row.remove();
+
+        }
+    });
+
+});
+$(document).on('click','.delete-code',function(e){
+
+    e.stopPropagation();
+
+    if(!confirm('Delete this code?')) return;
+
+    let url = $(this).data('url');
+    let badge = $(this).closest('.badge');
+
+    $.ajax({
+        url:url,
+        type:'DELETE',
+        data:{
+            _token:'{{ csrf_token() }}'
+        },
+        success:function(){
+            badge.remove();
+        }
     });
 
 });
