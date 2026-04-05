@@ -31,7 +31,7 @@ class CatalogAjaxController extends Controller
 
         $items = $manufacturer->productModels()
             ->where('is_active', 1)
-            ->when($categoryId, fn($qq) => $qq->where('category_id', $categoryId))
+           // ->when($categoryId, fn($qq) => $qq->where('category_id', $categoryId))
             ->when($q, fn($qq) => $qq->where('name', 'like', "%{$q}%"))
             ->orderBy('name')
             ->get(['id', 'name'])

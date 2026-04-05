@@ -458,6 +458,173 @@ class CollectionItemController extends Controller
     public function updateGrid(Request $request, Collection $collection)
     {
         $data = $request->validate([
+            'items' => ['array'],
+
+            'items.*.qty' => ['required', 'integer', 'min:1', 'max:500'],
+            'items.*.category_id' => ['nullable', 'exists:categories,id'],
+            'items.*.category_name' => ['required', 'string', 'max:255'],
+            'items.*.weight_kg' => ['nullable', 'numeric', 'min:0'],
+
+            'items.*.ewc_code' => ['nullable', 'string', 'max:50'],
+            'items.*.component' => ['nullable', 'string', 'max:255'],
+            'items.*.concentration' => ['nullable', 'string', 'max:255'],
+            'items.*.physical_form' => ['nullable', 'string', 'max:100'],
+            'items.*.hazard_codes' => ['nullable', 'string', 'max:100'],
+
+            // manufacturer / model
+            'items.*.manufacturer_id' => ['nullable'],
+            'items.*.manufacturer_text' => ['nullable', 'string', 'max:120'],
+            'items.*.product_model_id' => ['nullable'],
+            'items.*.model_text' => ['nullable', 'string', 'max:120'],
+
+            'items.*.is_collected' => ['nullable', 'boolean'],
+
+            'new_items' => ['array'],
+
+            'new_items.*.qty' => ['required', 'integer', 'min:1', 'max:500'],
+            'new_items.*.category_id' => ['nullable', 'exists:categories,id'],
+            'new_items.*.category_name' => ['required', 'string', 'max:255'],
+            'new_items.*.weight_kg' => ['nullable', 'numeric', 'min:0'],
+
+            'new_items.*.ewc_code' => ['nullable', 'string', 'max:50'],
+            'new_items.*.component' => ['nullable', 'string', 'max:255'],
+            'new_items.*.concentration' => ['nullable', 'string', 'max:255'],
+            'new_items.*.physical_form' => ['nullable', 'string', 'max:100'],
+            'new_items.*.hazard_codes' => ['nullable', 'string', 'max:100'],
+
+            // manufacturer / model
+            'new_items.*.manufacturer_id' => ['nullable'],
+            'new_items.*.manufacturer_text' => ['nullable', 'string', 'max:120'],
+            'new_items.*.product_model_id' => ['nullable'],
+            'new_items.*.model_text' => ['nullable', 'string', 'max:120'],
+
+            'new_items.*.is_collected' => ['nullable', 'boolean'],
+
+            'client_signature' => ['nullable', 'string'],
+            'driver_signature' => ['nullable', 'string'],
+            'client_print_name' => ['nullable', 'string', 'max:255'],
+            'driver_print_name' => ['nullable', 'string', 'max:255'],
+            'mode_type' => ['nullable', 'string'],
+            'mode' => ['nullable', 'string'],
+        ]);
+
+        // validate numeric manufacturer/model IDs only if numeric
+        $checkNumericIds = function (array $row) {
+            if (!empty($row['manufacturer_id']) && is_numeric($row['manufacturer_id'])) {
+                abort_unless(
+                    Manufacturer::whereKey($row['manufacturer_id'])->exists(),
+                    422,
+                    'Invalid manufacturer selected.'
+                );
+            }
+
+            if (!empty($row['product_model_id']) && is_numeric($row['product_model_id'])) {
+                abort_unless(
+                    ProductModel::whereKey($row['product_model_id'])->exists(),
+                    422,
+                    'Invalid model selected.'
+                );
+            }
+        };
+
+        foreach (($data['items'] ?? []) as $row) {
+            $checkNumericIds($row);
+        }
+
+        foreach (($data['new_items'] ?? []) as $row) {
+            $checkNumericIds($row);
+        }
+
+        DB::transaction(function () use ($collection, $data) {
+
+            // update existing items
+            foreach (($data['items'] ?? []) as $id => $row) {
+                $item = $collection->items()->whereKey($id)->lockForUpdate()->firstOrFail();
+
+                [$manufacturerId, $productModelId, $manufacturerText, $modelText] =
+                    $this->resolveManufacturerModel($row);
+
+                $isCollected = (bool)($row['is_collected'] ?? false);
+
+                $item->update([
+                    'qty' => $row['qty'],
+                    'category_id' => $row['category_id'] ?? null,
+                    'category_name' => $row['category_name'],
+                    'weight_kg' => $row['weight_kg'] ?? 0,
+
+                    'ewc_code' => $row['ewc_code'] ?? null,
+                    'component' => $row['component'] ?? null,
+                    'concentration' => $row['concentration'] ?? null,
+                    'physical_form' => $row['physical_form'] ?? null,
+                    'hazard_codes' => $row['hazard_codes'] ?? null,
+
+                    'manufacturer_id' => $manufacturerId,
+                    'product_model_id' => $productModelId,
+                    'manufacturer_text' => $manufacturerText,
+                    'model_text' => $modelText,
+
+                    'is_collected' => $isCollected,
+                    'status' => $isCollected ? 'collected' : 'created',
+                ]);
+            }
+
+            // create new items
+            foreach (($data['new_items'] ?? []) as $row) {
+                [$manufacturerId, $productModelId, $manufacturerText, $modelText] =
+                    $this->resolveManufacturerModel($row);
+
+                $isCollected = (bool)($row['is_collected'] ?? false);
+
+                $collection->items()->create([
+                    'category_id' => $row['category_id'] ?? null,
+                    'category_name' => $row['category_name'],
+                    'qty' => $row['qty'],
+                    'weight_kg' => $row['weight_kg'] ?? 0,
+
+                    'ewc_code' => $row['ewc_code'] ?? null,
+                    'component' => $row['component'] ?? null,
+                    'concentration' => $row['concentration'] ?? null,
+                    'physical_form' => $row['physical_form'] ?? null,
+                    'hazard_codes' => $row['hazard_codes'] ?? null,
+
+                    'manufacturer_id' => $manufacturerId,
+                    'product_model_id' => $productModelId,
+                    'manufacturer_text' => $manufacturerText,
+                    'model_text' => $modelText,
+
+                    'is_collected' => $isCollected,
+                    'status' => $isCollected ? 'collected' : 'created',
+                ]);
+            }
+
+            if (($data['mode_type'] ?? '') === 'collect') {
+                $collection->update([
+                    'client_signature' => $data['client_signature'] ?? null,
+                    'client_print_name' => $data['client_print_name'] ?? null,
+                    'driver_signature' => $data['driver_signature'] ?? null,
+                    'driver_print_name' => $data['driver_print_name'] ?? null,
+                ]);
+            }
+        });
+
+        if (($data['mode'] ?? '') === 'send_pdf') {
+            $collection->refresh();
+
+            $pdfController = new \App\Http\Controllers\CollectionPdfController();
+
+            $dutyPdf = $pdfController->generateDutyOfCarePdf($collection);
+            $hazardPdf = $pdfController->generateHazardousPdf($collection);
+
+            Mail::to('niazm6888@gmail.com')
+                ->send(new \App\Mail\CollectionPdfsMail($collection, $dutyPdf, $hazardPdf));
+        }
+
+        return back()->with('success', 'Saved successfully.');
+    }
+
+    public function updateGridold(Request $request, Collection $collection)
+    {
+        $data = $request->validate([
 
             'items' => ['array'],
 
@@ -493,6 +660,7 @@ class CollectionItemController extends Controller
             'driver_signature' => ['nullable','string'],
             'client_print_name' => ['nullable','string','max:255'],
             'driver_print_name' => ['nullable','string','max:255'],
+            'mode_type' => ['nullable','string'],
             'mode' => ['nullable','string'],
         ]);
 
@@ -539,7 +707,7 @@ class CollectionItemController extends Controller
                 ]);
             }
 
-            if (($data['mode'] ?? '') === 'collect') {
+            if (($data['mode_type'] ?? '') === 'collect') {
 
                 $collection->update([
                     'client_signature' => $data['client_signature'] ?? null,
@@ -550,6 +718,18 @@ class CollectionItemController extends Controller
             }
 
         });
+
+        if (($data['mode'] ?? '') === 'send_pdf') {
+
+            $pdfController = new \App\Http\Controllers\CollectionPdfController();
+
+            $dutyPdf = $pdfController->generateDutyOfCarePdf($collection);
+            $hazardPdf = $pdfController->generateHazardousPdf($collection);
+        //$collection->client->email
+            \Mail::to('niazm6888@gmail.com')
+                ->send(new \App\Mail\CollectionPdfsMail($collection,$dutyPdf,$hazardPdf));
+        }
+
 
         return back()->with('success','Saved successfully.');
     }
