@@ -19,7 +19,7 @@ class CollectionItem extends Model
         'component',
         'concentration',
         'physical_form',
-        'hazard_codes',
+        'hazard_codes', 'storage_serial_number', 'second_storage_serial_number', 'our_asset_number',
         
     ];
 

@@ -506,6 +506,16 @@ class CollectionItemController extends Controller
             'driver_print_name' => ['nullable', 'string', 'max:255'],
             'mode_type' => ['nullable', 'string'],
             'mode' => ['nullable', 'string'],
+            'items.*.serial_number' => ['nullable', 'string', 'max:255'],
+            'items.*.asset_tags' => ['nullable', 'string', 'max:255'],
+            'items.*.storage_serial_number' => ['nullable', 'string', 'max:255'],
+            'items.*.second_storage_serial_number' => ['nullable', 'string', 'max:255'],
+            'items.*.our_asset_number' => ['nullable', 'string', 'max:255'],
+            'new_items.*.serial_number' => ['nullable', 'string', 'max:255'],
+            'new_items.*.asset_tags' => ['nullable', 'string', 'max:255'],
+            'new_items.*.storage_serial_number' => ['nullable', 'string', 'max:255'],
+            'new_items.*.second_storage_serial_number' => ['nullable', 'string', 'max:255'],
+            'new_items.*.our_asset_number' => ['nullable', 'string', 'max:255'],
         ]);
 
         // validate numeric manufacturer/model IDs only if numeric
@@ -565,6 +575,12 @@ class CollectionItemController extends Controller
 
                     'is_collected' => $isCollected,
                     'status' => $isCollected ? 'collected' : 'created',
+                    'serial_number' => $row['serial_number'] ?? null,
+                    'asset_tags' => $row['asset_tags'] ?? null,
+                    'storage_serial_number' => $row['storage_serial_number'] ?? null,
+                    'second_storage_serial_number' => $row['second_storage_serial_number'] ?? null,
+                    'our_asset_number' => $row['our_asset_number'] ?? null,
+
                 ]);
             }
 
@@ -594,6 +610,11 @@ class CollectionItemController extends Controller
 
                     'is_collected' => $isCollected,
                     'status' => $isCollected ? 'collected' : 'created',
+                    'serial_number' => $row['serial_number'] ?? null,
+'asset_tags' => $row['asset_tags'] ?? null,
+'storage_serial_number' => $row['storage_serial_number'] ?? null,
+'second_storage_serial_number' => $row['second_storage_serial_number'] ?? null,
+'our_asset_number' => $row['our_asset_number'] ?? null,
                 ]);
             }
 
