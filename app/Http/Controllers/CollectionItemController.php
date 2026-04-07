@@ -611,10 +611,10 @@ class CollectionItemController extends Controller
                     'is_collected' => $isCollected,
                     'status' => $isCollected ? 'collected' : 'created',
                     'serial_number' => $row['serial_number'] ?? null,
-'asset_tags' => $row['asset_tags'] ?? null,
-'storage_serial_number' => $row['storage_serial_number'] ?? null,
-'second_storage_serial_number' => $row['second_storage_serial_number'] ?? null,
-'our_asset_number' => $row['our_asset_number'] ?? null,
+                    'asset_tags' => $row['asset_tags'] ?? null,
+                    'storage_serial_number' => $row['storage_serial_number'] ?? null,
+                    'second_storage_serial_number' => $row['second_storage_serial_number'] ?? null,
+                    'our_asset_number' => $row['our_asset_number'] ?? null,
                 ]);
             }
 
