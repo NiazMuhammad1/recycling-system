@@ -128,14 +128,23 @@
                                 <th style="width:340px;">Category</th>
                                 <th style="width:180px;">Manufacturer</th>
                                 <th style="width:180px;">Model</th>
-                                <th style="width:110px;">Weight</th>
-                                <th style="width:110px;">EWC</th>
+                                <th style="width:110px; display:none;">Weight</th>
+                                <th style="width:110px;display:none;">EWC</th>
                                 @if($isCollect)
                                     <th style="width:90px;" class="text-center">Collected</th>
                                 @else
                                     <th style="width:90px;"></th>
                                 @endif
                                 <th style="width:70px;"></th>
+                            </tr>
+                            <tr>
+                                <th colspan="1"></th>
+                                <th>Serial No</th>
+                                <th>Asset Tag</th>
+                                <th>Our Asset No</th>
+                                <th>Storage Serial</th>
+                                <th>Second Storage</th>
+                                <th>More Info</th>
                             </tr>
                         </thead>
 
@@ -238,13 +247,13 @@
                                            value="{{ old("items.$it->id.model_text", $it->model_text) }}">
                                 </td>
 
-                                <td>
+                                <td style="display:none;">
                                     <input class="form-control form-control-sm weightInput"
                                            name="items[{{ $it->id }}][weight_kg]"
                                            value="{{ old("items.$it->id.weight_kg", $it->weight_kg ?? '') }}">
                                 </td>
 
-                                <td>
+                                <td style="display:none;">
                                     <input class="form-control form-control-sm ewcInput"
                                            name="items[{{ $it->id }}][ewc_code]"
                                            value="{{ $it->ewc_code ?? $it->category?->ewc_code }}">
@@ -325,21 +334,21 @@
                                            value="{{ old("items.$it->id.second_storage_serial_number", $it->second_storage_serial_number) }}">
                                 </td>
 
-                                <td>
+                                <td style="display:none;">
                                     <label class="small">Component</label>
                                     <input class="form-control form-control-sm componentInput"
                                            name="items[{{ $it->id }}][component]"
                                            value="{{ $it->component ?? $it->category?->component }}">
                                 </td>
 
-                                <td>
+                                <td style="display:none;">
                                     <label class="small">Concentration</label>
                                     <input class="form-control form-control-sm concentrationInput"
                                            name="items[{{ $it->id }}][concentration]"
                                            value="{{ $it->concentration ?? $it->category?->concentration }}">
                                 </td>
 
-                                <td colspan="2">
+                                <td colspan="2" style="display:none;">
                                     <div class="row no-gutters">
                                         <div class="col-md-6 pr-2">
                                             <label class="small">Form</label>
@@ -825,12 +834,12 @@ $(function () {
                         name="new_items[${key}][model_text]" value="${data.model_text}">
                 </td>
 
-                <td>
+                <td style="display:none;">
                     <input class="form-control form-control-sm weightInput"
                         name="new_items[${key}][weight_kg]" value="${data.weight_kg}">
                 </td>
 
-                <td>
+                <td style="display:none;">
                     <input class="form-control form-control-sm ewcInput"
                         name="new_items[${key}][ewc_code]" value="${data.ewc_code}">
                 </td>
@@ -893,19 +902,19 @@ $(function () {
                         name="new_items[${key}][second_storage_serial_number]" value="${data.second_storage_serial_number}">
                 </td>
 
-                <td>
+                <td style="display:none;">
                     <label class="small">Component</label>
                     <input class="form-control form-control-sm componentInput"
                         name="new_items[${key}][component]" value="${data.component}">
                 </td>
 
-                <td>
+                <td style="display:none;">
                     <label class="small">Concentration</label>
                     <input class="form-control form-control-sm concentrationInput"
                         name="new_items[${key}][concentration]" value="${data.concentration}">
                 </td>
 
-                <td colspan="2">
+                <td colspan="2" style="display:none;">
                     <div class="row no-gutters">
                         <div class="col-md-6 pr-2">
                             <label class="small">Form</label>
@@ -1031,12 +1040,12 @@ $(function () {
                                name="new_items[${key}][model_text]" value="">
                     </td>
 
-                    <td>
+                    <td style="display:none;">
                         <input class="form-control form-control-sm weightInput"
                                name="new_items[${key}][weight_kg]" value="">
                     </td>
 
-                    <td>
+                    <td style="display:none;">
                         <input class="form-control form-control-sm ewcInput"
                                name="new_items[${key}][ewc_code]" value="">
                     </td>
@@ -1099,19 +1108,19 @@ $(function () {
                                name="new_items[${key}][second_storage_serial_number]" value="">
                     </td>
 
-                    <td>
+                    <td style="display:none;">
                         <label class="small">Component</label>
                         <input class="form-control form-control-sm componentInput"
                                name="new_items[${key}][component]" value="">
                     </td>
 
-                    <td>
+                    <td style="display:none;">
                         <label class="small">Concentration</label>
                         <input class="form-control form-control-sm concentrationInput"
                                name="new_items[${key}][concentration]" value="">
                     </td>
 
-                    <td colspan="2">
+                    <td colspan="2" style="display:none;">
                         <div class="row no-gutters">
                             <div class="col-md-6 pr-2">
                                 <label class="small">Form</label>
