@@ -59,6 +59,7 @@
     .main-table th {
         word-wrap: break-word;
     }
+    
 </style>
 @endpush
 
@@ -136,15 +137,6 @@
                                     <th style="width:90px;"></th>
                                 @endif
                                 <th style="width:70px;"></th>
-                            </tr>
-                            <tr>
-                                <th colspan="1"></th>
-                                <th>Serial No</th>
-                                <th>Asset Tag</th>
-                                <th>Our Asset No</th>
-                                <th>Storage Serial</th>
-                                <th>Second Storage</th>
-                                <th>More Info</th>
                             </tr>
                         </thead>
 
@@ -277,7 +269,7 @@
                                             value="1"
                                             min="1"
                                             max="100"
-                                            style="width:70px;"
+                                            style="width:70px; display:none;"
                                             title="Number of duplicates">
 
                                         <button type="button"
@@ -778,7 +770,7 @@ $(function () {
         };
     }
 
-    function appendDuplicatedItemRow(data) {
+    function appendDuplicatedItemRow(data, $insertAfterRow = null) {
         var key = uid();
 
         var collectedTopCell = IS_COLLECT
@@ -853,7 +845,7 @@ $(function () {
                             value="1"
                             min="1"
                             max="100"
-                            style="width:70px;"
+                            style="width:70px; display:none;"
                             title="Number of duplicates">
 
                         <button type="button"
@@ -931,9 +923,16 @@ $(function () {
             </tr>
         `;
 
-        $('#itemsTbody').append(html);
+        if ($insertAfterRow && $insertAfterRow.length) {
+            $insertAfterRow.after(html);
+        } else {
+            $('#itemsTbody').append(html);
+        }
 
-        var $topRow = $('#itemsTbody tr.item-row-top').last();
+        let $topRow = ($insertAfterRow && $insertAfterRow.length)
+            ? $insertAfterRow.nextAll('tr.item-row-top').first()
+            : $('#itemsTbody tr.item-row-top').last();
+
         $topRow.find('.categorySel').val(data.category_id);
 
         initRow($topRow);
@@ -956,6 +955,8 @@ $(function () {
 
         $topRow.find('.weightInput').val(data.weight_kg);
         $topRow.find('.ewcInput').val(data.ewc_code);
+
+        return $topRow.next('.item-row-bottom'); // return last inserted bottom row
     }
     // duplcates end
     $(document).on('click', '.duplicate-row', function () {
@@ -963,15 +964,22 @@ $(function () {
         let rows = getItemRows($clickedRow);
         let data = getItemData(rows.$topRow, rows.$bottomRow);
 
-        // ✅ Use qty as duplicate count
         let count = parseInt(data.qty || 1, 10);
-        count = Math.max(1, Math.min(100, count)); // safety limit
+        count = Math.max(1, Math.min(100, count));
 
-        // OPTIONAL: reset qty of duplicated rows to 1 (recommended)
+        if (count <= 1) return;
+
+        // Set original qty to 1
+        rows.$topRow.find('input[name*="[qty]"]').val(1);
+
+        // New rows should also have qty = 1
         data.qty = 1;
 
-        for (let i = 0; i < count; i++) {
-            appendDuplicatedItemRow(data);
+        // Start inserting after this item's bottom row
+        let $insertAfter = rows.$bottomRow;
+
+        for (let i = 1; i < count; i++) {
+            $insertAfter = appendDuplicatedItemRow(data, $insertAfter);
         }
     });
     $('#bulk_add_btn').on('click', function () {
@@ -1059,7 +1067,7 @@ $(function () {
                                 value="1"
                                 min="1"
                                 max="100"
-                                style="width:70px;"
+                                style="width:70px;display:none;"
                                 title="Number of duplicates">
 
                             <button type="button"
