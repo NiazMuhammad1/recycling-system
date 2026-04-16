@@ -212,7 +212,233 @@
 
                 <button type="button" class="btn btn-primary btn-sm" id="addHddBtn">Add HDD</button>
                 <hr>
-               
+                <!-- <h5 class="mb-3" style="display:none">Stock Item Details (only used when Action = Add To Stock)</h5>
+                <div class="form-row" style="display:none">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>SKU</label>
+                            <input class="form-control form-control-sm" name="sku" value="{{ old('sku', $stock->sku ?? '') }}">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Serial Number</label>
+                            <input class="form-control form-control-sm" name="serial_number" value="{{ old('serial_number', $stock->serial_number ?? $item->serial_number ?? '') }}">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Asset Tags</label>
+                            <input class="form-control form-control-sm" name="asset_tags" value="{{ old('asset_tags', $stock->asset_tags ?? $item->asset_tags ?? '') }}">
+                        </div>
+                    </div>
+                </div> -->
+                <!-- <div class="form-row" style="display:none">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Warehouse Location</label>
+                            <input class="form-control form-control-sm" name="warehouse_location" value="{{ old('warehouse_location') }}">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Cosmetic Condition</label>
+                            <select class="form-control form-control-sm" name="cosmetic_condition">
+                                @foreach(['A','B','C','D'] as $c)
+                                    <option value="{{ $c }}">{{ $c }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Price</label>
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-append"><span class="input-group-text">£</span></div>
+                                <input class="form-control" name="price" value="{{ old('price',0) }}">
+                            </div>
+                        </div>
+                    </div>
+                </div> -->
+
+                <!-- <div class="form-group" style="display:none">
+                    <label>Condition Notes</label>
+                    <textarea class="form-control form-control-sm" name="condition_notes" rows="3">{{ old('condition_notes') }}</textarea>
+                </div>
+
+                <div class="form-group" style="display:none">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="fully_functional"
+                               name="fully_functional" value="1" {{ old('fully_functional',1) ? 'checked':'' }}>
+                        <label class="custom-control-label" for="fully_functional">Fully Functional</label>
+                    </div>
+                </div>
+                <h5 class="mb-3" style="display:none">Model Details</h5> -->
+
+               <!--  <div class="form-row" style="display:none">
+                    <div class="col-md-6">
+
+                        {{-- Category * --}}
+                        <div class="form-group">
+                            <label>Category <span class="text-danger">*</span></label>
+                            <select class="form-control form-control-sm" name="category_id" required>
+                                {{-- If you already have $categories list, use it; otherwise keep simple --}}
+                                @foreach(($categories ?? []) as $cat)
+                                    <option value="{{ $cat->id }}"
+                                        {{ (string)old('category_id', $stock->category_id ?? $item->category_id ?? '') === (string)$cat->id ? 'selected' : '' }}>
+                                        {{ $cat->name }}
+                                    </option>
+                                @endforeach
+
+                                {{-- Fallback if you don't pass $categories --}}
+                                @if(empty($categories))
+                                    <option value="{{ old('category_id', $stock->category_id ?? $item->category_id ?? '') }}" selected>
+                                        {{ old('category_id', $stock->category_id ?? $item->category_id ?? 'Please Select') }}
+                                    </option>
+                                @endif
+                            </select>
+                        </div>
+
+                        {{-- Manufacturer (text in screenshot) --}}
+                        <div class="form-group">
+                            <label>Manufacturer</label>
+                            <input class="form-control form-control-sm" name="manufacturer"
+                                value="{{ old('manufacturer', $stock->manufacturer ?? ($item->manufacturer?->name ?? $item->manufacturer_text ?? '')) }}">
+                        </div>
+
+                        {{-- Model (text in screenshot) --}}
+                        <div class="form-group">
+                            <label>Model</label>
+                            <input class="form-control form-control-sm" name="model"
+                                value="{{ old('model', $stock->model ?? ($item->productModel?->name ?? $item->model_text ?? '')) }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Year</label>
+                            <input class="form-control form-control-sm" name="year" value="{{ old('year', $stock->year ?? '') }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Chassis</label>
+                            <select class="form-control form-control-sm" name="chassis">
+                                @foreach(['Desktop','Laptop','All-in-One','Server','Other'] as $c)
+                                    <option value="{{ $c }}" {{ old('chassis', $stock->chassis ?? 'Desktop') === $c ? 'selected' : '' }}>
+                                        {{ $c }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- Processor: Manufacturer / Type / GHz --}}
+                        <div class="form-group">
+                            <label>Processor</label>
+
+                            <input class="form-control form-control-sm mb-2" name="processor_manufacturer"
+                                placeholder="Manufacturer"
+                                value="{{ old('processor_manufacturer', $stock->processor_manufacturer ?? '') }}">
+
+                            <div class="form-row">
+                                <div class="col-md-7">
+                                    <input class="form-control form-control-sm" name="processor_type"
+                                        placeholder="Type"
+                                        value="{{ old('processor_type', $stock->processor_type ?? '') }}">
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="input-group input-group-sm">
+                                        <input class="form-control" name="processor_speed_ghz"
+                                            value="{{ old('processor_speed_ghz', $stock->processor_speed_ghz ?? 0) }}">
+                                        <div class="input-group-append"><span class="input-group-text">Ghz</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- RAM: Type / GB --}}
+                        <div class="form-group">
+                            <label>RAM</label>
+                            <div class="form-row">
+                                <div class="col-md-7">
+                                    <input class="form-control form-control-sm" name="ram_type"
+                                        placeholder="Type"
+                                        value="{{ old('ram_type', $stock->ram_type ?? '') }}">
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="input-group input-group-sm">
+                                        <input class="form-control" name="ram_gb"
+                                            value="{{ old('ram_gb', $stock->ram_gb ?? 0) }}">
+                                        <div class="input-group-append"><span class="input-group-text">Gb</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- HDD / SSD / NVMe --}}
+                        <div class="form-group">
+                            <label>HDD</label>
+                            <div class="input-group input-group-sm">
+                                <input class="form-control" name="hdd_gb" value="{{ old('hdd_gb', $stock->hdd_gb ?? 0) }}">
+                                <div class="input-group-append"><span class="input-group-text">Gb</span></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>SSD</label>
+                            <div class="input-group input-group-sm">
+                                <input class="form-control" name="ssd_gb" value="{{ old('ssd_gb', $stock->ssd_gb ?? 0) }}">
+                                <div class="input-group-append"><span class="input-group-text">Gb</span></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>NVMe</label>
+                            <div class="input-group input-group-sm">
+                                <input class="form-control" name="nvme_gb" value="{{ old('nvme_gb', $stock->nvme_gb ?? 0) }}">
+                                <div class="input-group-append"><span class="input-group-text">Gb</span></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Operating System</label>
+                            <input class="form-control form-control-sm" name="operating_system"
+                                value="{{ old('operating_system', $stock->operating_system ?? '') }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Optical Drives</label>
+                            <input class="form-control form-control-sm" name="optical_drives"
+                                value="{{ old('optical_drives', $stock->optical_drives ?? '') }}">
+                        </div>
+
+                        {{-- Checkboxes (match screenshot) --}}
+                        <div class="form-group">
+                            <div class="custom-control custom-checkbox mb-2">
+                                <input type="checkbox" class="custom-control-input" id="fully_functional"
+                                    name="fully_functional" value="1"
+                                    {{ old('fully_functional', $stock->fully_functional ?? false) ? 'checked' : '' }}>
+                                <label class="custom-control-label" for="fully_functional">Fully Functional</label>
+                            </div>
+
+                            <div class="custom-control custom-checkbox mb-2">
+                                <input type="checkbox" class="custom-control-input" id="charger_included"
+                                    name="charger_included" value="1"
+                                    {{ old('charger_included', $stock->charger_included ?? false) ? 'checked' : '' }}>
+                                <label class="custom-control-label" for="charger_included">Charger / Power Supply Included</label>
+                            </div>
+
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="accessories_included"
+                                    name="accessories_included" value="1"
+                                    {{ old('accessories_included', $stock->accessories_included ?? false) ? 'checked' : '' }}>
+                                <label class="custom-control-label" for="accessories_included">Accessories Included</label>
+                            </div>
+                        </div>
+
+                        <hr>
+                        <h6 class="mb-2">Product Images</h6>
+                        <input type="file" name="product_images[]" multiple class="form-control-file">
+
+                    </div>
+                </div> -->
 
                 <button class="btn btn-success btn-sm">Process</button>
                 <a class="btn btn-link btn-sm" href="{{ route('collections.process.index',$collection) }}">Cancel</a>

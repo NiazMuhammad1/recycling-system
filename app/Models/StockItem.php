@@ -7,15 +7,50 @@ use App\Services\CodeGenerator;
 
 class StockItem extends Model
 {
-    protected $fillable = [
-        'stock_number','sku','serial_number','item_name',
-        'category_id','manufacturer','model',
-        'chassis','processor','memory','hdd',
-        'price','cosmetic_condition','condition','warehouse_location','fully_functional',
-        'type','speed','ram','ram_type','os','optical_drives',
+   protected $fillable = [
+        'stock_number',
+        'sku',
+        'serial_number',
+        'asset_tags',
+        'item_name',
+
+        'category_id',
+        'manufacturer_id',
+        'product_model_id',
+        'model',
+        'year',
+        'chassis',
+
+        'processor_manufacturer',
+        'processor_type',
+        'processor_speed_ghz',
+
+        'ram_type',
+        'ram_gb',
+
+        'hdd_gb',
+        'ssd_gb',
+        'nvme_gb',
+
+        'operating_system',
+        'optical_drives',
+
+        'price',
+        'warehouse_location',
+        'cosmetic_condition',
+        'condition_notes',
+        'fully_functional',
+
+        'charger_included',
+        'accessories_included',
+
         'notes',
-        'source_collection_id','source_collection_item_id',
-        'status','created_by','updated_by',
+
+        'source_collection_id',
+        'source_collection_item_id',
+        'status',
+        'created_by',
+        'updated_by',
     ];
 
     protected $casts = [
