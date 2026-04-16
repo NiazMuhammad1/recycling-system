@@ -186,38 +186,89 @@
                         </div>
                     </div>
 
-                    <table class="table table-sm table-bordered">
-                        <thead class="thead-light">
-                            <tr>
-                                <th>#</th>
-                                <th>Qty</th>
-                                <th>Category</th>
-                                <th>Weight (kg)</th>
-                                <th>EWC</th>
-                                <th>Component</th>
-                                <th>Concentration</th>
-                                <th>Form</th>
-                                <th>Hazard</th>
-                                <th>Erasure Req.</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <style>
+                        .item-card {
+                            border: 1px solid #e5e7eb;
+                            border-radius: 8px;
+                            margin-bottom: 12px;
+                            background: #fff;
+                            transition: 0.2s;
+                        }
+
+                        .item-card:hover {
+                            background: #f9fafb;
+                        }
+
+                        /* Header */
+                        .item-header {
+                            padding: 10px 15px;
+                            border-bottom: 1px solid #eee;
+                            background: #f8f9fa;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                        }
+
+                        .item-title {
+                            font-weight: 600;
+                        }
+
+                        .item-sub {
+                            font-size: 12px;
+                            color: #6c757d;
+                        }
+
+                        /* Body grid */
+                        .item-body {
+                            padding: 12px 15px;
+                        }
+
+                        .item-grid {
+                            display: grid;
+                            grid-template-columns: repeat(6, 1fr);
+                            gap: 10px 15px;
+                        }
+
+                        .label {
+                            font-size: 13px;
+                            color: #6c757d;
+                        }
+
+                        .value {
+                            font-size: 15px;
+                            font-weight: 500;
+                            color: #212529;
+                        }
+
+                        /* Responsive */
+                        @media (max-width: 1200px) {
+                            .item-grid {
+                                grid-template-columns: repeat(3, 1fr);
+                            }
+                        }
+
+                        @media (max-width: 768px) {
+                            .item-grid {
+                                grid-template-columns: repeat(2, 1fr);
+                            }
+                        }
+                        </style>
+
+
                         @foreach($collection->items->sortBy('item_code') as $it)
-                            <tr>
-                                <td>{{ $it->item_code }}</td>
-                                <td>{{ $it->qty }}</td>
-                                <td>{{ $it->category_name ?? $it->category?->name }}</td>
-                                <td>{{ $it->weight_kg ?? $it->category?->weight_kg }}</td>
-                                <td>{{ $it->ewc_code ?? $it->category?->ewc_code }}</td>
-                                <td>{{ $it->component ?? $it->category?->component }}</td>
-                                <td>{{ $it->concentration ?? $it->category?->concentration }}</td>
-                                <td>{{ $it->physical_form ?? $it->category?->physical_form }}</td>
-                                <td>{{ $it->hazard_codes ?? $it->category?->hazard_codes }}</td>
-                                <td>{{ $it->erasure_required ? 'Yes' : 'No' }}</td>
-                                <td>
+
+                        <div class="item-card">
+
+                            {{-- 🔹 HEADER --}}
+                            <div class="item-header">
+                                <div>
+                                    <div class="item-title">#{{ $it->item_code }}</div>
+                                    <div class="item-sub">Qty: {{ $it->qty }}</div>
+                                </div>
+
+                                <div>
                                     @if($it->status === 'added_to_stock')
-                                        <span class="badge badge-success">Added To Stock</span>
+                                        <span class="badge badge-success">Added</span>
                                     @elseif($it->status === 'collected')
                                         <span class="badge badge-primary">Collected</span>
                                     @elseif($it->status === 'processed')
@@ -225,17 +276,105 @@
                                     @else
                                         <span class="badge badge-secondary">{{ ucfirst($it->status) }}</span>
                                     @endif
-                                </td>
-                            </tr>
+                                </div>
+                            </div>
+
+                            {{-- 🔹 BODY --}}
+                            <div class="item-body">
+                                <div class="item-grid">
+
+                                    <div>
+                                        <div class="label">Category</div>
+                                        <div class="value">{{ $it->category_name ?? $it->category?->name }}</div>
+                                    </div>
+
+                                    <div>
+                                        <div class="label">Manufacturer</div>
+                                        <div class="value">{{ $it->manufacturerRel?->name ?? $it->manufacturer_text }}</div>
+                                    </div>
+
+                                    <div>
+                                        <div class="label">Model</div>
+                                        <div class="value">{{ $it->productModel?->name ?? $it->model_text }}</div>
+                                    </div>
+
+                                    <div>
+                                        <div class="label">Serial</div>
+                                        <div class="value">{{ $it->serial_number ?? '-' }}</div>
+                                    </div>
+
+                                    <div>
+                                        <div class="label">Asset Tag</div>
+                                        <div class="value">{{ $it->asset_tags ?? '-' }}</div>
+                                    </div>
+
+                                    <div>
+                                        <div class="label">Our Asset</div>
+                                        <div class="value">{{ $it->our_asset_number ?? '-' }}</div>
+                                    </div>
+
+                                    <div>
+                                        <div class="label">Storage</div>
+                                        <div class="value">{{ $it->storage_serial_number ?? '-' }}</div>
+                                    </div>
+
+                                    <div>
+                                        <div class="label">Second Storage</div>
+                                        <div class="value">{{ $it->second_storage_serial_number ?? '-' }}</div>
+                                    </div>
+
+                                    <div>
+                                        <div class="label">Weight</div>
+                                        <div class="value">{{ $it->weight_kg ?? $it->category?->weight_kg ?? '-' }} kg</div>
+                                    </div>
+
+                                    <div>
+                                        <div class="label">EWC</div>
+                                        <div class="value">{{ $it->ewc_code ?? $it->category?->ewc_code ?? '-' }}</div>
+                                    </div>
+
+                                    <div>
+                                        <div class="label">Component</div>
+                                        <div class="value">{{ $it->component ?? $it->category?->component ?? '-' }}</div>
+                                    </div>
+
+                                    <div>
+                                        <div class="label">Concentration</div>
+                                        <div class="value">{{ $it->concentration ?? $it->category?->concentration ?? '-' }}</div>
+                                    </div>
+
+                                    <div>
+                                        <div class="label">Form</div>
+                                        <div class="value">{{ $it->physical_form ?? $it->category?->physical_form ?? '-' }}</div>
+                                    </div>
+
+                                    <div>
+                                        <div class="label">Hazard</div>
+                                        <div class="value">{{ $it->hazard_codes ?? $it->category?->hazard_codes ?? '-' }}</div>
+                                    </div>
+
+                                    <div>
+                                        <div class="label">Erasure</div>
+                                        <div class="value">
+                                            <span class="badge {{ $it->erasure_required ? 'badge-danger' : 'badge-secondary' }}">
+                                                {{ $it->erasure_required ? 'Yes' : 'No' }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+
                         @endforeach
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <th colspan="8" class="text-right">Total Weight</th>
-                                <th colspan="3">{{ number_format($collection->total_weight,2) }} Kg</th>
-                            </tr>
-                        </tfoot>
-                    </table>
+
+
+                        {{-- Footer --}}
+                        <div class="text-right mt-2">
+                            <strong>Total Weight:</strong>
+                            {{ number_format($collection->total_weight,2) }} Kg
+                        </div>
                 </div>
 
                 <div class="tab-pane fade" id="tab_tasks" role="tabpanel">

@@ -136,15 +136,17 @@
                                 @else
                                     <th style="width:90px;"></th>
                                 @endif
+                                <th style="width:110px;" class="text-center">Erasure Required</th>
                                 <th style="width:70px;"></th>
                             </tr>
                         </thead>
 
                         <tbody id="itemsTbody">
-                        @foreach($collection->items->sortBy('item_code') as $it)
-                            <tr data-row="existing" data-id="{{ $it->id }}" class="item-row-top">
-                                <td rowspan="2" class="code-cell">
-                                    @if($it->codes->count())
+                        @foreach($collection->items->sortBy('item_code') as $index => $it)
+                         @php $bg = $index % 2 ? 'bg-white' : 'bg-light'; @endphp
+                            <tr data-row="existing" data-id="{{ $it->id }}" class="item-row-top {{ $bg }}">
+                                <td rowspan="2" class="code-cell" style="">
+                                    <!-- @if($it->codes->count())
                                         @foreach($it->codes->sortBy('seq') as $code)
                                             <span class="badge badge-info mr-1 mb-1 d-inline-block">
                                                 {{ $code->item_prefix }}/{{ str_pad($code->seq,3,'0',STR_PAD_LEFT) }}
@@ -164,7 +166,7 @@
                                            title="Assign Code">
                                             <i class="fas fa-hashtag text-primary"></i>
                                         </a>
-                                    </div>
+                                    </div> --> {{$it->item_code}}
                                 </td>
 
                                 <td>
@@ -261,7 +263,12 @@
                                 @else
                                     <td></td>
                                 @endif
-
+                                <td class="text-center">
+                                    <input type="checkbox"
+                                        name="items[{{ $it->id }}][erasure_required]"
+                                        value="1"
+                                        {{ old("items.$it->id.erasure_required", $it->erasure_required) ? 'checked' : '' }}>
+                                </td>
                                 <td rowspan="2" class="item-delete-cell">
                                     <div class="d-flex flex-column align-items-center">
                                         <input type="number"
@@ -288,7 +295,7 @@
                                 </td>
                             </tr>
 
-                            <tr data-row="existing" data-id="{{ $it->id }}" class="item-row-bottom">
+                            <tr data-row="existing" data-id="{{ $it->id }}" class="item-row-bottomcomment {{ $bg }}">
                                 <td colspan="2">
                                     <div class="row no-gutters">
                                         <div class="col-md-4 pr-2">
@@ -357,6 +364,10 @@
                                     </div>
                                 </td>
                             </tr>
+                            <tr class="item-gap">
+                                <td colspan="200%"></td>
+                            </tr>
+                            
                         @endforeach
                         </tbody>
                     </table>
@@ -734,7 +745,7 @@ $(function () {
     // duplcates start
     function getItemRows($anyRowInItem) {
         let $topRow = $anyRowInItem.hasClass('item-row-top') ? $anyRowInItem : $anyRowInItem.prev('.item-row-top');
-        let $bottomRow = $topRow.next('.item-row-bottom');
+        let $bottomRow = $topRow.next('.item-row-bottomcomment');
         return { $topRow, $bottomRow };
     }
 
@@ -766,7 +777,8 @@ $(function () {
             physical_form: $bottomRow.find('.formInput').val() || '',
             hazard_codes: $bottomRow.find('.hazardInput').val() || '',
 
-            is_collected: $topRow.find('input[name*="[is_collected]"]').is(':checked')
+            is_collected: $topRow.find('input[name*="[is_collected]"]').is(':checked'),
+            erasure_required: $topRow.find('input[name*="[erasure_required]"]').is(':checked')
         };
     }
 
@@ -777,6 +789,9 @@ $(function () {
             ? `<td class="text-center"><input type="checkbox" name="new_items[${key}][is_collected]" value="1" ${data.is_collected ? 'checked' : ''}></td>`
             : `<td></td>`;
 
+        var erasureTopCell = `<td class="text-center">
+            <input type="checkbox" name="new_items[${key}][erasure_required]" value="1" ${data.erasure_required ? 'checked' : ''}>
+        </td>`;
         var html = `
             <tr data-row="new" class="item-row-top">
                 <td rowspan="2" class="code-cell"><em>new</em></td>
@@ -835,9 +850,9 @@ $(function () {
                     <input class="form-control form-control-sm ewcInput"
                         name="new_items[${key}][ewc_code]" value="${data.ewc_code}">
                 </td>
-
+                
                 ${collectedTopCell}
-
+                ${erasureTopCell}
                 <td rowspan="2" class="item-delete-cell">
                     <div class="d-flex flex-column align-items-center">
                         <input type="number"
@@ -861,7 +876,7 @@ $(function () {
                 </td>
             </tr>
 
-            <tr data-row="new" class="item-row-bottom">
+            <tr data-row="new" class="item-row-bottomcomment">
                 <td colspan="2">
                     <div class="row no-gutters">
                         <div class="col-md-4 pr-2">
@@ -956,7 +971,7 @@ $(function () {
         $topRow.find('.weightInput').val(data.weight_kg);
         $topRow.find('.ewcInput').val(data.ewc_code);
 
-        return $topRow.next('.item-row-bottom'); // return last inserted bottom row
+        return $topRow.next('.item-row-bottomcomment'); // return last inserted bottom row
     }
     // duplcates end
     $(document).on('click', '.duplicate-row', function () {
@@ -998,6 +1013,9 @@ $(function () {
             var collectedTopCell = IS_COLLECT
                 ? `<td class="text-center"><input type="checkbox" name="new_items[${key}][is_collected]" value="1"></td>`
                 : `<td></td>`;
+            var erasureTopCell = `<td class="text-center">
+                <input type="checkbox" name="new_items[${key}][erasure_required]" value="1">
+            </td>`;
 
             var html = `
                 <tr data-row="new" class="item-row-top">
@@ -1059,7 +1077,7 @@ $(function () {
                     </td>
 
                     ${collectedTopCell}
-
+                    ${erasureTopCell}
                     <td rowspan="2" class="item-delete-cell">
                         <div class="d-flex flex-column align-items-center">
                             <input type="number"
@@ -1083,7 +1101,7 @@ $(function () {
                     </td>
                 </tr>
 
-                <tr data-row="new" class="item-row-bottom">
+                <tr data-row="new" class="item-row-bottomcomment">
                     <td colspan="2">
                         <div class="row no-gutters">
                             <div class="col-md-4 pr-2">

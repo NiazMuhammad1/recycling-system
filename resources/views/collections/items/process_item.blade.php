@@ -59,8 +59,35 @@
                         <div class="form-group">
                             <label>Action</label>
                             <select class="form-control form-control-sm" name="process_action" required>
-                                @foreach(['add_to_stock'=>'Add To Stock','physical_destruction'=>'Physical Destruction','recycle'=>'Recycle','resale'=>'Resale'] as $k=>$v)
-                                    <option value="{{ $k }}" {{ old('process_action',$item->process_action) === $k ? 'selected':'' }}>{{ $v }}</option>
+                                @foreach([
+                                    '' => '-- Bulk Process Selected items --',
+                                    'add_to_stock' => 'Add To Stock',
+                                    'broken_for_parts' => 'Broken For Parts',
+                                    'charge' => 'Charge',
+                                    'completed' => 'Completed',
+                                    'data_erased' => 'Data Erased',
+                                    'degaussed' => 'Degaussed',
+                                    'disposed' => 'Disposed',
+                                    'electrical_tested' => 'Electrical Tested',
+                                    'erased' => 'Erased',
+                                    'factory_reset' => 'Factory Reset',
+                                    'needs_refurbishing' => 'Needs Refurbishing',
+                                    'needs_reviewed' => 'Needs Reviewed',
+                                    'physical_destruction' => 'Physical Destruction',
+                                    'quarantined' => 'Quarantined',
+                                    'recycled' => 'Recycled',
+                                    'returned_to_customer' => 'Returned To Customer',
+                                    'scrapped' => 'Scrapped',
+                                    'shredded_15mm' => 'Shredded 15mm',
+                                    'shredded_6mm' => 'Shredded 6mm',
+                                    'stage_1' => 'Stage 1',
+                                    'stage_2' => 'Stage 2',
+                                    'value' => 'Value',
+                                ] as $k => $v)
+                                    <option value="{{ $k }}"
+                                        {{ old('process_action', $item->process_action ?? '') === $k ? 'selected' : '' }}>
+                                        {{ $v }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
@@ -185,8 +212,8 @@
 
                 <button type="button" class="btn btn-primary btn-sm" id="addHddBtn">Add HDD</button>
                 <hr>
-                <h5 class="mb-3">Stock Item Details (only used when Action = Add To Stock)</h5>
-                <div class="form-row">
+                <h5 class="mb-3" style="display:none">Stock Item Details (only used when Action = Add To Stock)</h5>
+                <div class="form-row" style="display:none">
                     <div class="col-md-4">
                         <div class="form-group">
                             <label>SKU</label>
@@ -206,7 +233,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="form-row">
+                <div class="form-row" style="display:none">
                     <div class="col-md-4">
                         <div class="form-group">
                             <label>Warehouse Location</label>
@@ -234,21 +261,21 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" style="display:none">
                     <label>Condition Notes</label>
                     <textarea class="form-control form-control-sm" name="condition_notes" rows="3">{{ old('condition_notes') }}</textarea>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" style="display:none">
                     <div class="custom-control custom-checkbox">
                         <input type="checkbox" class="custom-control-input" id="fully_functional"
                                name="fully_functional" value="1" {{ old('fully_functional',1) ? 'checked':'' }}>
                         <label class="custom-control-label" for="fully_functional">Fully Functional</label>
                     </div>
                 </div>
-                <h5 class="mb-3">Model Details</h5>
+                <h5 class="mb-3" style="display:none">Model Details</h5>
 
-                <div class="form-row">
+                <div class="form-row" style="display:none">
                     <div class="col-md-6">
 
                         {{-- Category * --}}

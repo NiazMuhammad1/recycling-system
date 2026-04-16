@@ -478,6 +478,7 @@ class CollectionItemController extends Controller
             'items.*.model_text' => ['nullable', 'string', 'max:120'],
 
             'items.*.is_collected' => ['nullable', 'boolean'],
+            'items.*.erasure_required' => ['nullable', 'boolean'],
 
             'new_items' => ['array'],
 
@@ -499,6 +500,7 @@ class CollectionItemController extends Controller
             'new_items.*.model_text' => ['nullable', 'string', 'max:120'],
 
             'new_items.*.is_collected' => ['nullable', 'boolean'],
+            'new_items.*.erasure_required' => ['nullable', 'boolean'],
 
             'client_signature' => ['nullable', 'string'],
             'driver_signature' => ['nullable', 'string'],
@@ -555,6 +557,7 @@ class CollectionItemController extends Controller
                     $this->resolveManufacturerModel($row);
 
                 $isCollected = (bool)($row['is_collected'] ?? false);
+                $isErasureRequired = (bool)($row['erasure_required'] ?? false);
 
                 $item->update([
                     'qty' => $row['qty'],
@@ -572,8 +575,8 @@ class CollectionItemController extends Controller
                     'product_model_id' => $productModelId,
                     'manufacturer_text' => $manufacturerText,
                     'model_text' => $modelText,
-
                     'is_collected' => $isCollected,
+                    'erasure_required' => $isErasureRequired,
                     'status' => $isCollected ? 'collected' : 'created',
                     'serial_number' => $row['serial_number'] ?? null,
                     'asset_tags' => $row['asset_tags'] ?? null,
@@ -590,7 +593,7 @@ class CollectionItemController extends Controller
                     $this->resolveManufacturerModel($row);
 
                 $isCollected = (bool)($row['is_collected'] ?? false);
-
+                $isErasureRequired = (bool)($row['erasure_required'] ?? false);
                 $collection->items()->create([
                     'category_id' => $row['category_id'] ?? null,
                     'category_name' => $row['category_name'],
@@ -607,7 +610,7 @@ class CollectionItemController extends Controller
                     'product_model_id' => $productModelId,
                     'manufacturer_text' => $manufacturerText,
                     'model_text' => $modelText,
-
+                    'erasure_required' => $isErasureRequired,
                     'is_collected' => $isCollected,
                     'status' => $isCollected ? 'collected' : 'created',
                     'serial_number' => $row['serial_number'] ?? null,

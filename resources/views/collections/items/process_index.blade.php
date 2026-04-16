@@ -18,19 +18,22 @@
                     <thead class="thead-light">
                         <tr>
                             <th>#</th><th>Qty</th><th>Category</th><th>Manufacturer</th><th>Model</th>
-                            <th>Serial</th><th>Asset Tag(s)</th><th>Status</th><th style="width:120px;"></th>
+                            <th>Serial</th><th>Asset Tag(s)</th><th>Our Asset #</th><th>Storage Serial #</th><th>S.Storage Serial #</th><th>Status</th><th style="width:120px;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($items as $it)
                             <tr>
-                                <td>{{ $it->item_number }}</td>
+                                <td>{{ $it->item_code }}</td>
                                 <td>{{ $it->qty }}</td>
                                 <td>{{ $it->category?->name }}</td>
-                                <td>{{ $it->manufacturer?->name ?? $it->manufacturer_text }}</td>
+                                <td>{{ $it->manufacturerRel?->name ?? $it->manufacturer_text }}</td>
                                 <td>{{ $it->productModel?->name ?? $it->model_text }}</td>
                                 <td>{{ $it->serial_number }}</td>
                                 <td>{{ $it->asset_tags }}</td>
+                                <td>{{ $it->our_asset_number}}</td>
+                                <td>{{ $it->storage_serial_number}}</td>
+                                <td>{{ $it->second_storage_serial_number}}</td>
                                 <td>{{ ucfirst($it->status) }}</td>
                                 <td class="text-right">
                                     <a class="btn btn-primary btn-sm"
