@@ -18,7 +18,7 @@
                     <thead class="thead-light">
                         <tr>
                             <th>#</th><th>Qty</th><th>Category</th><th>Manufacturer</th><th>Model</th>
-                            <th>Serial</th><th>Asset Tag(s)</th><th>Our Asset #</th><th>Storage Serial #</th><th>S.Storage Serial #</th><th>Status</th><th style="width:120px;">Action</th>
+                            <th>Serial</th><th>Asset Tag(s)</th><th>Our Asset #</th><th>Storage Serial #</th><th>S.Storage Serial #</th><th>Process Action</th><th>Status</th><th style="width:120px;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -34,7 +34,8 @@
                                 <td>{{ $it->our_asset_number}}</td>
                                 <td>{{ $it->storage_serial_number}}</td>
                                 <td>{{ $it->second_storage_serial_number}}</td>
-                                <td>{{ ucfirst($it->status) }}</td>
+                                <td>{{ str_replace('_', ' ', ucfirst($it->process_action)) }}</td>
+                                <td>{{ str_replace('_', ' ', ucfirst($it->status)) }}</td>
                                 <td class="text-right">
                                     <a class="btn btn-primary btn-sm"
                                        href="{{ route('collections.process.itemForm', [$collection,$it]) }}">

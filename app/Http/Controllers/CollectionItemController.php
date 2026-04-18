@@ -133,7 +133,7 @@ class CollectionItemController extends Controller
         $collection->load(['items.category','items.manufacturerRel','items.productModel']);
         // show only items that are collected and not processed/stocked yet
         $items = $collection->items()
-            ->whereIn('status',['collected','processing'])
+            ->whereNotIn('status',['created','pending'])
             ->orderBy('item_number')
             ->get();
 
@@ -153,7 +153,7 @@ class CollectionItemController extends Controller
         abort_unless($item->collection_id === $collection->id, 404);
 
         $request->validate([
-            'process_action' => 'required|in:add_to_stock,physical_destruction,recycle,resale',
+            'process_action' => 'required',
             'item_valuation' => 'nullable|numeric|min:0',
             'refurb_cost' => 'nullable|numeric|min:0',
             'hdd_serial' => 'nullable|string|max:255',
