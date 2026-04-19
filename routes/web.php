@@ -77,13 +77,18 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::get('collections/{collection}/process', [CollectionItemController::class, 'processIndex'])
-        ->name('collections.process.index');
+    ->name('collections.process.index');
+
+    Route::post('collections/{collection}/process/bulk', [CollectionController::class, 'bulkProcess'])
+        ->name('collections.process.bulk');
 
     Route::get('collections/{collection}/process/{item}', [CollectionItemController::class, 'processItemForm'])
         ->name('collections.process.itemForm');
 
     Route::post('collections/{collection}/process/{item}', [CollectionItemController::class, 'processItemSave'])
         ->name('collections.process.itemSave');
+    
+   
 
     /*
     |--------------------------------------------------------------------------

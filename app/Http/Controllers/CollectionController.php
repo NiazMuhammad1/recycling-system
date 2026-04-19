@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use App\Models\User;
+use App\Models\StockItem;
 class CollectionController extends Controller
 {
     public function index()
@@ -220,6 +221,87 @@ class CollectionController extends Controller
 
             'equipment_classification' => ['nullable', Rule::in(['EEE','WEEE'])],
         ]);
+    }
+
+    public function bulkProcess(Request $request, Collection $collection)
+    {
+        $allowedActions = [
+            'add_to_stock',
+            'broken_for_parts',
+            'charge',
+            'completed',
+            'data_erased',
+            'degaussed',
+            'disposed',
+            'electrical_tested',
+            'erased',
+            'factory_reset',
+            'needs_refurbishing',
+            'needs_reviewed',
+            'physical_destruction',
+            'quarantined',
+            'recycled',
+            'returned_to_customer',
+            'scrapped',
+            'shredded_15mm',
+            'shredded_6mm',
+            'stage_1',
+            'stage_2',
+            'value',
+        ];
+
+        $data = $request->validate([
+            'item_ids' => 'required|array|min:1',
+            'item_ids.*' => 'integer|exists:collection_items,id',
+            'process_action' => 'required|in:' . implode(',', $allowedActions),
+        ]);
+
+        DB::transaction(function () use ($collection, $data) {
+            $items = $collection->items()
+                ->whereIn('id', $data['item_ids'])
+                ->get();
+
+            foreach ($items as $item) {
+                $item->update([
+                    'process_action' => $data['process_action'],
+                    'status' => $data['process_action'] === 'add_to_stock' ? 'add_to_stock' : 'processed',
+                    'processed_at' => now(),
+                ]);
+
+                if ($data['process_action'] === 'add_to_stock' && !$item->stock_item_id) {
+                    $stock = StockItem::create([
+                        'stock_number' => NumberService::next('stock', 'S', 7),
+                        'category_id' => $item->category_id,
+                        'manufacturer_id' => $item->manufacturer_id,
+                        'product_model_id' => $item->product_model_id,
+                        'serial_number' => $item->serial_number,
+                        'asset_tags' => $item->asset_tags,
+                        'status' => 'in_stock',
+                        'source_collection_id' => $collection->id,
+                        'source_collection_item_id' => $item->id,
+                    ]);
+
+                    $item->update([
+                        'stock_item_id' => $stock->id,
+                    ]);
+                }
+            }
+
+            $pending = $collection->items()
+                ->whereIn('status', ['collected', 'processing'])
+                ->exists();
+
+            if (!$pending) {
+                $collection->update([
+                    'status' => 'processed',
+                    'processed_at' => now(),
+                ]);
+            }
+        });
+
+        return redirect()
+            ->route('collections.process.index', $collection)
+            ->with('success', 'Selected items processed successfully.');
     }
 
 }
