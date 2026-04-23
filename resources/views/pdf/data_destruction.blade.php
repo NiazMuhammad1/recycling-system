@@ -136,26 +136,23 @@
         <th style="width: 33%;">Quantity</th>
         <th style="width: 34%;">Method of Destruction</th>
     </tr>
-
-    @forelse($erasureItems as $row)
-        <tr>
-            <td class="signature-cell" style="vertical-align: top;">
-                {{ $row->item }}
-            </td>
-            <td class="signature-cell" style="vertical-align: top;">
-                X {{ $row->quantity }}
-            </td>
-            <td class="signature-cell" style="vertical-align: top;">
-                {{ $row->method ?: 'N/A' }}
-            </td>
-        </tr>
-    @empty
-        <tr>
-            <td colspan="3" class="signature-cell" style="text-align: center;">
-                No erasure-required items found
-            </td>
-        </tr>
-    @endforelse
+    <tr>
+        <td class="signature-cell" style="vertical-align: top;">
+            @foreach($erasureItems as $row)
+                {{ $row->item }}@if(!$loop->last)<br/>@endif
+            @endforeach
+        </td>
+        <td class="signature-cell" style="vertical-align: top;">
+            @foreach($erasureItems as $row)
+                X {{ $row->quantity }}@if(!$loop->last)<br/>@endif
+            @endforeach
+        </td>
+        <td class="signature-cell" style="vertical-align: top;">
+            @foreach($erasureItems as $row)
+                {{ $row->method ?: 'N/A' }}@if(!$loop->last)<br/>@endif
+            @endforeach
+        </td>
+    </tr>
 </table>
 
 <!-- SIGNATURE TABLE -->
