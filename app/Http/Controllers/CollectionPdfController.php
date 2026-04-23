@@ -54,6 +54,74 @@ class CollectionPdfController extends Controller
         return $mpdf->Output('', 'S'); // return raw PDF
     }
 
+    public function generateDataDestructionPdf(Collection $collection)
+    {
+        $collection->load(['items.category', 'user', 'client']);
+
+        $categories = \App\Models\Category::whereIn('type', ['duty_of_care', 'both'])->get();
+        $items = $collection->items;
+
+        $rows = [];
+
+        foreach ($categories as $cat) {
+            $catItems = $items->where('category_id', $cat->id);
+
+            if ($catItems->count()) {
+                $qty = $catItems->sum('qty');
+                $totalWeight = $catItems->sum(fn($it) => $it->weight_kg ?? 0);
+                $perItem = $qty ? ($totalWeight / $qty) : 0;
+                $displayName = $catItems->first()->category_name ?: $cat->name;
+            } else {
+                $qty = 0;
+                $totalWeight = 0;
+                $perItem = 0;
+                $displayName = $cat->name;
+            }
+
+            $rows[] = (object)[
+                'name' => $displayName,
+                'qty' => $qty,
+                'total_weight' => $totalWeight,
+                'per_item_weight' => $perItem,
+                'ewc_code' => $cat->ewc_code,
+            ];
+        }
+
+        $totalItems = collect($rows)->sum('qty');
+        $totalWeight = collect($rows)->sum('total_weight');
+
+        // Only items requiring erasure, grouped by category_name
+        $erasureItems = $collection->items
+            ->where('erasure_required', 1)
+            ->groupBy(function ($item) {
+                return $item->category_name ?: optional($item->category)->name ?: 'Unknown';
+            })
+            ->map(function ($group, $categoryName) {
+                return (object) [
+                    'item' => $categoryName,
+                    'quantity' => $group->sum('qty'), // change to 'quantity' if that is your column
+                    'method' => $group->pluck('destruction_method') // change field name if needed
+                        ->filter()
+                        ->unique()
+                        ->implode(', '),
+                ];
+            })
+            ->values();
+
+        $html = view('pdf.data_destruction', compact(
+            'collection',
+            'rows',
+            'totalItems',
+            'totalWeight',
+            'erasureItems'
+        ))->render();
+
+        $mpdf = $this->makeMpdf();
+        $mpdf->WriteHTML($html);
+
+        return $mpdf->Output('', 'S');
+    }
+
     public function generateHazardousPdf(Collection $collection)
     {
          $collection->load(['items.category','user','client']);
@@ -128,6 +196,16 @@ class CollectionPdfController extends Controller
         return response($pdf,200,[
             'Content-Type'=>'application/pdf',
             'Content-Disposition'=>'inline; filename="duty_of_care_'.$collection->id.'.pdf"',
+        ]);
+    }
+
+    public function DataDestruction(Collection $collection)
+    {
+        $pdf = $this->generateDataDestructionPdf($collection);
+
+        return response($pdf,200,[
+            'Content-Type'=>'application/pdf',
+            'Content-Disposition'=>'inline; filename="data_destruction_'.$collection->id.'.pdf"',
         ]);
     }
 

@@ -92,7 +92,7 @@
             <h1>DUTY OF CARE</h1>
         </td>
         <td style="width:25%; text-align: right; vertical-align: middle;">
-            <span style="font-size: 11px;">Ref: <strong>OLE954/17147</strong></span>
+            <span style="font-size: 11px;">Ref: <strong>{{ $collection->collection_code }}</strong></span>
         </td>
     </tr>
 </table>

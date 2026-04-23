@@ -17,6 +17,11 @@
         href="{{ route('collections.pdf.hazardous', $collection) }}">
         Hazardous PDF
         </a>
+        <a class="btn btn-sm btn-outline-primary"
+        target="_blank"
+        href="{{ route('collections.pdf.data_destruction', $collection) }}">
+        Data Destruction PDF
+        </a>
     </div>
     <div class="mb-3 text-muted">Status: {{ ucfirst($collection->status) }}</div>
 
