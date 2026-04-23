@@ -7,20 +7,26 @@
     <div class="d-flex align-items-center mb-2">
         <h1 class="mb-0">Collection {{ $collection->collection_number }}</h1>
         <a class="ml-2" href="{{ route('collections.edit',$collection) }}">[edit]</a>
+        &nbsp;&nbsp;
         <a class="btn btn-sm btn-outline-primary"
         target="_blank"
         href="{{ route('collections.pdf.duty_of_care', $collection) }}">
         Duty of Care PDF
-        </a>
+        </a>&nbsp;&nbsp;
         <a class="btn btn-sm btn-outline-danger"
         target="_blank"
         href="{{ route('collections.pdf.hazardous', $collection) }}">
         Hazardous PDF
-        </a>
+        </a>&nbsp;&nbsp;
         <a class="btn btn-sm btn-outline-primary"
         target="_blank"
         href="{{ route('collections.pdf.data_destruction', $collection) }}">
         Data Destruction PDF
+        </a>&nbsp;&nbsp;
+        <a class="btn btn-sm btn-outline-primary"
+        target="_blank"
+        href="{{ route('collections.pdf.audit_report', $collection) }}">
+        Audit Report PDF
         </a>
     </div>
     <div class="mb-3 text-muted">Status: {{ ucfirst($collection->status) }}</div>

@@ -122,6 +122,31 @@ class CollectionPdfController extends Controller
         return $mpdf->Output('', 'S');
     }
 
+    public function generateAuditReportPdf(Collection $collection)
+    {
+        $collection->load([
+            'items.category',
+            'items.manufacturerRel',
+            'items.productModel',
+            'user',
+            'client',
+        ]);
+
+        $auditItems = $collection->items
+            ->sortBy([
+                ['category_name', 'asc'],
+                ['id', 'asc'],
+            ])
+            ->values();
+
+        $html = view('pdf.audit_report', compact('collection', 'auditItems'))->render();
+
+        $mpdf = $this->makeMpdf();
+        $mpdf->WriteHTML($html);
+
+        return $mpdf->Output('', 'S');
+    }
+
     public function generateHazardousPdf(Collection $collection)
     {
          $collection->load(['items.category','user','client']);
@@ -206,6 +231,16 @@ class CollectionPdfController extends Controller
         return response($pdf,200,[
             'Content-Type'=>'application/pdf',
             'Content-Disposition'=>'inline; filename="data_destruction_'.$collection->id.'.pdf"',
+        ]);
+    }
+
+    public function AuditReport(Collection $collection)
+    {
+        $pdf = $this->generateAuditReportPdf($collection);
+
+        return response($pdf,200,[
+            'Content-Type'=>'application/pdf',
+            'Content-Disposition'=>'inline; filename="audit_report_'.$collection->id.'.pdf"',
         ]);
     }
 

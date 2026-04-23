@@ -29,6 +29,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/collections/{collection}/pdf/data-destruction', [CollectionPdfController::class, 'DataDestruction'])
     ->name('collections.pdf.data_destruction');
 
+    Route::get('/collections/{collection}/pdf/audit-report', [CollectionPdfController::class, 'AuditReport'])
+    ->name('collections.pdf.audit_report');
+
     Route::resource('users', UserController::class);
     Route::resource('categories', \App\Http\Controllers\CategoryController::class);
     Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
