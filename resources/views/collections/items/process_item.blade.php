@@ -24,6 +24,28 @@
                     </ul>
                 </div>
             @endif
+             <div class="d-flex align-items-center mb-2 flex-wrap mt-3">
+
+                <h5 class="mb-0 mr-3">
+                    Collection {{ $collection->collection_number }}
+                </h5>
+
+                <small class="text-muted">
+                    <a href="{{ route('collections.show',$collection) }}">Collection</a>
+                    <span class="mx-1">/</span>
+
+                    <a href="{{ route('collections.items.edit',$collection) }}">Edit</a>
+                    <span class="mx-1">/</span>
+
+                    <a href="{{ route('collections.collect.form',$collection) }}">Collect</a>
+                    <span class="mx-1">/</span>
+
+                    <a href="{{ route('collections.process.index',$collection) }}">Process</a>
+                </small>
+
+                
+
+            </div>
             <form method="POST" action="{{ route('collections.process.itemSave', [$collection,$item]) }}" enctype="multipart/form-data">
                 @csrf
 

@@ -3,11 +3,31 @@
 
 @section('content')
 <div class="container-fluid">
-    <h1>Collection {{ $collection->collection_number }}</h1>
-    <div class="text-muted mb-2">Status: {{ ucfirst($collection->status) }}</div>
+    <div class="d-flex align-items-center mb-2 flex-wrap mt-3">
 
+        <h5 class="mb-0 mr-3">
+            Collection {{ $collection->collection_number }}
+        </h5>
+
+        <small class="text-muted">
+            <a href="{{ route('collections.show',$collection) }}">Collection</a>
+            <span class="mx-1">/</span>
+
+            <a href="{{ route('collections.items.edit',$collection) }}">Edit</a>
+            <span class="mx-1">/</span>
+
+            <a href="{{ route('collections.collect.form',$collection) }}">Collect</a>
+            <span class="mx-1">/</span>
+
+            <a href="{{ route('collections.process.index',$collection) }}">Process</a>
+        </small>
+
+        
+
+    </div>
     <div class="card">
         <div class="card-body">
+            <div class="text-muted mb-2">Status: {{ ucfirst($collection->status) }}</div>
             @if($items->isEmpty())
                 <div class="text-muted">No items to process.</div>
                 <a class="btn btn-link btn-sm" href="{{ route('collections.show',$collection) }}">Back</a>

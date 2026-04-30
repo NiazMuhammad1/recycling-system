@@ -66,9 +66,25 @@
 @php $isCollect = ($mode ?? 'edit') === 'collect'; @endphp
 
 <div class="container-fluid">
-    <div class="d-flex align-items-center mb-2">
-        <h1 class="mb-0">Collection {{ $collection->collection_number }}</h1>
-        <a class="ml-2" href="{{ route('collections.show',$collection) }}">Back</a>
+    <div class="d-flex align-items-center mb-2 flex-wrap">
+
+        <h5 class="mb-0 mr-3">
+            Collection {{ $collection->collection_number }}
+        </h5>
+
+        <small class="text-muted">
+            <a href="{{ route('collections.show',$collection) }}">Collection</a>
+            <span class="mx-1">/</span>
+
+            <a href="{{ route('collections.items.edit',$collection) }}">Edit</a>
+            <span class="mx-1">/</span>
+
+            <a href="{{ route('collections.collect.form',$collection) }}">Collect</a>
+            <span class="mx-1">/</span>
+
+            <a href="{{ route('collections.process.index',$collection) }}">Process</a>
+        </small>
+
     </div>
 
     <div class="card">
