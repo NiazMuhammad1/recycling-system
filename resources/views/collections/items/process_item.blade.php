@@ -69,27 +69,20 @@
                             <select class="form-control form-control-sm" name="process_action" required>
                                 @foreach([
                                     '' => '-- Bulk Process Selected items --',
-                                    'add_to_stock' => 'Add To Stock',
                                     'broken_for_parts' => 'Broken For Parts',
                                     'charge' => 'Charge',
                                     'completed' => 'Completed',
                                     'data_erased' => 'Data Erased',
                                     'degaussed' => 'Degaussed',
                                     'disposed' => 'Disposed',
-                                    'electrical_tested' => 'Electrical Tested',
                                     'erased' => 'Erased',
                                     'factory_reset' => 'Factory Reset',
-                                    'needs_refurbishing' => 'Needs Refurbishing',
-                                    'needs_reviewed' => 'Needs Reviewed',
                                     'physical_destruction' => 'Physical Destruction',
                                     'quarantined' => 'Quarantined',
                                     'recycled' => 'Recycled',
                                     'returned_to_customer' => 'Returned To Customer',
                                     'scrapped' => 'Scrapped',
-                                    'shredded_15mm' => 'Shredded 15mm',
-                                    'shredded_6mm' => 'Shredded 6mm',
-                                    'stage_1' => 'Stage 1',
-                                    'stage_2' => 'Stage 2',
+                                    'shredded' => 'Shredded',
                                     'value' => 'Value',
                                 ] as $k => $v)
                                     <option value="{{ $k }}"

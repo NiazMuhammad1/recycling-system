@@ -66,20 +66,14 @@
                             <option value="data_erased">Data Erased</option>
                             <option value="degaussed">Degaussed</option>
                             <option value="disposed">Disposed</option>
-                            <option value="electrical_tested">Electrical Tested</option>
                             <option value="erased">Erased</option>
                             <option value="factory_reset">Factory Reset</option>
-                            <option value="needs_refurbishing">Needs Refurbishing</option>
-                            <option value="needs_reviewed">Needs Reviewed</option>
                             <option value="physical_destruction">Physical Destruction</option>
                             <option value="quarantined">Quarantined</option>
                             <option value="recycled">Recycled</option>
                             <option value="returned_to_customer">Returned To Customer</option>
                             <option value="scrapped">Scrapped</option>
-                            <option value="shredded_15mm">Shredded 15mm</option>
-                            <option value="shredded_6mm">Shredded 6mm</option>
-                            <option value="stage_1">Stage 1</option>
-                            <option value="stage_2">Stage 2</option>
+                            <option value="shredded">Shredded</option>
                             <option value="value">Value</option>
                         </select>
 

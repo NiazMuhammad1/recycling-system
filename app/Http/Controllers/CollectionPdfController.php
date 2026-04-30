@@ -100,8 +100,9 @@ class CollectionPdfController extends Controller
                 return (object) [
                     'item' => $categoryName,
                     'quantity' => $group->sum('qty'), // change to 'quantity' if that is your column
-                    'method' => $group->pluck('destruction_method') // change field name if needed
+                    'method' => $group->pluck('process_action')
                         ->filter()
+                        ->map(fn($item) => str_replace('_', ' ', $item)) // ✅ replace _ with space
                         ->unique()
                         ->implode(', '),
                 ];

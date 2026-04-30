@@ -153,14 +153,14 @@
                 $make = optional($item->manufacturerRel)->name
                     ?: $item->manufacturer
                     ?: $item->manufacturer_text
-                    ?: 'N/A';
+                    ?: '';
 
                 $model = optional($item->productModel)->name
                     ?: $item->model
                     ?: $item->model_text
-                    ?: 'N/A';
+                    ?: '';
 
-                $status = $item->status ?: 'N/A';
+                $status =  str_replace('_', ' ', $item->process_action);
             @endphp
 
             <tr>
