@@ -28,6 +28,12 @@
         href="{{ route('collections.pdf.audit_report', $collection) }}">
         Audit Report PDF
         </a>
+        &nbsp;&nbsp;
+        <a class="btn btn-sm btn-outline-primary"
+        target="_blank"
+        href="{{ route('collections.pdf.weee_disposal', $collection) }}">
+        Wee Disposal PDF
+        </a>
     </div>
     <div class="mb-3 text-muted">Status: {{ ucfirst($collection->status) }}</div>
 
