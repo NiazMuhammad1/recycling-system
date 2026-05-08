@@ -2,31 +2,52 @@
 
 namespace App\Mail;
 
+use App\Models\Collection;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+
 class CollectionPdfsMail extends Mailable
 {
+    use Queueable, SerializesModels;
+
     public $collection;
 
-    protected $dutyPdf;
-    protected $hazardPdf;
+    public $attachmentsData;
 
-    public function __construct($collection, $dutyPdf, $hazardPdf)
-    {
+    /**
+     * Create a new message instance.
+     */
+    public function __construct(
+        Collection $collection,
+        array $attachmentsData
+    ) {
         $this->collection = $collection;
-        $this->dutyPdf = $dutyPdf;
-        $this->hazardPdf = $hazardPdf;
+        $this->attachmentsData = $attachmentsData;
     }
 
+    /**
+     * Build the message.
+     */
     public function build()
     {
-        return $this->subject('Collection Documents')
-            ->view('emails.collection_pdfs')
-            ->attachData($this->dutyPdf, 'duty_of_care_'.$this->collection->id.'.pdf')
-            ->attachData($this->hazardPdf, 'hazardous_'.$this->collection->id.'.pdf');
+        $mail = $this->subject('Collection PDFs')
+            ->view('emails.collection_pdfs');
+
+        foreach ($this->attachmentsData as $attachment) {
+
+            if (file_exists($attachment['path'])) {
+
+                $mail->attach(
+                    $attachment['path'],
+                    [
+                        'as' => $attachment['name'],
+                        'mime' => 'application/pdf',
+                    ]
+                );
+            }
+        }
+
+        return $mail;
     }
 }

@@ -503,4 +503,42 @@ class CollectionPdfController extends Controller
             'default_font' => 'dejavusans',
         ]);
     }
+
+    public function sendPdfs(Request $request, Collection $collection)
+    {
+        $emails = [];
+
+        if ($request->send_primary_email) {
+            $emails[] = $collection->client->contact_email;
+        }
+
+        if ($request->send_secondary_email) {
+            $emails[] = $collection->client->sec_contact_email;
+        }
+
+        foreach ($emails as $email) {
+
+            if (!$email) {
+                continue;
+            }
+
+            $record = CollectionPdfEmail::create([
+                'collection_id' => $collection->id,
+                'email' => $email,
+
+                'send_weee' => $request->send_weee,
+                'send_duty' => $request->send_duty,
+                'send_hazard' => $request->send_hazard,
+                'send_audit' => $request->send_audit,
+                'send_data_destruction' => $request->send_data_destruction,
+
+                'sent_by' => auth()->id(),
+            ]);
+
+            SendCollectionPdfJob::dispatch($record)
+                ->onQueue('emails');
+        }
+
+        return back()->with('success', 'PDFs queued successfully.');
+    }
 }

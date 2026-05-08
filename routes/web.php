@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\CollectionItemController;
-
+use App\Http\Controllers\CollectionPdfEmailController;
 use App\Http\Controllers\ClientAjaxController;
 use App\Http\Controllers\PartnerAjaxController;
 use App\Http\Controllers\AjaxController;
@@ -131,4 +131,25 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/ajax/models', [AjaxController::class, 'storeProductModel'])
         ->name('ajax.models.store');
+
+    
+    Route::get(
+        'collections/{collection}/pdf-emails',
+        [CollectionPdfEmailController::class, 'index']
+    )->name('collections.pdf-emails.index');
+
+    Route::post(
+        'collections/{collection}/pdf-emails/send',
+        [CollectionPdfEmailController::class, 'send']
+    )->name('collections.pdf-emails.send');
+
+    Route::get(
+        'collections/pdf-emails/{pdfEmail}',
+        [CollectionPdfEmailController::class, 'show']
+    )->name('collections.pdf-emails.show');
+
+    Route::post(
+        'collections/pdf-emails/{pdfEmail}/resend',
+        [CollectionPdfEmailController::class, 'resend']
+    )->name('collections.pdf-emails.resend');
 });

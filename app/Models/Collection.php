@@ -84,4 +84,9 @@ class Collection extends Model
     {
         return $this->belongsTo(\App\Models\Partner::class);
     }
+
+    public function pdfEmails()
+    {
+        return $this->hasMany(CollectionPdfEmail::class);
+    }
 }

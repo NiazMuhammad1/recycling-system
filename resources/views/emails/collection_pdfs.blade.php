@@ -1,5 +1,16 @@
-<p>Hello,</p>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
 
-<p>Please find the collection documents below:</p>
+<h2>Collection PDFs</h2>
 
-<p>Thank you.</p>
+<p>
+    Please find attached PDFs for collection:
+    #{{ $collection->id }}
+</p>
+
+</body>
+</html>
