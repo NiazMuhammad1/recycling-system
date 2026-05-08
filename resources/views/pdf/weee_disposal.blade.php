@@ -127,22 +127,21 @@
 
     <tr>
         <td colspan="2">
-            <span class="label">Issued by:</span> Ray Shah
+            <span class="label">Issued by:</span> {{ $collection->user?->name }}
         </td>
     </tr>
 
     <tr>
         <td class="small-label">Ref No:</td>
-        <td>OLE954/1</td>
+        <td>{{ $collection->collection_code }}</td>
     </tr>
 
     <tr>
         <td class="half">
             <span class="label">Client:</span><br>
-            Spryker Systems GmbH<br>
-            Heidestrasse 9-10<br>
-            10557 Berlin<br>
-            Germany
+            <strong>{{ optional($collection->client)->name }}</strong><br/>
+            {{ optional($collection->client)->address_line_1 }}
+                        <br/>{{ optional($collection->client)->postcode }}
         </td>
 
         <td class="half">
@@ -159,7 +158,7 @@
 
     <tr>
         <td class="small-label">Collection Date:</td>
-        <td>08-04-2026</td>
+        <td>{{ $collection->collection_date}}</td>
     </tr>
 
     <tr>
