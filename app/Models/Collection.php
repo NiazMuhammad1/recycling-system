@@ -13,7 +13,7 @@ class Collection extends Model
         'collection_date',
         'collection_number','status','client_id','collection_date',
         'address_line_1','address_line_2','town','county','postcode','country',
-        'contact_name','contact_email','contact_number','on_site_contact_name','on_site_contact_number',
+        'contact_name','contact_email','contact_number','on_site_contact_name','on_site_contact_number', 'sec_contact_email',
         'vehicles_used','staff_members',
         'equipment_location','access_elevator','route_restrictions','other_information',
         'internal_notes','data_sanitisation','collection_type','logistics',

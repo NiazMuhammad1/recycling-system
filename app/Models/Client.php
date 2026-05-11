@@ -11,7 +11,7 @@ class Client extends Model
         'address_line_1','address_line_2','town','postcode',
         'contact_name','contact_email','contact_number',
         'on_site_contact_name','on_site_contact_number',
-        'notes','is_active','created_by','updated_by',
+        'notes','is_active','created_by','updated_by', 'sec_contact_email'
     ];
 
     protected $casts = [

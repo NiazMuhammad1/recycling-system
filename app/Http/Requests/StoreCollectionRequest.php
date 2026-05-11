@@ -26,6 +26,7 @@ class StoreCollectionRequest extends FormRequest
 
             'contact_name' => ['nullable','string','max:255'],
             'contact_email' => ['nullable','email','max:255'],
+            'sec_contact_email' => ['nullable','email','max:255'],
             'contact_number' => ['nullable','string','max:50'],
             'on_site_contact_name' => ['nullable','string','max:255'],
             'on_site_contact_number' => ['nullable','string','max:50'],

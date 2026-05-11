@@ -134,6 +134,17 @@
 
                 <div class="form-group row">
                     <label class="col-sm-4 col-form-label col-form-label-sm">
+                       Additional Contact Email
+                    </label>
+                    <div class="col-sm-8">
+                        <input type="email" name="sec_contact_email"
+                               class="form-control form-control-sm"
+                               value="{{ old('sec_contact_email', $client?->sec_contact_email) }}">
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label class="col-sm-4 col-form-label col-form-label-sm">
                         Contact Number
                     </label>
                     <div class="col-sm-8">

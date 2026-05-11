@@ -66,7 +66,7 @@
                     <h5>Contact Details</h5>
                     <table class="table table-borderless table-sm mb-0">
                         <tr><td style="width:200px;">Contact Name</td><td>{{ $collection->contact_name }}</td></tr>
-                        <tr><td>Contact Email</td><td>{{ $collection->contact_email }}</td></tr>
+                        <tr><td>Contact Email's</td><td>{{ $collection->contact_email }} / {{ $collection->sec_contact_email }} </td></tr>
                         <tr><td>Contact Number</td><td>{{ $collection->contact_number }}</td></tr>
                         <tr><td>On Site Contact Name</td><td>{{ $collection->on_site_contact_name }}</td></tr>
                         <tr><td>On Site Contact Number</td><td>{{ $collection->on_site_contact_number }}</td></tr>

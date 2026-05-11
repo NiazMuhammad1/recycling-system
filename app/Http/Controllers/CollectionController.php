@@ -52,6 +52,7 @@ class CollectionController extends Controller
                     'postcode' => $data['postcode'] ?? null,
                     'contact_name' => $data['contact_name'] ?? null,
                     'contact_email' => $data['contact_email'] ?? null,
+                    'sec_contact_email' => $data['sec_contact_email'] ?? null,
                     'contact_number' => $data['contact_number'] ?? null,
                     'on_site_contact_name' => $data['on_site_contact_name'] ?? null,
                     'on_site_contact_number' => $data['on_site_contact_number'] ?? null,
@@ -66,7 +67,6 @@ class CollectionController extends Controller
             | CREATE COLLECTION
             |---------------------------------------
             */
-
             $collection = new Collection($data);
             $collection->client_id = $clientId;
             $collection->user_id = auth()->id();
@@ -113,6 +113,7 @@ class CollectionController extends Controller
                     'postcode' => $request->input('postcode'),
                     'contact_name' => $request->input('contact_name'),
                     'contact_email' => $request->input('contact_email'),
+                    'sec_contact_email' => $request->input('sec_contact_email'),
                     'contact_number' => $request->input('contact_number'),
                     'on_site_contact_name' => $request->input('on_site_contact_name'),
                     'on_site_contact_number' => $request->input('on_site_contact_number'),
@@ -200,6 +201,7 @@ class CollectionController extends Controller
 
             'contact_name'   => ['nullable', 'string', 'max:255'],
             'contact_email'  => ['nullable', 'email', 'max:255'],
+            'sec_contact_email'  => ['nullable', 'email', 'max:255'],
             'contact_number' => ['nullable', 'string', 'max:100'],
             'on_site_contact_name'   => ['nullable', 'string', 'max:255'],
             'on_site_contact_number' => ['nullable', 'string', 'max:100'],

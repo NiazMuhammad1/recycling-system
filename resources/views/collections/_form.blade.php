@@ -144,6 +144,15 @@
                     </div>
 
                     <div class="form-group row align-items-center">
+                        <label class="col-sm-4 col-form-label font-weight-normal">Additional Contact Email</label>
+                        <div class="col-sm-8">
+                            <input type="email" id="sec_contact_email" name="sec_contact_email"
+                                   value="{{ old('sec_contact_email', $collection?->sec_contact_email) }}"
+                                   class="form-control form-control-sm @error('sec_contact_email') is-invalid @enderror">
+                        </div>
+                    </div>
+
+                    <div class="form-group row align-items-center">
                         <label class="col-sm-4 col-form-label font-weight-normal">Contact Number</label>
                         <div class="col-sm-8">
                             <input type="text" id="contact_number" name="contact_number"
