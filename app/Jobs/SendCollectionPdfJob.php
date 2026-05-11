@@ -75,12 +75,12 @@ class SendCollectionPdfJob implements ShouldQueue
 
             $fileName = $pdfMap[$pdfType]['name'];
 
-            $pdfPath = $pdfController->$method($collection);
+            $pdfContent = $pdfController->$method($collection);
 
-            if ($pdfPath && file_exists($pdfPath)) {
+            if ($pdfContent) {
 
                 $attachments[] = [
-                    'path' => $pdfPath,
+                    'data' => $pdfContent,
                     'name' => $fileName,
                 ];
             }
@@ -100,13 +100,7 @@ class SendCollectionPdfJob implements ShouldQueue
             'error' => null,
         ]);
 
-        // OPTIONAL: delete temp files
-        foreach ($attachments as $attachment) {
-
-            if (file_exists($attachment['path'])) {
-                @unlink($attachment['path']);
-            }
-        }
+        
     }
 
     /**

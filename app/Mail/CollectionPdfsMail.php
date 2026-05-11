@@ -36,16 +36,13 @@ class CollectionPdfsMail extends Mailable
 
         foreach ($this->attachmentsData as $attachment) {
 
-            if (file_exists($attachment['path'])) {
-
-                $mail->attach(
-                    $attachment['path'],
-                    [
-                        'as' => $attachment['name'],
-                        'mime' => 'application/pdf',
-                    ]
-                );
-            }
+            $mail->attachData(
+                $attachment['data'],
+                $attachment['name'],
+                [
+                    'mime' => 'application/pdf',
+                ]
+            );
         }
 
         return $mail;
