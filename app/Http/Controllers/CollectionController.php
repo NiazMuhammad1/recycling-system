@@ -11,10 +11,46 @@ use App\Models\User;
 use App\Models\StockItem;
 class CollectionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $collections = Collection::with(['client', 'partner'])->latest()->paginate(20);
-        return view('collections.index', compact('collections'));
+        $collections = Collection::with(['client'])
+            ->when($request->number, function ($q) use ($request) {
+                $q->where(function ($query) use ($request) {
+                    $query->where('collection_code', 'like', '%' . $request->number . '%')
+                        ->orWhere('collection_number', 'like', '%' . $request->number . '%');
+                });
+            })
+            ->when($request->client_id, function ($q) use ($request) {
+                $q->where('client_id', $request->client_id);
+            })
+            ->when($request->status, function ($q) use ($request) {
+                $q->where('status', $request->status);
+            })
+            ->when($request->collection_type, function ($q) use ($request) {
+                $q->where('collection_type', $request->collection_type);
+            })
+            ->when($request->town, function ($q) use ($request) {
+                $q->where('town', 'like', '%' . $request->town . '%');
+            })
+            ->when($request->contact_name, function ($q) use ($request) {
+                $q->where('contact_name', 'like', '%' . $request->contact_name . '%');
+            })
+            ->when($request->postcode, function ($q) use ($request) {
+                $q->where('postcode', 'like', '%' . $request->postcode . '%');
+            })
+            ->when($request->date_from, function ($q) use ($request) {
+                $q->whereDate('collection_date', '>=', $request->date_from);
+            })
+            ->when($request->date_to, function ($q) use ($request) {
+                $q->whereDate('collection_date', '<=', $request->date_to);
+            })
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        $clients = Client::orderBy('name')->get();
+
+        return view('collections.index', compact('collections', 'clients'));
     }
 
     public function create()

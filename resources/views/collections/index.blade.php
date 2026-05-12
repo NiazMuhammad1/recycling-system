@@ -17,7 +17,134 @@
 
 <div class="card">
     <div class="card-header">
-       
+       <form method="GET" action="{{ route('collections.index') }}" class="mb-4">
+            <div class="card shadow-sm">
+                
+                <div class="card-header bg-primary text-white">
+                    <strong>Find Collections</strong>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row">
+
+                        {{-- Number --}}
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Number</label>
+                            <input type="text"
+                                name="number"
+                                value="{{ request('number') }}"
+                                class="form-control">
+                        </div>
+
+                        {{-- Client --}}
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Client</label>
+
+                            <select name="client_id" class="form-control">
+                                <option value="">All</option>
+
+                                @foreach($clients as $client)
+                                    <option value="{{ $client->id }}"
+                                        {{ request('client_id') == $client->id ? 'selected' : '' }}>
+                                        {{ $client->company_name ?? $client->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- Status --}}
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Status</label>
+
+                            <select name="status" class="form-control">
+                                <option value="">All</option>
+
+                                @foreach(['created','client_confirmed','pending','collected','processing','processed','cancelled'] as $status)
+                                    <option value="{{ $status }}"
+                                        {{ request('status') == $status ? 'selected' : '' }}>
+                                        {{ ucwords(str_replace('_', ' ', $status)) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- Collection Type --}}
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Collection Type</label>
+
+                            <input type="text"
+                                name="collection_type"
+                                value="{{ request('collection_type') }}"
+                                class="form-control">
+                        </div>
+
+                        {{-- Postcode --}}
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Postcode</label>
+
+                            <input type="text"
+                                name="postcode"
+                                value="{{ request('postcode') }}"
+                                class="form-control">
+                        </div>
+
+                        {{-- Date From --}}
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Date From</label>
+
+                            <input type="date"
+                                name="date_from"
+                                value="{{ request('date_from') }}"
+                                class="form-control">
+                        </div>
+
+                        {{-- Date To --}}
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Date To</label>
+
+                            <input type="date"
+                                name="date_to"
+                                value="{{ request('date_to') }}"
+                                class="form-control">
+                        </div>
+
+                        {{-- Contact Name --}}
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Contact Name</label>
+
+                            <input type="text"
+                                name="contact_name"
+                                value="{{ request('contact_name') }}"
+                                class="form-control">
+                        </div>
+
+                        {{-- Town --}}
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Town</label>
+
+                            <input type="text"
+                                name="town"
+                                value="{{ request('town') }}"
+                                class="form-control">
+                        </div>
+
+                    </div>
+
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fa fa-search"></i> Search
+                        </button>
+
+                        <a href="{{ route('collections.index') }}"
+                        class="btn btn-secondary">
+                            Reset
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </form>
     </div>
 
     <div class="card-body p-0">
