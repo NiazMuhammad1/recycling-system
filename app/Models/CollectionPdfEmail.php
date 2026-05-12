@@ -30,4 +30,14 @@ class CollectionPdfEmail extends Model
     {
         return $this->belongsTo(User::class, 'sent_by');
     }
+
+    public function parent()
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    public function resends()
+    {
+        return $this->hasMany(self::class, 'parent_id');
+    }
 }

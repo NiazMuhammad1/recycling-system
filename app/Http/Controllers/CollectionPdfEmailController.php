@@ -85,6 +85,8 @@ class CollectionPdfEmailController extends Controller
     {
         $newRecord = CollectionPdfEmail::create([
 
+            'parent_id' => $pdfEmail->id,
+
             'collection_id' => $pdfEmail->collection_id,
 
             'email' => $pdfEmail->email,

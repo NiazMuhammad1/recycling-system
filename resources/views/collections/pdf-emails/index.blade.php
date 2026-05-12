@@ -1,11 +1,17 @@
 @extends('adminlte::page')
-@section('title','Edit Collection')
+
+@section('title', 'Edit Collection')
+
 @section('plugins.Select2', true)
+
 @section('content_header')
-<h1>Edit Collection {{ $collection->collection_code }}</h1>
+    <h1>
+        Edit Collection {{ $collection->collection_code }}
+    </h1>
 @stop
 
 @section('content')
+
 <div class="container">
 
     <h2>
@@ -13,15 +19,42 @@
     </h2>
 
     @if(session('success'))
+
         <div class="alert alert-success">
+
             {{ session('success') }}
+
         </div>
+
     @endif
 
+    @if ($errors->any())
+
+        <div class="alert alert-danger">
+
+            <ul class="mb-0">
+
+                @foreach ($errors->all() as $error)
+
+                    <li>{{ $error }}</li>
+
+                @endforeach
+
+            </ul>
+
+        </div>
+
+    @endif
+
+    {{-- SEND PDF CARD --}}
     <div class="card mb-4">
 
         <div class="card-header">
-            Send PDFs
+
+            <strong>
+                Send PDFs
+            </strong>
+
         </div>
 
         <div class="card-body">
@@ -33,42 +66,53 @@
 
                 @csrf
 
-                <h5>Emails</h5>
+                {{-- EMAILS --}}
+                <h5 class="mb-3">
 
-                <div class="mb-2">
+                    Select Emails
 
-                    @if($collection->client?->contact_email)
+                </h5>
 
-                        <label>
+                <div class="mb-4">
 
-                            <input
-                                type="checkbox"
-                                name="emails[]"
-                                value="{{ $collection->client->contact_email }}"
-                                checked
-                            >
+                    @if($collection->contact_email)
 
-                            {{ $collection->client->contact_email }}
+                        <div class="mb-2">
 
-                        </label>
+                            <label>
 
-                        <br>
+                                <input
+                                    type="checkbox"
+                                    name="emails[]"
+                                    value="{{ $collection->contact_email }}"
+                                    checked
+                                >
+
+                                {{ $collection->contact_email }}
+
+                            </label>
+
+                        </div>
 
                     @endif
 
-                    @if($collection->client?->sec_contact_email)
+                    @if($collection->sec_contact_email)
 
-                        <label>
+                        <div class="mb-2">
 
-                            <input
-                                type="checkbox"
-                                name="emails[]"
-                                value="{{ $collection->client->sec_contact_email }}"
-                            >
+                            <label>
 
-                            {{ $collection->client->sec_contact_email }}
+                                <input
+                                    type="checkbox"
+                                    name="emails[]"
+                                    value="{{ $collection->sec_contact_email }}"
+                                >
 
-                        </label>
+                                {{ $collection->sec_contact_email }}
+
+                            </label>
+
+                        </div>
 
                     @endif
 
@@ -76,42 +120,96 @@
 
                 <hr>
 
-                <h5>PDFs</h5>
+                {{-- PDFS --}}
+                <h5 class="mb-3">
 
-                <div class="mb-3">
+                    Select PDFs
 
-                    <label>
-                        <input type="checkbox" name="pdfs[]" value="weee" checked>
-                        WEEE Disposal
-                    </label>
+                </h5>
 
-                    <br>
+                <div class="mb-4">
 
-                    <label>
-                        <input type="checkbox" name="pdfs[]" value="duty" checked>
-                        Duty Of Care
-                    </label>
+                    <div class="mb-2">
 
-                    <br>
+                        <label>
 
-                    <label>
-                        <input type="checkbox" name="pdfs[]" value="hazard">
-                        Hazardous
-                    </label>
+                            <input
+                                type="checkbox"
+                                name="pdfs[]"
+                                value="weee"
+                                checked
+                            >
 
-                    <br>
+                            WEEE Disposal
 
-                    <label>
-                        <input type="checkbox" name="pdfs[]" value="audit">
-                        Audit Report
-                    </label>
+                        </label>
 
-                    <br>
+                    </div>
 
-                    <label>
-                        <input type="checkbox" name="pdfs[]" value="data_destruction">
-                        Data Destruction
-                    </label>
+                    <div class="mb-2">
+
+                        <label>
+
+                            <input
+                                type="checkbox"
+                                name="pdfs[]"
+                                value="duty"
+                                checked
+                            >
+
+                            Duty Of Care
+
+                        </label>
+
+                    </div>
+
+                    <div class="mb-2">
+
+                        <label>
+
+                            <input
+                                type="checkbox"
+                                name="pdfs[]"
+                                value="hazard"
+                            >
+
+                            Hazardous
+
+                        </label>
+
+                    </div>
+
+                    <div class="mb-2">
+
+                        <label>
+
+                            <input
+                                type="checkbox"
+                                name="pdfs[]"
+                                value="audit"
+                            >
+
+                            Audit Report
+
+                        </label>
+
+                    </div>
+
+                    <div class="mb-2">
+
+                        <label>
+
+                            <input
+                                type="checkbox"
+                                name="pdfs[]"
+                                value="data_destruction"
+                            >
+
+                            Data Destruction
+
+                        </label>
+
+                    </div>
 
                 </div>
 
@@ -119,39 +217,65 @@
                     type="submit"
                     class="btn btn-primary"
                 >
+
+                    <i class="fas fa-paper-plane"></i>
+
                     Send PDFs
+
                 </button>
 
             </form>
 
         </div>
+
     </div>
 
+    {{-- HISTORY CARD --}}
     <div class="card">
 
         <div class="card-header">
-            Previous Emails
+
+            <strong>
+                Previous Emails
+            </strong>
+
         </div>
 
         <div class="card-body table-responsive">
 
-            <table class="table table-bordered">
+            <table class="table table-bordered table-striped">
 
                 <thead>
 
                     <tr>
 
-                        <th>ID</th>
+                        <th width="80">
+                            ID
+                        </th>
 
-                        <th>Email</th>
+                        <th width="120">
+                            Type
+                        </th>
 
-                        <th>PDFs</th>
+                        <th>
+                            Email
+                        </th>
 
-                        <th>Status</th>
+                        <th>
+                            PDFs
+                        </th>
 
-                        <th>Sent At</th>
+                        <th width="150">
+                            Status
+                        </th>
 
-                        <th>Action</th>
+                        <th width="180">
+                            Sent At
+                        </th>
+
+                        <th width="200">
+                            Action
+                        </th>
 
                     </tr>
 
@@ -163,61 +287,144 @@
 
                         <tr>
 
+                            {{-- ID --}}
                             <td>
+
                                 {{ $item->id }}
-                            </td>
-
-                            <td>
-                                {{ $item->email }}
-                            </td>
-
-                            <td>
-
-                                @foreach($item->pdfs as $pdf)
-
-                                    <span class="badge bg-info">
-                                        {{ $pdf }}
-                                    </span>
-
-                                @endforeach
 
                             </td>
 
+                            {{-- TYPE --}}
                             <td>
 
-                                @if($item->status == 'sent')
+                                @if($item->parent_id)
 
-                                    <span class="badge bg-success">
-                                        Sent
+                                    <span class="badge bg-warning">
+
+                                        Resend
+
                                     </span>
 
-                                @elseif($item->status == 'failed')
+                                    <br>
 
-                                    <span class="badge bg-danger">
-                                        Failed
-                                    </span>
+                                    <small class="text-muted">
+
+                                        From #{{ $item->parent_id }}
+
+                                    </small>
 
                                 @else
 
-                                    <span class="badge bg-warning">
-                                        Pending
+                                    <span class="badge bg-primary">
+
+                                        Original
+
                                     </span>
 
                                 @endif
 
                             </td>
 
+                            {{-- EMAIL --}}
                             <td>
-                                {{ optional($item->sent_at)->format('d M Y h:i A') }}
+
+                                {{ $item->email }}
+
                             </td>
 
+                            {{-- PDFS --}}
+                            <td>
+
+                                @foreach($item->pdfs as $pdf)
+
+                                    <span class="badge bg-info text-dark mb-1">
+
+                                        {{ ucfirst(str_replace('_', ' ', $pdf)) }}
+
+                                    </span>
+
+                                @endforeach
+
+                            </td>
+
+                            {{-- STATUS --}}
+                            <td>
+
+                                @if($item->status == 'sent')
+
+                                    <span class="badge bg-success">
+
+                                        Sent
+
+                                    </span>
+
+                                @elseif($item->status == 'failed')
+
+                                    <span class="badge bg-danger">
+
+                                        Failed
+
+                                    </span>
+
+                                @else
+
+                                    <span class="badge bg-warning">
+
+                                        Pending
+
+                                    </span>
+
+                                @endif
+
+                                @if($item->error)
+
+                                    <br>
+
+                                    <small class="text-danger">
+
+                                        {{ Str::limit($item->error, 80) }}
+
+                                    </small>
+
+                                @endif
+
+                            </td>
+
+                            {{-- SENT AT --}}
+                            <td>
+
+                                @if($item->sent_at)
+
+                                    {{ $item->sent_at->format('d M Y') }}
+
+                                    <br>
+
+                                    <small class="text-muted">
+
+                                        {{ $item->sent_at->format('h:i A') }}
+
+                                    </small>
+
+                                @else
+
+                                    -
+
+                                @endif
+
+                            </td>
+
+                            {{-- ACTIONS --}}
                             <td>
 
                                 <a
                                     href="{{ route('collections.pdf-emails.show', $item) }}"
-                                    class="btn btn-sm btn-info"
+                                    class="btn btn-sm btn-info mb-1"
                                 >
+
+                                    <i class="fas fa-eye"></i>
+
                                     View
+
                                 </a>
 
                                 <form
@@ -229,10 +436,15 @@
                                     @csrf
 
                                     <button
-                                        class="btn btn-sm btn-warning"
-                                        onclick="return confirm('Resend email?')"
+                                        type="submit"
+                                        class="btn btn-sm btn-warning mb-1"
+                                        onclick="return confirm('Resend this email?')"
                                     >
+
+                                        <i class="fas fa-redo"></i>
+
                                         Resend
+
                                     </button>
 
                                 </form>
@@ -245,8 +457,10 @@
 
                         <tr>
 
-                            <td colspan="6">
-                                No emails found.
+                            <td colspan="7" class="text-center">
+
+                                No PDF emails found.
+
                             </td>
 
                         </tr>
@@ -257,7 +471,11 @@
 
             </table>
 
-            {{ $pdfEmails->links() }}
+            <div class="mt-3">
+
+                {{ $pdfEmails->links() }}
+
+            </div>
 
         </div>
 
