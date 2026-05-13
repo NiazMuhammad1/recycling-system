@@ -17,7 +17,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Auth::routes();
+Auth::routes([
+    'register' => false,
+]);
 
 Route::middleware('auth')->group(function () {
     Route::get('/collections/{collection}/pdf/duty-of-care', [CollectionPdfController::class, 'dutyOfCare'])
