@@ -212,7 +212,14 @@
 
         {{-- ===== Collection Details ===== --}}
         <div class="itad-title pt-5 mt-5">Collection Details</div>
-
+        <div class="row">
+            <div class="col-md-6">
+                <label class="font-weight-normal">Service Cost</label>
+                <input type="number" name="service_cost"
+                                   value="{{ old('service_cost', $collection?->service_cost) }}"
+                                   class="form-control form-control-sm @error('service_cost') is-invalid @enderror"><br/>
+            </div>
+        </div>
         <div class="row">
             <div class="col-md-6">
                 <label class="font-weight-normal">Where is the equipment located in the building?</label>

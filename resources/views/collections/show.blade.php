@@ -60,6 +60,7 @@
                         <tr><td>County</td><td>{{ $collection->county }}</td></tr>
                         <tr><td>Country</td><td>{{ $collection->country }}</td></tr>
                         <tr><td>Postcode</td><td>{{ $collection->postcode }}</td></tr>
+                        <tr><td>Service Cost</td><td> &pound; {{ $collection->service_cost }}</td></tr>
                     </table>
                 </div>
                 <div class="col-md-6">

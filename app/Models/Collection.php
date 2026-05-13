@@ -17,7 +17,7 @@ class Collection extends Model
         'vehicles_used','staff_members',
         'equipment_location','access_elevator','route_restrictions','other_information',
         'internal_notes','data_sanitisation','collection_type','logistics',
-        'pre_collection_audit','equipment_classification', 'collected_at','processed_at', 'sla_target', 'adisa_dial_rating', 'client_signature', 'client_print_name', 'driver_signature', 'driver_print_name'
+        'pre_collection_audit','equipment_classification', 'collected_at','processed_at', 'sla_target', 'adisa_dial_rating', 'client_signature', 'client_print_name', 'driver_signature', 'driver_print_name', 'service_cost'
     ];
 
     protected $casts = [

@@ -26,14 +26,8 @@ class CollectionController extends Controller
             ->when($request->status, function ($q) use ($request) {
                 $q->where('status', $request->status);
             })
-            ->when($request->collection_type, function ($q) use ($request) {
-                $q->where('collection_type', $request->collection_type);
-            })
             ->when($request->town, function ($q) use ($request) {
                 $q->where('town', 'like', '%' . $request->town . '%');
-            })
-            ->when($request->contact_name, function ($q) use ($request) {
-                $q->where('contact_name', 'like', '%' . $request->contact_name . '%');
             })
             ->when($request->postcode, function ($q) use ($request) {
                 $q->where('postcode', 'like', '%' . $request->postcode . '%');
@@ -241,7 +235,7 @@ class CollectionController extends Controller
             'contact_number' => ['nullable', 'string', 'max:100'],
             'on_site_contact_name'   => ['nullable', 'string', 'max:255'],
             'on_site_contact_number' => ['nullable', 'string', 'max:100'],
-
+            'service_cost'      => ['nullable', 'integer'],
             'vehicles_used' => ['nullable', 'string', 'max:255'],
             'driver_id'     => ['nullable', 'exists:users,id'],
 

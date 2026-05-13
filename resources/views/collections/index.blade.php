@@ -29,8 +29,8 @@
                     <div class="row">
 
                         {{-- Number --}}
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Number</label>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">Collection Code</label>
                             <input type="text"
                                 name="number"
                                 value="{{ request('number') }}"
@@ -38,7 +38,7 @@
                         </div>
 
                         {{-- Client --}}
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-2 mb-3">
                             <label class="form-label">Client</label>
 
                             <select name="client_id" class="form-control">
@@ -54,7 +54,7 @@
                         </div>
 
                         {{-- Status --}}
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-2 mb-3">
                             <label class="form-label">Status</label>
 
                             <select name="status" class="form-control">
@@ -68,29 +68,9 @@
                                 @endforeach
                             </select>
                         </div>
-
-                        {{-- Collection Type --}}
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Collection Type</label>
-
-                            <input type="text"
-                                name="collection_type"
-                                value="{{ request('collection_type') }}"
-                                class="form-control">
-                        </div>
-
-                        {{-- Postcode --}}
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Postcode</label>
-
-                            <input type="text"
-                                name="postcode"
-                                value="{{ request('postcode') }}"
-                                class="form-control">
-                        </div>
-
+                        
                         {{-- Date From --}}
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-2 mb-3">
                             <label class="form-label">Date From</label>
 
                             <input type="date"
@@ -100,7 +80,7 @@
                         </div>
 
                         {{-- Date To --}}
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-2 mb-3">
                             <label class="form-label">Date To</label>
 
                             <input type="date"
@@ -109,18 +89,18 @@
                                 class="form-control">
                         </div>
 
-                        {{-- Contact Name --}}
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Contact Name</label>
+                        {{-- Postcode --}}
+                        <div class="col-md-1 mb-3">
+                            <label class="form-label">Postcode</label>
 
                             <input type="text"
-                                name="contact_name"
-                                value="{{ request('contact_name') }}"
+                                name="postcode"
+                                value="{{ request('postcode') }}"
                                 class="form-control">
                         </div>
 
                         {{-- Town --}}
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-1 mb-3">
                             <label class="form-label">Town</label>
 
                             <input type="text"
