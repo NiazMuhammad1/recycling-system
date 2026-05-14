@@ -14,7 +14,10 @@ use App\Http\Controllers\CatalogAjaxController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CollectionPdfController;
 Route::get('/', function () {
-    return view('welcome');
+    if (Auth::check()) {
+        return redirect()->route('home');
+    }
+    return redirect()->route('login');
 });
 
 Auth::routes([

@@ -25,6 +25,7 @@ class HomeController extends Controller
      */
     public function index()
     {
+       
         $collections = Collection::with(['client', 'partner'])->latest()->limit(10)->get();
         return view('home', compact('collections'));
     }
