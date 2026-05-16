@@ -7,7 +7,15 @@
 
 @section('content')
 @if($errors->any())
-    <div class="alert alert-danger">Please fix the errors and try again.</div>
+    <div class="alert alert-danger">
+        <strong>Please fix the following errors:</strong>
+
+        <ul class="mb-0 mt-2">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
 @endif
 
 <form method="POST" action="{{ route('collections.store') }}">

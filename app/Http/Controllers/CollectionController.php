@@ -226,7 +226,7 @@ class CollectionController extends Controller
             'postcode'       => ['nullable', 'string', 'max:50'],
             'country'        => ['required', 'string', 'max:100'],
 
-            'collection_date' => ['nullable', 'date'],
+            'collection_date' => ['required', 'date', 'after_or_equal:today'],
             'sla_target'      => ['nullable', 'integer'],
 
             'contact_name'   => ['nullable', 'string', 'max:255'],

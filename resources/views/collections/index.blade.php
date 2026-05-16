@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 @section('title','Collections')
-
+@section('plugins.Select2', true)
 @section('content_header')
 <div class="d-flex justify-content-between align-items-center">
     <h1>Collections</h1>
@@ -41,7 +41,7 @@
                         <div class="col-md-2 mb-3">
                             <label class="form-label">Client</label>
 
-                            <select name="client_id" class="form-control">
+                            <select name="client_id" class="form-control" id="client_id">
                                 <option value="">All</option>
 
                                 @foreach($clients as $client)
@@ -168,4 +168,20 @@
         {{ $collections->links() }}
     </div>
 </div>
+
+@push('js')
+
+<script>
+
+$(document).ready(function () {
+    $('#client_id').select2({
+        placeholder: 'Select Client',
+        allowClear: true,
+        width: '100%'
+    });
+});
+</script>
+
+@endpush
+
 @stop

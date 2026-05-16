@@ -206,9 +206,9 @@
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h5 class="mb-0">ITEMS</h5>
                         <div>
-                            <a class="mr-2" href="{{ route('collections.items.edit',$collection) }}">[edit]</a>
-                            <a class="mr-2" href="{{ route('collections.collect.form',$collection) }}">[collect]</a>
-                            <a class="mr-2" href="{{ route('collections.process.index',$collection) }}">[process]</a>
+                            <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.items.edit',$collection) }}">[edit]</a>
+                            <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.collect.form',$collection) }}">[collect]</a>
+                            <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.process.index',$collection) }}">[process]</a>
                         </div>
                     </div>
 
