@@ -4,9 +4,10 @@
 @section('content_header')
 <div class="d-flex justify-content-between align-items-center">
     <h1>Collections</h1>
+    @can('collections.add')
     <a href="{{ route('collections.create') }}" class="btn btn-primary">
         <i class="fas fa-plus"></i> Create
-    </a>
+    </a>@endcan()
 </div>
 @stop
 
@@ -148,13 +149,19 @@
                     <td>{{ ucfirst(str_replace('_',' ',$c->status)) }}</td>
                     <td>{{ $c->user?->name }}</td>
                     <td class="text-right">
+                        @can('collections.view')
                         <a class="btn btn-sm btn-info" href="{{ route('collections.show',$c) }}">View</a>
+                        @endcan
+                        @can('collections.modify')
                         <a class="btn btn-sm btn-warning" href="{{ route('collections.edit',$c) }}">Edit</a>
+                        @endcan
+                        @can('collections.delete')
                         <form class="d-inline" method="POST" action="{{ route('collections.destroy',$c) }}"
                               onsubmit="return confirm('Delete this collection?');">
                             @csrf @method('DELETE')
                             <button class="btn btn-sm btn-danger" type="submit">Delete</button>
                         </form>
+                        @endcan
                     </td>
                 </tr>
                 @empty

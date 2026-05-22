@@ -9,6 +9,22 @@ use App\Http\Requests\UpdateClientRequest;
 
 class ClientController extends Controller
 {
+    public function __construct()
+    {
+        
+        $this->middleware('permission:clients.view')
+            ->only(['index', 'show']);
+
+        $this->middleware('permission:clients.add')
+            ->only(['create', 'store']);
+
+        $this->middleware('permission:clients.modify')
+            ->only(['edit', 'update']);
+
+        $this->middleware('permission:clients.delete')
+            ->only(['destroy']);
+    }
+
     public function index(Request $request)
     {
         $q = $request->string('q')->toString();

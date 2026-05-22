@@ -10,44 +10,106 @@ class RolesAndPermissionsSeeder extends Seeder
 {
     public function run(): void
     {
-        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+        app(\Spatie\Permission\PermissionRegistrar::class)
+            ->forgetCachedPermissions();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Modules & Permissions
+        |--------------------------------------------------------------------------
+        */
 
         $modules = [
-            'collections' => ['view','add','modify','collect','process'],
-            'clients'     => ['view','add','modify'],
-            'dashboard'   => ['view'],
-            'processed_collections' => ['modify'],
+
+            'dashboard' => [
+                'view',
+            ],
+
+            'collections' => [
+                'view',
+                'add',
+                'modify',
+                'delete',
+                'collect',
+                'process',
+            ],
+
+            'processed_collections' => [
+                'view',
+                'modify',
+                'delete',
+            ],
+
+            'clients' => [
+                'view',
+                'add',
+                'modify',
+                'delete',
+            ],
+
+            'categories' => [
+                'view',
+                'add',
+                'modify',
+                'delete',
+            ],
+
+            'users' => [
+                'view',
+                'add',
+                'modify',
+                'delete',
+            ],
         ];
 
-        $allPermissions = [];
+        /*
+        |--------------------------------------------------------------------------
+        | Create Permissions
+        |--------------------------------------------------------------------------
+        */
+
         foreach ($modules as $module => $actions) {
+
             foreach ($actions as $action) {
-                $allPermissions[] = Permission::firstOrCreate([
+
+                Permission::firstOrCreate([
                     'name' => "{$module}.{$action}",
                     'guard_name' => 'web',
                 ]);
             }
         }
 
-        $admin  = Role::firstOrCreate(['name' => 'Admin']);
-        $driver = Role::firstOrCreate(['name' => 'Driver']);
-        $ware_house_staff = Role::firstOrCreate(['name' => 'Warehouse Staff']);
+        /*
+        |--------------------------------------------------------------------------
+        | Create Roles
+        |--------------------------------------------------------------------------
+        */
 
-        // Admin gets everything
-        $admin->syncPermissions(Permission::all());
-
-        // Example: Driver limited permissions
-        $driver->syncPermissions([
-            'collections.view',
-            'collections.collect',
-            'clients.view',
+        $admin = Role::firstOrCreate([
+            'name' => 'Admin',
+            'guard_name' => 'web',
         ]);
 
-        // Example: ITAD UK role
-        $ware_house_staff->syncPermissions([
-            'collections.view','collections.add','collections.modify','collections.process',
-            'clients.view','clients.add','clients.modify',
-            'dashboard.view',
+        Role::firstOrCreate([
+            'name' => 'Driver',
+            'guard_name' => 'web',
         ]);
+
+        Role::firstOrCreate([
+            'name' => 'Warehouse Staff',
+            'guard_name' => 'web',
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Give Admin All Permissions
+        |--------------------------------------------------------------------------
+        */
+
+        $admin->syncPermissions(Permission::where('guard_name', 'web')->get());
+
+        app(\Spatie\Permission\PermissionRegistrar::class)
+            ->forgetCachedPermissions();
     }
 }
+//php artisan db:seed --class=RolesAndPermissionsSeeder

@@ -10,6 +10,21 @@ use Spatie\Permission\Models\Permission;
 
 class UserController extends Controller
 {
+    public function __construct()
+    {
+        // $this->middleware('permission:users.view')
+        //     ->only(['index', 'show']);
+
+        // $this->middleware('permission:users.add')
+        //     ->only(['create', 'store']);
+
+        // $this->middleware('permission:users.modify')
+        //     ->only(['edit', 'update']);
+
+        // $this->middleware('permission:users.delete')
+        //     ->only(['destroy']);
+    }
+
     public function index()
     {
         $users = User::with('roles')->latest()->paginate(15);
@@ -49,6 +64,7 @@ class UserController extends Controller
             'signature' => $data['signature'] ?? null,
             'signature_print_name' => $data['signature_print_name'] ?? null,
         ]);
+        
 
         $user->syncRoles([$data['role']]);
 
@@ -63,7 +79,7 @@ class UserController extends Controller
         return view('users.show', compact('user'));
     }
 
-    public function edit(\App\Models\User $user)
+    public function edit(User $user)
     {
         $roles = Role::orderBy('name')->get();
 
@@ -72,10 +88,16 @@ class UserController extends Controller
             ->groupBy(fn ($p) => explode('.', $p->name)[0]);
 
         $userRole = optional($user->roles->first())->name;
-        $userPermissions = $user->permissions->pluck('name')->toArray();
+
+        // This includes role permissions + direct user permissions
+        $userPermissions = $user->getAllPermissions()->pluck('name')->toArray();
 
         return view('users.edit', compact(
-            'user', 'roles', 'permissionsByModule', 'userRole', 'userPermissions'
+            'user',
+            'roles',
+            'permissionsByModule',
+            'userRole',
+            'userPermissions'
         ));
     }
 
@@ -86,8 +108,8 @@ class UserController extends Controller
             'email' => ['required','email','max:255','unique:users,email,'.$user->id],
             'password' => ['nullable', Password::min(8), 'confirmed'],
             'role' => ['required','string','exists:roles,name'],
-            'permissions' => ['array'],
-            'permissions.*' => ['string','exists:permissions,name'],
+            'permissions' => ['nullable', 'array'],
+            'permissions.*' => ['string', 'exists:permissions,name'],
             'signature' => ['nullable','string'], // data url
             'signature_print_name' => ['nullable','string','max:255'],
         ]);

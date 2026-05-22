@@ -53,7 +53,7 @@
                             @endforeach
                         </td>
                         <td>
-                            @can('users.edit')
+                            @can('users.modify')
                                 <a href="{{ route('users.edit', $user) }}"
                                    class="btn btn-xs btn-warning">
                                     <i class="fas fa-edit"></i>

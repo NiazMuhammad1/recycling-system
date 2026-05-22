@@ -5,9 +5,11 @@
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center">
         <h1>Categories</h1>
+        @can('categories.add')
         <a href="{{ route('categories.create') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Add Category
         </a>
+        @endcan
     </div>
 @stop
 
@@ -46,10 +48,12 @@
                         @endif
                     </td>
                     <td>
+                        @can('categories.modify')
                         <a href="{{ route('categories.edit', $category) }}" class="btn btn-xs btn-warning">
                             <i class="fas fa-edit"></i>
                         </a>
-
+                        @endcan
+                        @can('categories.delete')
                         <form action="{{ route('categories.destroy', $category) }}"
                               method="POST"
                               class="d-inline"
@@ -60,6 +64,7 @@
                                 <i class="fas fa-trash"></i>
                             </button>
                         </form>
+                        @endcan
                     </td>
                 </tr>
             @empty

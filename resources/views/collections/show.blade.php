@@ -6,7 +6,9 @@
 
     <div class="d-flex align-items-center mb-2">
         <h1 class="mb-0">Collection {{ $collection->collection_number }}</h1>
+        @can('collections.modify')
         <a class="ml-2" href="{{ route('collections.edit',$collection) }}">[edit]</a>
+        @endcan
         &nbsp;&nbsp;
         <a class="btn btn-sm btn-outline-primary"
         target="_blank"

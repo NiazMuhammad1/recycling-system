@@ -296,58 +296,108 @@ return [
     | For detailed instructions you can look here:
     | https://github.com/jeroennoten/Laravel-AdminLTE/wiki/Menu-Configuration
     |
-    */
+        */
 
     'menu' => [
+
         // Navbar items:
         [
             'type' => 'navbar-search',
             'text' => 'search',
             'topnav_right' => true,
         ],
+
         [
             'type' => 'fullscreen-widget',
             'topnav_right' => true,
         ],
 
-        // Sidebar items:
+        // Sidebar search
         [
             'type' => 'sidebar-menu-search',
             'text' => 'search',
         ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | Dashboard
+        |--------------------------------------------------------------------------
+        */
+
         [
-            'text' => 'blog',
-            'url' => 'admin/blog',
-            'can' => 'manage-blog',
+            'text' => 'Dashboard',
+            'url'  => 'dashboard',
+            'icon' => 'fas fa-tachometer-alt',
+            'can'  => 'dashboard.view',
         ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | Clients
+        |--------------------------------------------------------------------------
+        */
+
         [
             'text' => 'Clients',
             'url'  => 'clients',
             'icon' => 'fas fa-building',
+            'can'  => 'clients.view',
         ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | Collections
+        |--------------------------------------------------------------------------
+        */
+
         [
             'text' => 'Collections',
             'url'  => 'collections',
             'icon' => 'fas fa-truck',
+            'can'  => 'collections.view',
         ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | Users
+        |--------------------------------------------------------------------------
+        */
+
         [
-            'text' => 'Users',
+            'text'  => 'Users',
             'route' => 'users.index',
-            'icon' => 'fas fa-users',
+            'icon'  => 'fas fa-users',
+            'can'   => 'users.view',
         ],
-       
-        ['header' => 'account_settings'],
+
+        ['header' => 'Account Settings'],
+
+        /*
+        |--------------------------------------------------------------------------
+        | Admin Section
+        |--------------------------------------------------------------------------
+        */
+
         [
             'text' => 'Admin',
-            'icon' => 'fas fa-fw fa-share',
+            'icon' => 'fas fa-fw fa-cog',
+
+            // Optional: hide whole menu if user cannot view categories
+            'can'  => 'categories.view',
+
             'submenu' => [
+
                 [
-                    'text' => 'Categories',
+                    'text'  => 'Categories',
                     'route' => 'categories.index',
+                    'icon'  => 'fas fa-tags',
+                    'can'   => 'categories.view',
                 ]
             ],
-        ]
+        ],
     ],
+
+
 
     /*
     |--------------------------------------------------------------------------

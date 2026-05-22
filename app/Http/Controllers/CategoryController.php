@@ -7,6 +7,22 @@ use App\Http\Requests\UpdateCategoryRequest;
 
 class CategoryController extends Controller
 {
+    public function __construct()
+    {
+        
+        $this->middleware('permission:categories.view')
+            ->only(['index', 'show']);
+
+        $this->middleware('permission:categories.add')
+            ->only(['create', 'store']);
+
+        $this->middleware('permission:categories.modify')
+            ->only(['edit', 'update']);
+
+        $this->middleware('permission:categories.delete')
+            ->only(['destroy']);
+    }
+
     public function index()
     {
         $categories = Category::query()

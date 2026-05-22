@@ -6,9 +6,11 @@
     <div class="d-flex justify-content-between align-items-center">
         <h1>Clients</h1>
         <div>
+            @can('clients.add')
             <a href="{{ route('clients.create') }}" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Create
             </a>
+            @endcan
             <a href="#" class="btn btn-outline-secondary">
                 <i class="fas fa-file-export"></i> Export
             </a>
@@ -59,18 +61,24 @@
                             <td>{{ $client->county }}</td>
                             <td>{{ $client->country }}</td>
                             <td class="text-right">
+                                @can('clients.view')
                                 <a class="btn btn-sm btn-info" href="{{ route('clients.show', $client) }}">
                                     View
                                 </a>
+                                @endcan
+                                @can('clients.modify')
                                 <a class="btn btn-sm btn-warning" href="{{ route('clients.edit', $client) }}">
                                     Edit
                                 </a>
+                                @endcan
+                                @can('clients.delete')
                                 <form action="{{ route('clients.destroy', $client) }}" method="POST" class="d-inline"
                                       onsubmit="return confirm('Delete this client?');">
                                     @csrf
                                     @method('DELETE')
                                     <button class="btn btn-sm btn-danger" type="submit">Delete</button>
                                 </form>
+                                @endcan
                             </td>
                         </tr>
                     @empty

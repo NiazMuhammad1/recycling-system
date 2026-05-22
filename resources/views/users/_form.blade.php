@@ -3,11 +3,11 @@
     $user = $user ?? null;
 
     // checkbox columns like your screenshot
-    $actions = ['view', 'add', 'modify', 'collect', 'process'];
+    $actions = ['view', 'add', 'modify', 'collect', 'process', 'delete'];
 
     // for edit mode
     $userRole = old('role', $userRole ?? optional($user?->roles->first())->name);
-    $userPermissions = old('permissions', $userPermissions ?? ($user?->permissions->pluck('name')->toArray() ?? []));
+    $userPermissions = old( 'permissions', $userPermissions ?? ($user?->getAllPermissions()->pluck('name')->toArray() ?? []) );
 @endphp
 
 <div class="card">

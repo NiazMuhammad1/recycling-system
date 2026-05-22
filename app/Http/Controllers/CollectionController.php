@@ -11,8 +11,28 @@ use App\Models\User;
 use App\Models\StockItem;
 class CollectionController extends Controller
 {
+    public function __construct()
+    {
+        
+        $this->middleware('permission:collections.view')
+            ->only(['index', 'show']);
+
+        $this->middleware('permission:collections.add')
+            ->only(['create', 'store']);
+
+        $this->middleware('permission:collections.modify')
+            ->only(['edit', 'update']);
+
+        $this->middleware('permission:collections.delete')
+            ->only(['destroy']);
+
+        $this->middleware('permission:collections.process')
+            ->only(['bulkProcess']);
+    }
+
     public function index(Request $request)
     {
+        
         $collections = Collection::with(['client'])
             ->when($request->number, function ($q) use ($request) {
                 $q->where(function ($query) use ($request) {
@@ -113,6 +133,7 @@ class CollectionController extends Controller
 
     public function show(Collection $collection)
     {
+        
         $collection->load(['client','items.category','items.manufacturerRel','items.productModel','items.stockItem']);
         return view('collections.show', compact('collection'));
     }
