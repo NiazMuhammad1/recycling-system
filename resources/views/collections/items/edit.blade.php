@@ -1044,7 +1044,7 @@ $(function () {
                 ? `<td class="text-center"><input type="checkbox" name="new_items[${key}][is_collected]" value="1"></td>`
                 : `<td></td>`;
             var erasureTopCell = `<td class="text-center">
-                <input class="erasureCheckbox" type="checkbox" name="new_items[${key}][erasure_required]" value="1" ${is_erasure == 1 ? 'checked' : ''}>
+                <input class="erasure-checkbox erasureCheckbox" type="checkbox" name="new_items[${key}][erasure_required]" value="1" ${is_erasure == 1 ? 'checked' : ''}>
             </td>`;
 
             var html = `

@@ -197,7 +197,7 @@
 
                                 <td>
                                     <select class="form-control form-control-sm" name="hdds[{{ $hdd->id }}][status]">
-                                        @foreach(['not_processed'=>'Not Processed','erased'=>'Erased','failed'=>'Failed'] as $k=>$v)
+                                        @foreach(['not_processed'=>'Not Processed','erased'=>'Erased','failed'=>'Failed', 'shredding' => 'Shredding'] as $k=>$v)
                                             <option value="{{ $k }}" {{ $hdd->status===$k?'selected':'' }}>{{ $v }}</option>
                                         @endforeach
                                     </select>
@@ -371,6 +371,7 @@ $(function () {
                     <option value="not_processed">Not Processed</option>
                     <option value="erased">Erased</option>
                     <option value="failed">Failed</option>
+                    <option value="shredding">Shredding</option>
                 </select>
             </td>
             <td><input class="form-control form-control-sm" name="new_hdds[${key}][notes]" value=""></td>

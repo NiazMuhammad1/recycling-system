@@ -3,7 +3,31 @@
 
 @section('content')
 <div class="container-fluid">
+    @if (session('success'))
+    <div id="success-alert" class="alert alert-success alert-dismissible fade show" role="alert">
+        <h5><i class="icon fas fa-check"></i> Success!</h5>
+        {{ session('success') }}
+        <!-- Added text-white class below -->
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close" style="color:white">
+            <span aria-hidden="true" style="color:white">&times;</span>
+        </button>
+    </div>
 
+    <script>
+        setTimeout(function() {
+            let alert = document.getElementById('success-alert');
+            if (alert) {
+                if (typeof $ !== 'undefined') {
+                    $(alert).fadeOut('slow');
+                } else {
+                    alert.style.transition = "opacity 0.5s ease";
+                    alert.style.opacity = 0;
+                    setTimeout(() => alert.remove(), 500);
+                }
+            }
+        }, 3000); 
+    </script>
+    @endif
     <div class="d-flex align-items-center mb-2">
         <h1 class="mb-0">Collection {{ $collection->collection_number }}</h1>
         @can('collections.modify')
@@ -42,11 +66,16 @@
         href="{{ route('collections.pdf-emails.index', $collection) }}">
         Send to Client
         </a>
-
         
     </div>
+    
     <div class="mb-3 text-muted">Status: {{ ucfirst($collection->status) }}</div>
-
+    <div class="mb-3 text-right">
+        <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.items.edit',$collection) }}">[edit]</a>
+        <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.collect.form',$collection) }}">[collect]</a>
+        <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.process.index',$collection) }}">[process]</a>
+    </div>
+    
     <div class="card">
         <div class="card-body">
             {{-- top summary --}}

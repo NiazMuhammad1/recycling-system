@@ -431,7 +431,9 @@ class CollectionItemController extends Controller
             }
         }
 
-        return redirect()->route('collections.process.index', $collection)->with('success', 'Item processed.');
+        return redirect()->route('collections.show', $collection)->with('success', 'Item processed.');
+
+        // return redirect()->route('collections.process.index', $collection)->with('success', 'Item processed.');
     }
 
     public function processItemSaveold(Request $request, Collection $collection, CollectionItem $item)
@@ -931,7 +933,7 @@ class CollectionItemController extends Controller
                 ->send(new \App\Mail\CollectionPdfsMail($collection, $dutyPdf, $hazardPdf));
         }
 
-        return back()->with('success', 'Saved successfully.');
+        return redirect()->route('collections.show', $collection)->with('success', 'Saved successfully.');
     }
 
     public function updateGridold(Request $request, Collection $collection)
