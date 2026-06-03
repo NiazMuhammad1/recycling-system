@@ -22,6 +22,7 @@ class StoreCategoryRequest extends FormRequest
             'hazard_codes' => ['nullable','string','max:50'],
 
             'is_active' => ['nullable','boolean'],
+            'is_erasure' => ['nullable','boolean'],
         ];
     }
 
@@ -29,6 +30,7 @@ class StoreCategoryRequest extends FormRequest
     {
         $this->merge([
             'is_active' => $this->boolean('is_active'),
+            'is_erasure' => $this->boolean('is_erasure'),
         ]);
     }
 }

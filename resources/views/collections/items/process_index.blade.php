@@ -60,9 +60,12 @@
                                     <td>{{ str_replace('_', ' ', ucfirst($it->process_action)) }}</td>
                                     <td>{{ str_replace('_', ' ', ucfirst($it->status)) }}</td>
                                     <td>
-                                        @if(in_array($it->status, ['collected','processing']))
-                                            <input type="checkbox" name="item_ids[]" value="{{ $it->id }}" class="item-checkbox">
-                                        @endif
+                                        @php 
+                                            $is_checked = (!in_array($it->status, ['collected','processing']))?'checked':''
+                                        @endphp
+                                        
+                                            <input type="checkbox" name="item_ids[]" value="{{ $it->id }}" class="item-checkbox" {{ $is_checked }}> 
+                                    
                                     </td>
                                     <td class="text-right">
                                         <a class="btn btn-primary btn-sm"

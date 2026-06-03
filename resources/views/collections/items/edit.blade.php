@@ -148,11 +148,18 @@
                                 <th style="width:110px; display:none;">Weight</th>
                                 <th style="width:110px;display:none;">EWC</th>
                                 @if($isCollect)
-                                    <th style="width:90px;" class="text-center">Collected</th>
+                                <th style="width:90px;" class="text-center">
+                                    Collected
+                                    <br>
+                                    <input type="checkbox" id="checkAllCollected">
+                                </th>
                                 @else
                                     <th style="width:90px;"></th>
                                 @endif
-                                <th style="width:110px;" class="text-center">Erasure Required</th>
+                                <th style="width:110px;" class="text-center">Erasure Required
+                                    <br>
+                                    <input type="checkbox" id="checkAllErasure">
+                                </th>
                                 <th style="width:70px;"></th>
                             </tr>
                         </thead>
@@ -271,16 +278,17 @@
 
                                 @if($isCollect)
                                     <td class="text-center">
-                                        <input type="checkbox"
+                                        <input type="checkbox" class="collected-checkbox"
                                                name="items[{{ $it->id }}][is_collected]"
                                                value="1"
                                                {{ old("items.$it->id.is_collected", $it->is_collected) ? 'checked' : '' }}>
                                     </td>
+
                                 @else
                                     <td></td>
                                 @endif
                                 <td class="text-center">
-                                    <input type="checkbox"
+                                    <input type="checkbox" class="erasure-checkbox"
                                         name="items[{{ $it->id }}][erasure_required]"
                                         value="1"
                                         {{ old("items.$it->id.erasure_required", $it->erasure_required) ? 'checked' : '' }}>
@@ -327,7 +335,7 @@
                                                    value="{{ old("items.$it->id.asset_tags", $it->asset_tags) }}">
                                         </div>
                                         <div class="col-md-4">
-                                            <label class="small">Our Asset No</label>
+                                            <label class="small">Our Asset Tracking #</label>
                                             <input class="form-control form-control-sm"
                                                    name="items[{{ $it->id }}][our_asset_number]"
                                                    value="{{ old("items.$it->id.our_asset_number", $it->our_asset_number) }}">
@@ -906,7 +914,7 @@ $(function () {
                                 name="new_items[${key}][asset_tags]" value="${data.asset_tags}">
                         </div>
                         <div class="col-md-4">
-                            <label class="small">Our Asset No</label>
+                            <label class="small">Our Asset Tracking #</label>
                             <input class="form-control form-control-sm"
                                 name="new_items[${key}][our_asset_number]" value="${data.our_asset_number}">
                         </div>
@@ -1131,7 +1139,7 @@ $(function () {
                                        name="new_items[${key}][asset_tags]" value="">
                             </div>
                             <div class="col-md-4">
-                                <label class="small">Our Asset No</label>
+                                <label class="small">Our Asset Tracking #</label>
                                 <input class="form-control form-control-sm"
                                        name="new_items[${key}][our_asset_number]" value="">
                             </div>
@@ -1270,6 +1278,12 @@ $(document).on('click','.delete-code',function(e){
             badge.remove();
         }
     });
+});
+$(document).on('change', '#checkAllCollected', function () {
+    $('.collected-checkbox').prop('checked', $(this).is(':checked'));
+});
+$(document).on('change', '#checkAllErasure', function () {
+    $('.erasure-checkbox').prop('checked', $(this).is(':checked'));
 });
 </script>
 @endpush

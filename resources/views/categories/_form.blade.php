@@ -116,6 +116,21 @@
                     </div>
                 </div>
 
+                <div class="form-group row">
+                    <label class="col-sm-4 col-form-label col-form-label-sm">Is Erasure Required</label>
+                    <div class="col-sm-8 pt-1">
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox"
+                                   class="custom-control-input"
+                                   id="is_erasure"
+                                   name="is_erasure"
+                                   value="1"
+                                   {{ old('is_erasure', $category?->is_erasure ?? false) ? 'checked' : '' }}>
+                            <label class="custom-control-label" for="is_erasure">Active</label>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
         </div>

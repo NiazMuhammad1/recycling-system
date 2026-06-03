@@ -16,6 +16,7 @@ class Category extends Model
         'hazard_codes',
         'type',
         'is_active',
+        'is_erasure'
     ];
 
     protected $casts = [
