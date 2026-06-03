@@ -103,6 +103,7 @@
                             <option value="{{ $c->id }}"
                                     data-name="{{ $c->name }}"
                                     data-ewc="{{ $c->ewc_code }}"
+                                    data-is_erasure="{{ $c->is_erasure }}"
                                     data-def-weight="{{ $c->default_weight_kg }}"
                                     data-component="{{ $c->component }}"
                                     data-concentration="{{ $c->concentration }}"
@@ -206,6 +207,7 @@
                                                 <option value="{{ $c->id }}"
                                                         data-name="{{ $c->name }}"
                                                         data-ewc="{{ $c->ewc_code }}"
+                                                        data-is_erasure="{{ $c->is_erasure }}"
                                                         data-def-weight="{{ $c->default_weight_kg }}"
                                                         data-component="{{ $c->component }}"
                                                         data-concentration="{{ $c->concentration }}"
@@ -288,7 +290,7 @@
                                     <td></td>
                                 @endif
                                 <td class="text-center">
-                                    <input type="checkbox" class="erasure-checkbox"
+                                    <input type="checkbox" class="erasure-checkbox erasureCheckbox"
                                         name="items[{{ $it->id }}][erasure_required]"
                                         value="1"
                                         {{ old("items.$it->id.erasure_required", $it->erasure_required) ? 'checked' : '' }}>
@@ -600,6 +602,7 @@ $(function () {
 
         var $categoryName = $row.find('.categoryNameInput');
         var $ewc = $row.find('.ewcInput');
+        var $erasrecheckbox = $row.find('.erasureCheckbox');
         var $weight = $row.find('.weightInput');
         var $component = $row.find('.componentInput');
         var $concentration = $row.find('.concentrationInput');
@@ -620,6 +623,7 @@ $(function () {
 
         $row.find('.categoryNameInput').val(meta.name);
         $row.find('.ewcInput').val(meta.ewc);
+        $row.find('.erasureCheckbox').val(meta.is_erasure);
         $row.find('.weightInput').val(meta.defWeight);
         $row.find('.componentInput').val(meta.component);
         $row.find('.concentrationInput').val(meta.concentration);
@@ -789,7 +793,7 @@ $(function () {
 
             weight_kg: $topRow.find('.weightInput').val() || '',
             ewc_code: $topRow.find('.ewcInput').val() || '',
-
+            is_erasure: $topRow.find('.erasureCheckbox').val() || '',
             serial_number: $bottomRow.find('input[name*="[serial_number]"]').val() || '',
             asset_tags: $bottomRow.find('input[name*="[asset_tags]"]').val() || '',
             storage_serial_number: $bottomRow.find('input[name*="[storage_serial_number]"]').val() || '',
@@ -833,6 +837,7 @@ $(function () {
                                 <option value="{{ $c->id }}"
                                         data-name="{{ $c->name }}"
                                         data-ewc="{{ $c->ewc_code }}"
+                                        data-is_erasure="{{ $c->is_erasure }}"
                                         data-def-weight="{{ $c->default_weight_kg }}"
                                         data-component="{{ $c->component }}"
                                         data-concentration="{{ $c->concentration }}"
@@ -1024,8 +1029,9 @@ $(function () {
     $('#bulk_add_btn').on('click', function () {
         var qty = parseInt($('#bulk_qty').val() || 1, 10);
         qty = Math.max(1, Math.min(500, qty));
-
+        
         var bulkCatId = $bulkCat.val();
+        var is_erasure = $bulkCat.find('option:selected').data('is_erasure');
         var manVal  = $bulkMan.val();
         var manText = $bulkMan.find('option:selected').text();
         var modelVal  = $bulkModel.val();
@@ -1038,7 +1044,7 @@ $(function () {
                 ? `<td class="text-center"><input type="checkbox" name="new_items[${key}][is_collected]" value="1"></td>`
                 : `<td></td>`;
             var erasureTopCell = `<td class="text-center">
-                <input type="checkbox" name="new_items[${key}][erasure_required]" value="1">
+                <input class="erasureCheckbox" type="checkbox" name="new_items[${key}][erasure_required]" value="1" ${is_erasure == 1 ? 'checked' : ''}>
             </td>`;
 
             var html = `
@@ -1058,6 +1064,7 @@ $(function () {
                                     <option value="{{ $c->id }}"
                                             data-name="{{ $c->name }}"
                                             data-ewc="{{ $c->ewc_code }}"
+                                            data-is_erasure="{{ $c->is_erasure }}"
                                             data-def-weight="{{ $c->default_weight_kg }}"
                                             data-component="{{ $c->component }}"
                                             data-concentration="{{ $c->concentration }}"
