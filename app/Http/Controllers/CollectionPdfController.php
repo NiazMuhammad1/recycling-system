@@ -57,6 +57,74 @@ class CollectionPdfController extends Controller
         return $mpdf->Output('', 'S'); // return raw PDF
     }
 
+    public function generateCollectionInvoicePdf(Collection $collection)
+    {
+        $collection->load(['items.category', 'user', 'client']);
+
+        $categories = \App\Models\Category::whereIn('type', ['duty_of_care', 'both'])->get();
+        $items = $collection->items;
+
+        $rows = [];
+
+        foreach ($categories as $cat) {
+            $catItems = $items->where('category_id', $cat->id);
+
+            if ($catItems->count()) {
+                $qty = $catItems->sum('qty');
+                $totalWeight = $catItems->sum(fn($it) => $it->weight_kg ?? 0);
+                $perItem = $qty ? ($totalWeight / $qty) : 0;
+                $displayName = $catItems->first()->category_name ?: $cat->name;
+            } else {
+                $qty = 0;
+                $totalWeight = 0;
+                $perItem = 0;
+                $displayName = $cat->name;
+            }
+
+            $rows[] = (object)[
+                'name' => $displayName,
+                'qty' => $qty,
+                'total_weight' => $totalWeight,
+                'per_item_weight' => $perItem,
+                'ewc_code' => $cat->ewc_code,
+            ];
+        }
+
+        $totalItems = collect($rows)->sum('qty');
+        $totalWeight = collect($rows)->sum('total_weight');
+
+        // Only items requiring erasure, grouped by category_name
+        $invoiceItems = $collection->items
+            ->groupBy(function ($item) {
+                return $item->category_name ?: optional($item->category)->name ?: 'Unknown';
+            })
+            ->map(function ($group, $categoryName) {
+                return (object) [
+                    'item' => $categoryName,
+                    'quantity' => $group->sum('qty'), // change to 'quantity' if that is your column
+                    'method' => $group->pluck('process_action')
+                        ->filter()
+                        ->map(fn($item) => str_replace('_', ' ', $item)) // ✅ replace _ with space
+                        ->unique()
+                        ->implode(', '),
+                ];
+            })
+            ->values();
+
+        $html = view('pdf.collection_invoice', compact(
+            'collection',
+            'rows',
+            'totalItems',
+            'totalWeight',
+            'invoiceItems'
+        ))->render();
+
+        $mpdf = $this->makeMpdf();
+        $mpdf->WriteHTML($html);
+
+        return $mpdf->Output('', 'S');
+    }
+
     public function generateWeeeDisposalPdf(Collection $collection)
     {
         $collection->load(['items.category', 'user', 'client']);
@@ -304,6 +372,16 @@ class CollectionPdfController extends Controller
         return response($pdf,200,[
             'Content-Type'=>'application/pdf',
             'Content-Disposition'=>'inline; filename="data_destruction_'.$collection->id.'.pdf"',
+        ]);
+    }
+
+    public function CollectionInvoice(Collection $collection)
+    {
+        $pdf = $this->generateCollectionInvoicePdf($collection);
+
+        return response($pdf,200,[
+            'Content-Type'=>'application/pdf',
+            'Content-Disposition'=>'inline; filename="invoice_'.$collection->id.'.pdf"',
         ]);
     }
 

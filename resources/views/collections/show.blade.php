@@ -63,6 +63,12 @@
         &nbsp;&nbsp;
         <a class="btn btn-sm btn-outline-primary"
         target="_blank"
+        href="{{ route('collections.pdf.collection_invoice', $collection) }}">
+        Invoice PDF
+        </a>
+        &nbsp;&nbsp;
+        <a class="btn btn-sm btn-outline-primary"
+        target="_blank"
         href="{{ route('collections.pdf-emails.index', $collection) }}">
         Send to Client
         </a>

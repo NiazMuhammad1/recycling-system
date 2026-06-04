@@ -37,6 +37,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/collections/{collection}/pdf/weee-disposal', [CollectionPdfController::class, 'WeeeDisposal'])
     ->name('collections.pdf.weee_disposal');
 
+    Route::get('/collections/{collection}/pdf/collection-invoice', [CollectionPdfController::class, 'CollectionInvoice'])
+    ->name('collections.pdf.collection_invoice');
+
     Route::get('/collections/{collection}/pdf/audit-report', [CollectionPdfController::class, 'AuditReport'])
     ->name('collections.pdf.audit_report');
 
