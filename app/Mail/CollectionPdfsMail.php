@@ -20,7 +20,7 @@ class CollectionPdfsMail extends Mailable
      */
     public function __construct(
         Collection $collection,
-        array $attachmentsData
+        $attachmentsData
     ) {
         $this->collection = $collection;
         $this->attachmentsData = $attachmentsData;

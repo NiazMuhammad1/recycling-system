@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Collection;
 use Mpdf\Mpdf;
-
+use Illuminate\Support\Facades\Mail;
+use App\Mail\CollectionPdfsMail;
 class CollectionPdfController extends Controller
 {
+     
+
     public function generateDutyOfCarePdf(Collection $collection)
     {
         $collection->load(['items.category','user','client']);
@@ -368,7 +371,7 @@ class CollectionPdfController extends Controller
         ]);
     }
 
-    public function sendPdfs(Request $request, Collection $collection)
+    public function two(Request $request, Collection $collection)
     {
         $emails = [];
 
@@ -404,5 +407,28 @@ class CollectionPdfController extends Controller
         }
 
         return back()->with('success', 'PDFs queued successfully.');
+    }
+
+    public function sendPdfs_h_d(Collection $collection)
+    {
+        $collection->load(['items.category', 'user', 'client']);
+
+        $dutyPdf = $this->generateDutyOfCarePdf($collection);
+        $hazardPdf = $this->generateHazardousPdf($collection);
+
+        Mail::to('niazm6888@gmail.com')->send(
+            new CollectionPdfsMail($collection, [
+                [
+                    'data' => $dutyPdf,
+                    'name' => 'Duty-Of-Care.pdf',
+                ],
+                [
+                    'data' => $hazardPdf,
+                    'name' => 'Hazardous-Waste.pdf',
+                ],
+            ])
+        );
+
+        return redirect()->route('collections.show', $collection)->with('success', 'PDFs emailed successfully');
     }
 }

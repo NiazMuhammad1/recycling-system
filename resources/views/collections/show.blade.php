@@ -66,7 +66,17 @@
         href="{{ route('collections.pdf-emails.index', $collection) }}">
         Send to Client
         </a>
-        
+        &nbsp;&nbsp;
+        <form action="{{ route('collections.send-pdfs', $collection) }}"
+            method="POST"
+            class="d-inline">
+            @csrf
+
+            <button type="submit" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-envelope"></i>
+                Email PDFs
+            </button>
+        </form>
     </div>
     
     <div class="mb-3 text-muted">Status: {{ ucfirst($collection->status) }}</div>

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Models\CollectionItemCode;
 use App\Models\CollectionItemHdd;
-
+use Illuminate\Support\Facades\Mail; 
 class CollectionItemController extends Controller
 {
     // STEP 2: Edit items grid (screenshot #2)
@@ -930,7 +930,18 @@ class CollectionItemController extends Controller
             $hazardPdf = $pdfController->generateHazardousPdf($collection);
 
             Mail::to('niazm6888@gmail.com')
-                ->send(new \App\Mail\CollectionPdfsMail($collection, $dutyPdf, $hazardPdf));
+            ->send(new \App\Mail\CollectionPdfsMail($collection, [
+                [
+                    'data' => $dutyPdf,
+                    'name' => 'duty-of-care.pdf',
+                ],
+                [
+                    'data' => $hazardPdf,
+                    'name' => 'hazardous-waste.pdf',
+                ],
+            ]));
+
+            return redirect()->route('collections.show', $collection)->with('success', 'Data saved and PDFs emailed successfully');
         }
 
         return redirect()->route('collections.show', $collection)->with('success', 'Saved successfully.');

@@ -40,6 +40,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/collections/{collection}/pdf/audit-report', [CollectionPdfController::class, 'AuditReport'])
     ->name('collections.pdf.audit_report');
 
+    Route::post('/collections/{collection}/send-pdfs',
+    [CollectionPdfController::class, 'sendPdfs_h_d'])->name('collections.send-pdfs');
+
     Route::resource('users', UserController::class);
     Route::resource('categories', \App\Http\Controllers\CategoryController::class);
     Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
