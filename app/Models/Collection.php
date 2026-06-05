@@ -89,4 +89,9 @@ class Collection extends Model
     {
         return $this->hasMany(CollectionPdfEmail::class);
     }
+
+    public function invoiceItems()
+    {
+        return $this->hasMany(InvoiceItem::class);
+    }
 }

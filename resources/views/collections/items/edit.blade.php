@@ -83,6 +83,8 @@
             <span class="mx-1">/</span>
 
             <a href="{{ route('collections.process.index',$collection) }}">Process</a>
+
+            
         </small>
 
     </div>

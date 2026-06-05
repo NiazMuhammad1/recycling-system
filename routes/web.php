@@ -37,6 +37,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/collections/{collection}/pdf/weee-disposal', [CollectionPdfController::class, 'WeeeDisposal'])
     ->name('collections.pdf.weee_disposal');
 
+    Route::get('/collections/{collection}/invoice/edit', [CollectionPdfController::class, 'editInvoice'])->name('collections.invoice.edit');
+    Route::put('/collections/{collection}/invoice', [CollectionPdfController::class, 'updateInvoice'])->name('collections.invoice.update');
+
     Route::get('/collections/{collection}/pdf/collection-invoice', [CollectionPdfController::class, 'CollectionInvoice'])
     ->name('collections.pdf.collection_invoice');
 
@@ -45,6 +48,9 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/collections/{collection}/send-pdfs',
     [CollectionPdfController::class, 'sendPdfs_h_d'])->name('collections.send-pdfs');
+
+    Route::post('/collections/{collection}/send-pdf-invoice',
+    [CollectionPdfController::class, 'sendPdfs_invoice'])->name('collections.send-pdf-invoice');
 
     Route::resource('users', UserController::class);
     Route::resource('categories', \App\Http\Controllers\CategoryController::class);

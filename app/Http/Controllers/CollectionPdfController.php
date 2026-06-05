@@ -509,4 +509,48 @@ class CollectionPdfController extends Controller
 
         return redirect()->route('collections.show', $collection)->with('success', 'PDFs emailed successfully');
     }
+
+    public function sendPdfs_invoice(Collection $collection)
+    {
+        $collection->load(['items.category', 'user', 'client']);
+
+        $invoicePdf = $this->generateCollectionInvoicePdf($collection);
+       
+        Mail::to('niazm6888@gmail.com')->send(
+            new CollectionPdfsMail($collection, [
+                [
+                    'data' => $invoicePdf,
+                    'name' => 'invoice.pdf',
+                ]
+            ])
+        );
+
+        return redirect()->route('collections.show', $collection)->with('success', 'Invoice emailed successfully');
+    }
+
+    public function editInvoice(Collection $collection)
+    {
+        // Eager load saved invoice items if they exist
+        $collection->load('invoiceItems');
+        return view('collections.edit_invoice', compact('collection'));
+    }
+
+    public function updateInvoice(\Illuminate\Http\Request $request, Collection $collection)
+    {
+        // Wipe previously saved items to overwrite cleanly
+        $collection->invoiceItems()->delete();
+
+        // Loop and insert form inputs
+        foreach ($request->input('items', []) as $itemData) {
+            $collection->invoiceItems()->create([
+                'qty' => $itemData['qty'],
+                'description' => $itemData['description'],
+                'price' => $itemData['price']
+            ]);
+        }
+
+        return redirect()->route('collections.show', $collection->id)
+                        ->with('success', 'Invoice updated successfully!');
+    }
+
 }

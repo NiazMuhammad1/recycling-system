@@ -3,12 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <style>
+
     body {
         font-family: Arial, Helvetica, sans-serif;
-        font-size: 11px;
-        color: #000;
-        margin: 20px;
+        font-size: 15px;
+        color: #111;
+        margin: 0;
+        padding: 0;
+
+        /* ✅ Background image for mPDF */
+        background-image: url('{{ public_path("storage/images/ecogreen_certificate_background.png") }}');
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-image-resize: 6;
     }
+
     table { border-collapse: collapse; width: 100%; }
     .logo {
         font-size: 26px;
@@ -49,7 +58,7 @@
     .items td.right { text-align: right; }
     .totals td {
         padding: 6px 8px;
-        font-size: 11px;
+        font-size: 13px;
     }
     .totals .grand {
         background-color: #6cba3d;
@@ -71,6 +80,10 @@
         border-top: 1px solid #6cba3d;
         padding-top: 6px;
     }
+    .logo-img {
+        width: 56mm;
+        height: auto;
+    }
 </style>
 </head>
 <body>
@@ -79,8 +92,9 @@
 <table style="margin-bottom: 10px;">
     <tr>
         <td style="width: 60%; vertical-align: middle;">
-            <div class="logo">ecogreen</div>
-            <div class="logo-sub">IT RECYCLING</div>
+            <img class="logo-img"
+         src="{{ public_path('storage/images/ecogreen_logo.png') }}"
+         alt="ecogreen IT Recycling">
         </td>
         <td style="width: 40%; text-align: right; vertical-align: middle;">
             <h1>INVOICE</h1>
@@ -89,7 +103,7 @@
 </table>
 
 <!-- META -->
-<table class="meta-table" style="margin-top: 10px;">
+<table class="meta-table" style="margin-top: 50px;">
     <tr>
         <td style="width: 50%;">
             <div class="label">From</div>
@@ -101,72 +115,80 @@
         </td>
         <td style="width: 50%;">
             <div class="label">To</div>
-            <strong>Sandfords</strong><br/>
-            213-215 Gloucester Place<br/>
-            London<br/>
-            NW1 6BU
+           <strong>{{ optional($collection->client)->name }}</strong><br/>
+            {{ optional($collection->client)->address_line_1 }}
+                        <br/>{{ optional($collection->client)->postcode }}
         </td>
     </tr>
     <tr>
-        <td colspan="2" style="padding-top: 12px;">
-            <span class="label">Invoice Number:</span> <strong>80925</strong>
-            &nbsp;&nbsp;&nbsp;&nbsp;
-            <span class="label">Date:</span> <strong>06/05/2026</strong>
-            &nbsp;&nbsp;&nbsp;&nbsp;
-            <span class="label">Payment Terms:</span> &mdash;
+        <td colspan="2" style="padding-top: 30px;">
+           <strong>Payment Terms:</strong>
         </td>
     </tr>
 </table>
 
 <!-- ITEMS -->
-<table class="items">
+<table class="items" style="margin-top: 30px;">
     <tr>
         <th class="center" style="width: 10%;">QTY</th>
         <th style="width: 55%;">DESCRIPTION</th>
         <th class="right" style="width: 17%;">PRICE</th>
         <th class="right" style="width: 18%;">TOTAL</th>
     </tr>
-    <tr>
-        <td class="center">1</td>
-        <td>ADMINISTRATION FEE FOR IT COLLECTION MADE ON 29/04/2026</td>
-        <td class="right">&pound;120.00</td>
-        <td class="right">&pound;120.00</td>
-    </tr>
-    <tr>
-        <td class="center">2</td>
-        <td>Shredding of hard drives</td>
-        <td class="right">&pound;4.00</td>
-        <td class="right">&pound;8.00</td>
-    </tr>
-    <tr>
-        <td class="center"></td>
-        <td>OLE954/17273</td>
-        <td class="right"></td>
-        <td class="right"></td>
-    </tr>
+    @php $calculatedSubtotal = 0; @endphp
+    @forelse($collection->invoiceItems as $item)
+        @php 
+            $lineTotal = $item->qty * $item->price; 
+            $calculatedSubtotal += $lineTotal;
+        @endphp
+        <tr>
+            <td class="center">{{ $item->qty }}</td>
+            <td>{{ $item->description }}</td>
+            <td class="right">&pound;{{ number_format($item->price, 2) }}</td>
+            <td class="right">&pound;{{ number_format($lineTotal, 2) }}</td>
+        </tr>
+    @empty
+        @php $calculatedSubtotal = 128.00; @endphp
+        <tr>
+            <td class="center">1</td>
+            <td>ADMINISTRATION FEE FOR IT COLLECTION MADE ON {{ $collection->collection_date }}</td>
+            <td class="right">&pound;120.00</td>
+            <td class="right">&pound;120.00</td>
+        </tr>
+        <tr>
+            <td class="center">2</td>
+            <td>Shredding of hard drives</td>
+            <td class="right">&pound;4.00</td>
+            <td class="right">&pound;8.00</td>
+        </tr>
+    @endforelse
 </table>
 
 <!-- TOTALS -->
-<table class="totals" style="margin-top: 10px;">
+@php
+    $calculatedVat = $calculatedSubtotal * 0.20;
+    $calculatedTotal = $calculatedSubtotal + $calculatedVat;
+@endphp
+<table class="totals" style="margin-top: 30px;">
     <tr>
         <td style="width: 70%;"></td>
         <td style="width: 18%; text-align: right;">Subtotal</td>
-        <td style="width: 12%; text-align: right;">&pound;128.00</td>
+        <td style="width: 12%; text-align: right;">&pound;{{ number_format($calculatedSubtotal, 2) }}</td>
     </tr>
     <tr>
         <td></td>
         <td style="text-align: right;">VAT @ 20%</td>
-        <td style="text-align: right;">&pound;25.60</td>
+        <td style="text-align: right;">&pound;{{ number_format($calculatedVat, 2) }}</td>
     </tr>
     <tr>
         <td></td>
         <td class="grand" style="text-align: right;">TOTAL</td>
-        <td class="grand" style="text-align: right;">&pound;153.60</td>
+        <td class="grand" style="text-align: right;">&pound;{{ number_format($calculatedTotal, 2) }}</td>
     </tr>
 </table>
 
 <!-- NOTES -->
-<div class="notes">
+<div class="notes" style="margin-top: 50px;">
     <strong>Please Note:</strong> Please quote the invoice number on all payments.<br/><br/>
     <strong>Payment Methods:</strong><br/>
     Online Transfer &mdash; Our bank details are:<br/>

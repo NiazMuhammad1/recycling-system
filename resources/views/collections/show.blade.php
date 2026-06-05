@@ -72,17 +72,7 @@
         href="{{ route('collections.pdf-emails.index', $collection) }}">
         Send to Client
         </a>
-        &nbsp;&nbsp;
-        <form action="{{ route('collections.send-pdfs', $collection) }}"
-            method="POST"
-            class="d-inline">
-            @csrf
-
-            <button type="submit" class="btn btn-sm btn-outline-primary">
-                <i class="fas fa-envelope"></i>
-                Email PDFs
-            </button>
-        </form>
+        
     </div>
     
     <div class="mb-3 text-muted">Status: {{ ucfirst($collection->status) }}</div>
@@ -90,6 +80,31 @@
         <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.items.edit',$collection) }}">[edit]</a>
         <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.collect.form',$collection) }}">[collect]</a>
         <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.process.index',$collection) }}">[process]</a>
+
+        <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.invoice.edit',$collection) }}">[Edit Invoice]</a>
+        &nbsp;&nbsp;
+        <form action="{{ route('collections.send-pdf-invoice', $collection) }}"
+            method="POST"
+            class="d-inline">
+            @csrf
+
+            <button type="submit" class="btn btn-sm btn-primary">
+                <i class="fas fa-envelope"></i>
+                [Email Invoice]
+            </button>
+        </form>
+        &nbsp;&nbsp;
+        <form action="{{ route('collections.send-pdfs', $collection) }}"
+            method="POST"
+            class="d-inline">
+            @csrf
+
+            <button type="submit" class="btn btn-sm btn-primary">
+                <i class="fas fa-envelope"></i>
+                [Email PDFs]
+            </button>
+        </form>
+
     </div>
     
     <div class="card">
