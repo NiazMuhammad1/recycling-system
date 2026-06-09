@@ -355,10 +355,34 @@
                                 </td>
 
                                 <td>
-                                    <label class="small">Second Storage</label>
-                                    <input class="form-control form-control-sm"
-                                           name="items[{{ $it->id }}][second_storage_serial_number]"
-                                           value="{{ old("items.$it->id.second_storage_serial_number", $it->second_storage_serial_number) }}">
+                                    <label class="small">Hard Disks</label><br>
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-primary openHddModal"
+                                            data-item-type="items"
+                                            data-item-id="{{ $it->id }}">
+                                        Add / View HDD
+                                    </button>
+
+                                    <span class="badge badge-info hdd-count ml-1">
+                                        {{ $it->hdds->count() ?? 0 }}
+                                    </span>
+
+                                    <div class="hdd-hidden-holder"
+                                        data-item-type="items"
+                                        data-item-id="{{ $it->id }}">
+
+                                        @foreach($it->hdds ?? [] as $hdd)
+                                            <div class="hdd-data-row" data-hdd-key="{{ $hdd->id }}">
+                                                <input type="hidden" name="items[{{ $it->id }}][hdds][{{ $hdd->id }}][serial]" value="{{ $hdd->serial }}">
+                                                <input type="hidden" name="items[{{ $it->id }}][hdds][{{ $hdd->id }}][size]" value="{{ $hdd->size }}">
+                                                <input type="hidden" name="items[{{ $it->id }}][hdds][{{ $hdd->id }}][status]" value="{{ $hdd->status ?? 'not_processed' }}">
+                                                <input type="hidden" name="items[{{ $it->id }}][hdds][{{ $hdd->id }}][notes]" value="{{ $hdd->notes }}">
+                                                <input type="hidden" name="items[{{ $it->id }}][hdds][{{ $hdd->id }}][delete]" value="0">
+                                            </div>
+                                        @endforeach
+
+                                    </div>
                                 </td>
 
                                 <td style="display:none;">
@@ -469,6 +493,45 @@
 
                 <a class="btn btn-link" href="{{ route('collections.show',$collection) }}">Cancel</a>
             </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="hddModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Hard Disks</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="currentItemId">
+                <input type="hidden" id="currentItemType">
+                <table class="table table-sm table-bordered" id="modalHddTable">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Serial</th>
+                            <th>Size</th>
+                            <th>Status</th>
+                            <th>Notes</th>
+                            <th width="60"></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+
+                <button type="button" class="btn btn-sm btn-primary" id="addModalHddRow">
+                    Add HDD
+                </button>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success btn-sm" id="saveHddModalBtn">
+                    Done
+                </button>
+            </div>
+
         </div>
     </div>
 </div>
@@ -935,9 +998,21 @@ $(function () {
                 </td>
 
                 <td>
-                    <label class="small">Second Storage</label>
-                    <input class="form-control form-control-sm"
-                        name="new_items[${key}][second_storage_serial_number]" value="${data.second_storage_serial_number}">
+                    <label class="small">Hard Disks</label><br>
+
+                    <button type="button"
+                            class="btn btn-sm btn-primary openHddModal"
+                            data-item-type="new_items"
+                            data-item-id="${key}">
+                        Add / View HDD
+                    </button>
+
+                    <span class="badge badge-info hdd-count ml-1">0</span>
+
+                    <div class="hdd-hidden-holder"
+                        data-item-type="new_items"
+                        data-item-id="${key}">
+                    </div>
                 </td>
 
                 <td style="display:none;">
@@ -1162,9 +1237,21 @@ $(function () {
                     </td>
 
                     <td>
-                        <label class="small">Second Storage</label>
-                        <input class="form-control form-control-sm"
-                               name="new_items[${key}][second_storage_serial_number]" value="">
+                        <label class="small">Hard Disks</label><br>
+
+                        <button type="button"
+                                class="btn btn-sm btn-primary openHddModal"
+                                data-item-type="new_items"
+                                data-item-id="${key}">
+                            Add / View HDD
+                        </button>
+
+                        <span class="badge badge-info hdd-count ml-1">0</span>
+
+                        <div class="hdd-hidden-holder"
+                            data-item-type="new_items"
+                            data-item-id="${key}">
+                        </div>
                     </td>
 
                     <td style="display:none;">
@@ -1294,5 +1381,143 @@ $(document).on('change', '#checkAllCollected', function () {
 $(document).on('change', '#checkAllErasure', function () {
     $('.erasure-checkbox').prop('checked', $(this).is(':checked'));
 });
+
+
+
+
+//
+$(function () {
+
+    function uid() {
+        return 'n' + Math.random().toString(16).slice(2);
+    }
+
+    let currentItemType = null;
+    let currentItemId = null;
+
+    $(document).on('click', '.openHddModal', function () {
+        currentItemType = $(this).data('item-type');
+        currentItemId = $(this).data('item-id');
+
+        $('#modalHddTable tbody').html('');
+
+        let holder = getHolder();
+
+        holder.find('.hdd-data-row').each(function () {
+            let key = $(this).data('hdd-key');
+
+            let serial = $(this).find('input[name$="[serial]"]').val() || '';
+            let size = $(this).find('input[name$="[size]"]').val() || '';
+            let status = $(this).find('input[name$="[status]"]').val() || 'not_processed';
+            let notes = $(this).find('input[name$="[notes]"]').val() || '';
+            let del = $(this).find('input[name$="[delete]"]').val() || '0';
+
+            if (del !== '1') {
+                addModalRow(key, serial, size, status, notes);
+            }
+        });
+
+        $('#hddModal').modal('show');
+    });
+
+    $('#addModalHddRow').on('click', function () {
+        addModalRow(uid(), '', '', 'not_processed', '');
+    });
+
+    $(document).on('click', '.removeModalHdd', function () {
+        $(this).closest('tr').remove();
+    });
+
+    $('#saveHddModalBtn').on('click', function () {
+        saveHddsToHiddenInputs();
+        $('#hddModal').modal('hide');
+    });
+
+    function getHolder() {
+        return $('.hdd-hidden-holder[data-item-type="' + currentItemType + '"][data-item-id="' + currentItemId + '"]');
+    }
+
+    function addModalRow(key, serial, size, status, notes) {
+        let row = `
+            <tr data-hdd-key="${key}">
+                <td>
+                    <input class="form-control form-control-sm hdd-serial" value="${escapeHtml(serial)}">
+                </td>
+
+                <td>
+                    <input class="form-control form-control-sm hdd-size" value="${escapeHtml(size)}" placeholder="500GB / 1TB">
+                </td>
+
+                <td>
+                    <select class="form-control form-control-sm hdd-status">
+                        <option value="not_processed" ${status === 'not_processed' ? 'selected' : ''}>Not Processed</option>
+                        <option value="erased" ${status === 'erased' ? 'selected' : ''}>Erased</option>
+                        <option value="failed" ${status === 'failed' ? 'selected' : ''}>Failed</option>
+                        <option value="shredding" ${status === 'shredding' ? 'selected' : ''}>Shredding</option>
+                    </select>
+                </td>
+
+                <td>
+                    <input class="form-control form-control-sm hdd-notes" value="${escapeHtml(notes)}">
+                </td>
+
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline-danger removeModalHdd">&times;</button>
+                </td>
+            </tr>
+        `;
+
+        $('#modalHddTable tbody').append(row);
+    }
+
+    function saveHddsToHiddenInputs() {
+        let holder = getHolder();
+        holder.html('');
+
+        let count = 0;
+
+        $('#modalHddTable tbody tr').each(function () {
+            let key = $(this).data('hdd-key') || uid();
+
+            let serial = $(this).find('.hdd-serial').val() || '';
+            let size = $(this).find('.hdd-size').val() || '';
+            let status = $(this).find('.hdd-status').val() || 'not_processed';
+            let notes = $(this).find('.hdd-notes').val() || '';
+
+            if (!serial && !size && !notes) {
+                return;
+            }
+
+            count++;
+
+            holder.append(`
+                <div class="hdd-data-row" data-hdd-key="${key}">
+                    <input type="hidden" name="${currentItemType}[${currentItemId}][hdds][${key}][serial]" value="${escapeAttr(serial)}">
+                    <input type="hidden" name="${currentItemType}[${currentItemId}][hdds][${key}][size]" value="${escapeAttr(size)}">
+                    <input type="hidden" name="${currentItemType}[${currentItemId}][hdds][${key}][status]" value="${escapeAttr(status)}">
+                    <input type="hidden" name="${currentItemType}[${currentItemId}][hdds][${key}][notes]" value="${escapeAttr(notes)}">
+                    <input type="hidden" name="${currentItemType}[${currentItemId}][hdds][${key}][delete]" value="0">
+                </div>
+            `);
+        });
+
+        holder.closest('td').find('.hdd-count').text(count);
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#039;');
+    }
+
+    function escapeAttr(value) {
+        return escapeHtml(value);
+    }
+
+});
+
 </script>
 @endpush

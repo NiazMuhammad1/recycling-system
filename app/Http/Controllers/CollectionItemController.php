@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Models\CollectionItemCode;
 use App\Models\CollectionItemHdd;
-use Illuminate\Support\Facades\Mail; 
+use Illuminate\Support\Facades\Mail;
 class CollectionItemController extends Controller
 {
     // STEP 2: Edit items grid (screenshot #2)
@@ -230,6 +230,33 @@ class CollectionItemController extends Controller
             'product_images' => 'nullable|array',
             'product_images.*' => 'file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
             'notes' => 'nullable|string',
+
+
+            // HDDs for existing items
+            'items.*.hdds' => ['nullable', 'array'],
+            'items.*.hdds.*.manufacturer_id' => ['nullable'],
+            'items.*.hdds.*.manufacturer_text' => ['nullable', 'string', 'max:120'],
+            'items.*.hdds.*.product_model_id' => ['nullable'],
+            'items.*.hdds.*.model_text' => ['nullable', 'string', 'max:120'],
+            'items.*.hdds.*.serial' => ['nullable', 'string', 'max:255'],
+            'items.*.hdds.*.size' => ['nullable', 'string', 'max:50'],
+            'items.*.hdds.*.status' => ['nullable', 'string', 'max:30'],
+            'items.*.hdds.*.notes' => ['nullable', 'string', 'max:255'],
+            'items.*.hdds.*.delete' => ['nullable', 'in:0,1'],
+            'items.*.hdds.*.create_separate_stock_item' => ['nullable', 'boolean'],
+
+            // HDDs for new items
+            'new_items.*.hdds' => ['nullable', 'array'],
+            'new_items.*.hdds.*.manufacturer_id' => ['nullable'],
+            'new_items.*.hdds.*.manufacturer_text' => ['nullable', 'string', 'max:120'],
+            'new_items.*.hdds.*.product_model_id' => ['nullable'],
+            'new_items.*.hdds.*.model_text' => ['nullable', 'string', 'max:120'],
+            'new_items.*.hdds.*.serial' => ['nullable', 'string', 'max:255'],
+            'new_items.*.hdds.*.size' => ['nullable', 'string', 'max:50'],
+            'new_items.*.hdds.*.status' => ['nullable', 'string', 'max:30'],
+            'new_items.*.hdds.*.notes' => ['nullable', 'string', 'max:255'],
+            'new_items.*.hdds.*.create_separate_stock_item' => ['nullable', 'boolean'],
+
         ]);
 
         DB::transaction(function () use ($collection, $item, $request) {
@@ -436,315 +463,6 @@ class CollectionItemController extends Controller
         // return redirect()->route('collections.process.index', $collection)->with('success', 'Item processed.');
     }
 
-    public function processItemSaveold(Request $request, Collection $collection, CollectionItem $item)
-    {
-        abort_unless($item->collection_id === $collection->id, 404);
-
-        $data = $request->validate([
-            'process_action' => 'required|in:add_to_stock,physical_destruction,recycle,resale',
-            'item_valuation' => 'nullable|numeric|min:0',
-            'refurb_cost' => 'nullable|numeric|min:0',
-            'hdd_serial' => 'nullable|string|max:255',
-            'weight_kg' => 'nullable|numeric|min:0',
-            'dimensions' => 'nullable|string|max:255',
-            'erasure_required' => 'nullable|boolean',
-
-            'erasure_report' => 'nullable|file|max:5120', // 5MB
-            // Stock fields when add_to_stock
-            'warehouse_location' => 'nullable|string|max:50',
-            'cosmetic_condition' => 'nullable|string|max:10',
-            'condition_notes' => 'nullable|string',
-            'price' => 'nullable|numeric|min:0',
-            'fully_functional' => 'nullable|boolean',
-
-            // existing hdds
-            'hdds' => 'array',
-            'hdds.*.manufacturer_id' => 'nullable',
-            'hdds.*.manufacturer_text' => 'nullable|string|max:120',
-            'hdds.*.product_model_id' => 'nullable',
-            'hdds.*.model_text' => 'nullable|string|max:120',
-            'hdds.*.serial' => 'nullable|string|max:255',
-            'hdds.*.status' => 'nullable|string|max:30',
-            'hdds.*.delete' => 'nullable|in:0,1',
-            'hdds.*.erasure_report' => 'nullable|file|max:5120', // 5MB
-
-            // new hdds
-            'new_hdds' => 'array',
-            'new_hdds.*.manufacturer_id' => 'nullable',
-            'new_hdds.*.manufacturer_text' => 'nullable|string|max:120',
-            'new_hdds.*.product_model_id' => 'nullable',
-            'new_hdds.*.model_text' => 'nullable|string|max:120',
-            'new_hdds.*.serial' => 'nullable|string|max:255',
-            'new_hdds.*.status' => 'nullable|string|max:30',
-            'new_hdds.*.erasure_report' => 'nullable|file|max:5120',
-            'quantity' => 'nullable|integer|min:1',
-            'carbon_footprint' => 'nullable|numeric|min:0',
-
-            // HDD extra columns (from table)
-            'hdds.*.size' => 'nullable|string|max:50',
-            'hdds.*.notes' => 'nullable|string|max:255',
-            'hdds.*.create_separate_stock_item' => 'nullable|boolean',
-
-            'new_hdds.*.size' => 'nullable|string|max:50',
-            'new_hdds.*.notes' => 'nullable|string|max:255',
-            'new_hdds.*.create_separate_stock_item' => 'nullable|boolean',
-
-            // Stock Item Details (screen)
-            'sku' => 'nullable|string|max:100',
-            'serial_number' => 'nullable|string|max:255',
-            'asset_tags' => 'nullable|string|max:255',
-
-            // Model Details (screen)
-            'category_id' => 'nullable|integer',
-            'manufacturer_id' => 'nullable|integer',
-            'product_model_id' => 'nullable|integer',
-            'model' => 'nullable|string|max:255',
-            'year' => 'nullable|string|max:50',
-            'chassis' => 'nullable|string|max:50',
-
-            // Specs (screen)
-            'processor_manufacturer' => 'nullable|string|max:120',
-            'processor_type' => 'nullable|string|max:120',
-            'processor_speed_ghz' => 'nullable|numeric|min:0',
-
-            'ram_type' => 'nullable|string|max:120',
-            'ram_gb' => 'nullable|numeric|min:0',
-
-            'hdd_gb' => 'nullable|numeric|min:0',
-            'ssd_gb' => 'nullable|numeric|min:0',
-            'nvme_gb' => 'nullable|numeric|min:0',
-
-            'operating_system' => 'nullable|string|max:255',
-            'optical_drives' => 'nullable|string|max:255',
-
-            // Checkboxes (screen)
-            'charger_included' => 'nullable|boolean',
-            'accessories_included' => 'nullable|boolean',
-
-            // Bottom section (screen)
-            'product_images' => 'nullable|array',
-            'product_images.*' => 'file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
-            'notes' => 'nullable|string',
-
-        ]);
-
-        DB::transaction(function () use ($collection, $item, $data, $request) {
-            $path = $item->erasure_report_path;
-
-            if ($request->hasFile('erasure_report')) {
-                $path = $request->file('erasure_report')->store('erasure_reports','public');
-            }
-
-            $item->update([
-                'process_action' => $data['process_action'],
-                'item_valuation' => $data['item_valuation'] ?? 0,
-                'refurb_cost' => $data['refurb_cost'] ?? 0,
-                'hdd_serial' => $data['hdd_serial'] ?? null,
-                'weight_kg' => $data['weight_kg'] ?? $item->weight_kg,
-                'dimensions' => $data['dimensions'] ?? $item->dimensions,
-                'erasure_required' => !empty($data['erasure_required']),
-                'erasure_report_path' => $path,
-            ]);
-
-            // ACTION: add_to_stock
-            if ($data['process_action'] === 'add_to_stock') {
-
-                // create stock item if not created already
-                if (!$item->stock_item_id) {
-                    $stock = StockItem::create([
-                        'stock_number' => NumberService::next('stock','S',7), // S1600003 style
-                        'category_id' => $item->category_id,
-                        'manufacturer_id' => $item->manufacturer_id,
-                        'product_model_id' => $item->product_model_id,
-                        'serial_number' => $item->serial_number,
-                        'asset_tags' => $item->asset_tags,
-                        'price' => $data['price'] ?? 0,
-                        'warehouse_location' => $data['warehouse_location'] ?? null,
-                        'cosmetic_condition' => $data['cosmetic_condition'] ?? null,
-                        'condition_notes' => $data['condition_notes'] ?? null,
-                        'fully_functional' => !empty($data['fully_functional']),
-                        'status' => 'in_stock',
-                        'source_collection_id' => $collection->id,
-                        'source_collection_item_id' => $item->id,
-                        'sku' => $data['sku'] ?? null,
-                        'serial_number' => $data['serial_number'] ?? ($item->serial_number ?? null),
-                        'asset_tags' => $data['asset_tags'] ?? ($item->asset_tags ?? null),
-
-                        'category_id' => $data['category_id'] ?? $item->category_id,
-                        'manufacturer_id' => $data['manufacturer_id'] ?? $item->manufacturer_id,
-                        'product_model_id' => $data['product_model_id'] ?? $item->product_model_id,
-                        'model' => $data['model'] ?? null,
-                        'year' => $data['year'] ?? null,
-                        'chassis' => $data['chassis'] ?? null,
-
-                        'processor_manufacturer' => $data['processor_manufacturer'] ?? null,
-                        'processor_type' => $data['processor_type'] ?? null,
-                        'processor_speed_ghz' => $data['processor_speed_ghz'] ?? null,
-
-                        'ram_type' => $data['ram_type'] ?? null,
-                        'ram_gb' => $data['ram_gb'] ?? null,
-
-                        'hdd_gb' => $data['hdd_gb'] ?? null,
-                        'ssd_gb' => $data['ssd_gb'] ?? null,
-                        'nvme_gb' => $data['nvme_gb'] ?? null,
-
-                        'operating_system' => $data['operating_system'] ?? null,
-                        'optical_drives' => $data['optical_drives'] ?? null,
-
-                        'charger_included' => !empty($data['charger_included']),
-                        'accessories_included' => !empty($data['accessories_included']),
-
-                        'notes' => $data['notes'] ?? null,
-                    ]);
-
-                    $item->update([
-                        'stock_item_id' => $stock->id,
-                        'status' => 'add_to_stock',
-                        'processed_at' => now(),
-                        'quantity' => $data['quantity'] ?? $item->quantity,
-                        'carbon_footprint' => $data['carbon_footprint'] ?? $item->carbon_footprint,
-                    ]);
-                } else {
-                    if ($item->stock_item_id) {
-                        $stock = StockItem::find($item->stock_item_id);
-
-                        if ($stock) {
-                            $stock->update([
-                                'price' => $data['price'] ?? $stock->price,
-                                'warehouse_location' => $data['warehouse_location'] ?? $stock->warehouse_location,
-                                'cosmetic_condition' => $data['cosmetic_condition'] ?? $stock->cosmetic_condition,
-                                'condition_notes' => $data['condition_notes'] ?? $stock->condition_notes,
-                                'fully_functional' => !empty($data['fully_functional']),
-
-                                'sku' => $data['sku'] ?? $stock->sku,
-                                'serial_number' => $data['serial_number'] ?? $stock->serial_number,
-                                'asset_tags' => $data['asset_tags'] ?? $stock->asset_tags,
-
-                                'category_id' => $data['category_id'] ?? $stock->category_id,
-                                'manufacturer_id' => $data['manufacturer_id'] ?? $stock->manufacturer_id,
-                                'product_model_id' => $data['product_model_id'] ?? $stock->product_model_id,
-                                'model' => $data['model'] ?? $stock->model,
-                                'year' => $data['year'] ?? $stock->year,
-                                'chassis' => $data['chassis'] ?? $stock->chassis,
-
-                                'processor_manufacturer' => $data['processor_manufacturer'] ?? $stock->processor_manufacturer,
-                                'processor_type' => $data['processor_type'] ?? $stock->processor_type,
-                                'processor_speed_ghz' => $data['processor_speed_ghz'] ?? $stock->processor_speed_ghz,
-
-                                'ram_type' => $data['ram_type'] ?? $stock->ram_type,
-                                'ram_gb' => $data['ram_gb'] ?? $stock->ram_gb,
-
-                                'hdd_gb' => $data['hdd_gb'] ?? $stock->hdd_gb,
-                                'ssd_gb' => $data['ssd_gb'] ?? $stock->ssd_gb,
-                                'nvme_gb' => $data['nvme_gb'] ?? $stock->nvme_gb,
-
-                                'operating_system' => $data['operating_system'] ?? $stock->operating_system,
-                                'optical_drives' => $data['optical_drives'] ?? $stock->optical_drives,
-
-                                'charger_included' => !empty($data['charger_included']),
-                                'accessories_included' => !empty($data['accessories_included']),
-                                'notes' => $data['notes'] ?? $stock->notes,
-                            ]);
-                        }
-                    }
-
-                    $item->update([
-                        'status' => 'add_to_stock',
-                        'processed_at' => now(),
-                        'quantity' => $data['quantity'] ?? $item->quantity,
-                        'carbon_footprint' => $data['carbon_footprint'] ?? $item->carbon_footprint,
-                    ]);
-                }
-            } else {
-                // other actions -> processed
-                $item->update([
-                    'status' => 'processed',
-                    'processed_at' => now(),
-                    'quantity' => $data['quantity'] ?? $item->quantity,
-                    'carbon_footprint' => $data['carbon_footprint'] ?? $item->carbon_footprint,
-                ]);
-            }
-
-            // if no more collected items pending -> mark collection processed
-            $pending = $collection->items()->whereIn('status',['collected','processing'])->exists();
-            if (!$pending) {
-                $collection->update([
-                    'status' => 'processed',
-                    'processed_at' => now(),
-                    
-                ]);
-            }
-        });
-
-       
-        // hdd
-        foreach (($data['hdds'] ?? []) as $hddId => $row) {
-            $hdd = $item->hdds()->whereKey($hddId)->lockForUpdate()->first();
-            if (!$hdd) continue;
-
-            if (!empty($row['delete']) && $row['delete'] == '1') {
-                $hdd->clearMediaCollection('erasure_reports'); // optional
-                $hdd->delete();
-                continue;
-            }
-
-            [$manId, $modelId, $manText, $modelText] = $this->resolveManufacturerModel($row);
-
-            // ✅ Spatie media upload (replaces store + path column)
-            if ($request->hasFile("hdds.$hddId.erasure_report")) {
-                $hdd
-                    ->clearMediaCollection('erasure_reports') // safe, even with singleFile
-                    ->addMediaFromRequest("hdds.$hddId.erasure_report")
-                    ->toMediaCollection('erasure_reports');
-            }
-
-            $hdd->update([
-                'manufacturer_id' => $manId,
-                'product_model_id' => $modelId,
-                'manufacturer_text' => $manText,
-                'model_text' => $modelText,
-                'serial' => $row['serial'] ?? null,
-                'status' => $row['status'] ?? 'not_processed',
-                'size' => $row['size'] ?? null,
-                'notes' => $row['notes'] ?? null,
-                'create_separate_stock_item' => !empty($row['create_separate_stock_item']),
-                // ❌ remove 'erasure_report_path'
-            ]);
-        }
-
-        // create new
-        foreach (($data['new_hdds'] ?? []) as $key => $row) {
-
-            $hasSomething = !empty($row['serial']) || !empty($row['manufacturer_id']) || !empty($row['manufacturer_text']) || !empty($row['product_model_id']) || !empty($row['model_text']);
-            if (!$hasSomething) continue;
-
-            [$manId, $modelId, $manText, $modelText] = $this->resolveManufacturerModel($row);
-
-            $hdd = $item->hdds()->create([
-                'manufacturer_id' => $manId,
-                'product_model_id' => $modelId,
-                'manufacturer_text' => $manText,
-                'model_text' => $modelText,
-                'serial' => $row['serial'] ?? null,
-                'status' => $row['status'] ?? 'not_processed',
-                'size' => $row['size'] ?? null,
-                'notes' => $row['notes'] ?? null,
-                'create_separate_stock_item' => !empty($row['create_separate_stock_item']),
-                // ❌ remove 'erasure_report_path'
-            ]);
-
-            // ✅ attach media after create
-            if ($request->hasFile("new_hdds.$key.erasure_report")) {
-                $hdd
-                    ->addMediaFromRequest("new_hdds.$key.erasure_report")
-                    ->toMediaCollection('erasure_reports');
-            }
-        }
-
-
-        return redirect()->route('collections.process.index', $collection)->with('success','Item processed.');
-    }
-
     public function updateGrid(Request $request, Collection $collection)
     {
         $data = $request->validate([
@@ -808,7 +526,23 @@ class CollectionItemController extends Controller
             'new_items.*.storage_serial_number' => ['nullable', 'string', 'max:255'],
             'new_items.*.second_storage_serial_number' => ['nullable', 'string', 'max:255'],
             'new_items.*.our_asset_number' => ['nullable', 'string', 'max:255'],
+
+            'items.*.hdds' => ['nullable', 'array'],
+            'items.*.hdds.*.serial' => ['nullable', 'string', 'max:255'],
+            'items.*.hdds.*.size' => ['nullable', 'string', 'max:50'],
+            'items.*.hdds.*.status' => ['nullable', 'string', 'max:30'],
+            'items.*.hdds.*.notes' => ['nullable', 'string', 'max:255'],
+            'items.*.hdds.*.delete' => ['nullable', 'in:0,1'],
+
+            'new_items.*.hdds' => ['nullable', 'array'],
+            'new_items.*.hdds.*.serial' => ['nullable', 'string', 'max:255'],
+            'new_items.*.hdds.*.size' => ['nullable', 'string', 'max:50'],
+            'new_items.*.hdds.*.status' => ['nullable', 'string', 'max:30'],
+            'new_items.*.hdds.*.notes' => ['nullable', 'string', 'max:255'],
+            'new_items.*.hdds.*.delete' => ['nullable', 'in:0,1'],
+
         ]);
+
 
         // validate numeric manufacturer/model IDs only if numeric
         $checkNumericIds = function (array $row) {
@@ -868,13 +602,15 @@ class CollectionItemController extends Controller
                     'is_collected' => $isCollected,
                     'erasure_required' => $isErasureRequired,
                     'status' => $isCollected ? 'collected' : 'created',
+
                     'serial_number' => $row['serial_number'] ?? null,
                     'asset_tags' => $row['asset_tags'] ?? null,
                     'storage_serial_number' => $row['storage_serial_number'] ?? null,
                     'second_storage_serial_number' => $row['second_storage_serial_number'] ?? null,
                     'our_asset_number' => $row['our_asset_number'] ?? null,
-
                 ]);
+
+                $this->saveGridItemHdds($item, $row['hdds'] ?? []);
             }
 
             // create new items
@@ -884,7 +620,7 @@ class CollectionItemController extends Controller
 
                 $isCollected = (bool)($row['is_collected'] ?? false);
                 $isErasureRequired = (bool)($row['erasure_required'] ?? false);
-                $collection->items()->create([
+                $newItem = $collection->items()->create([
                     'category_id' => $row['category_id'] ?? null,
                     'category_name' => $row['category_name'],
                     'qty' => $row['qty'],
@@ -903,12 +639,15 @@ class CollectionItemController extends Controller
                     'erasure_required' => $isErasureRequired,
                     'is_collected' => $isCollected,
                     'status' => $isCollected ? 'collected' : 'created',
+
                     'serial_number' => $row['serial_number'] ?? null,
                     'asset_tags' => $row['asset_tags'] ?? null,
                     'storage_serial_number' => $row['storage_serial_number'] ?? null,
                     'second_storage_serial_number' => $row['second_storage_serial_number'] ?? null,
                     'our_asset_number' => $row['our_asset_number'] ?? null,
                 ]);
+
+                $this->saveGridItemHdds($newItem, $row['hdds'] ?? []);
             }
 
             if (($data['mode_type'] ?? '') === 'collect') {
@@ -945,6 +684,57 @@ class CollectionItemController extends Controller
         }
 
         return redirect()->route('collections.show', $collection)->with('success', 'Saved successfully.');
+    }
+
+    private function saveGridItemHdds(CollectionItem $item, array $hdds): void
+    {
+        foreach ($hdds as $hddId => $row) {
+
+            $hasSomething =
+                !empty($row['serial']) ||
+                !empty($row['size']) ||
+                !empty($row['manufacturer_id']) ||
+                !empty($row['manufacturer_text']) ||
+                !empty($row['product_model_id']) ||
+                !empty($row['model_text']) ||
+                !empty($row['notes']);
+
+            if (!$hasSomething && empty($row['delete'])) {
+                continue;
+            }
+
+            $isExisting = is_numeric($hddId);
+
+            if ($isExisting) {
+                $hdd = $item->hdds()->whereKey($hddId)->first();
+
+                if (!$hdd) {
+                    continue;
+                }
+
+                if (!empty($row['delete']) && $row['delete'] == '1') {
+                    $hdd->delete();
+                    continue;
+                }
+            } else {
+                $hdd = new CollectionItemHdd();
+                $hdd->collection_item_id = $item->id;
+            }
+
+            [$manId, $modelId, $manText, $modelText] =
+                $this->resolveManufacturerModel($row);
+
+            $hdd->manufacturer_id = $manId;
+            $hdd->product_model_id = $modelId;
+            $hdd->manufacturer_text = $manText;
+            $hdd->model_text = $modelText;
+            $hdd->serial = $row['serial'] ?? null;
+            $hdd->size = $row['size'] ?? null;
+            $hdd->status = $row['status'] ?? 'not_processed';
+            $hdd->notes = $row['notes'] ?? null;
+            $hdd->create_separate_stock_item = !empty($row['create_separate_stock_item']);
+            $hdd->save();
+        }
     }
 
     public function updateGridold(Request $request, Collection $collection)
