@@ -494,7 +494,7 @@ class CollectionPdfController extends Controller
         $dutyPdf = $this->generateDutyOfCarePdf($collection);
         $hazardPdf = $this->generateHazardousPdf($collection);
 
-        Mail::to('niazm6888@gmail.com')->send(
+        Mail::to($collection->contact_email)->send(
             new CollectionPdfsMail($collection, [
                 [
                     'data' => $dutyPdf,
@@ -516,7 +516,7 @@ class CollectionPdfController extends Controller
 
         $invoicePdf = $this->generateCollectionInvoicePdf($collection);
        
-        Mail::to('niazm6888@gmail.com')->send(
+        Mail::to($collection->contact_email)->send(
             new CollectionPdfsMail($collection, [
                 [
                     'data' => $invoicePdf,
