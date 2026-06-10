@@ -326,7 +326,7 @@ return [
 
         [
             'text' => 'Dashboard',
-            'url'  => 'dashboard',
+            'url'  => 'home',
             'icon' => 'fas fa-tachometer-alt',
             'can'  => 'dashboard.view',
         ],
