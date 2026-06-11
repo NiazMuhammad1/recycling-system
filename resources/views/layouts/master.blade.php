@@ -10,6 +10,7 @@
 
     <!-- Optional -->
     @stack('styles')
+    
 </head>
 
 <body class="hold-transition sidebar-mini">

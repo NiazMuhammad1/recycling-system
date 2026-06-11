@@ -22,10 +22,10 @@
                 } else {
                     alert.style.transition = "opacity 0.5s ease";
                     alert.style.opacity = 0;
-                    setTimeout(() => alert.remove(), 500);
+                    setTimeout(() => alert.remove(), 1000);
                 }
             }
-        }, 3000); 
+        }, 5000); 
     </script>
     @endif
     <div class="d-flex align-items-center mb-2">
@@ -77,11 +77,11 @@
     
     <div class="mb-3 text-muted">Status: {{ ucfirst($collection->status) }}</div>
     <div class="mb-3 text-right">
-        <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.items.edit',$collection) }}">[edit]</a>
-        <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.collect.form',$collection) }}">[collect]</a>
-        <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.process.index',$collection) }}">[process]</a>
+        <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.items.edit',$collection) }}">edit</a>
+        <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.collect.form',$collection) }}">collect</a>
+        <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.process.index',$collection) }}">process</a>
 
-        <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.invoice.edit',$collection) }}">[Edit Invoice]</a>
+        <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.invoice.edit',$collection) }}">Edit Invoice</a>
         &nbsp;&nbsp;
         <form action="{{ route('collections.send-pdf-invoice', $collection) }}"
             method="POST"
@@ -90,7 +90,7 @@
 
             <button type="submit" class="btn btn-sm btn-primary">
                 <i class="fas fa-envelope"></i>
-                [Email Invoice]
+                Email Invoice
             </button>
         </form>
         &nbsp;&nbsp;
@@ -99,9 +99,9 @@
             class="d-inline">
             @csrf
 
-            <button type="submit" class="btn btn-sm btn-primary">
+            <button type="submit" class="btn btn-sm btn-primary" title="Email Hazardous & Duty of care PDFs to client">
                 <i class="fas fa-envelope"></i>
-                [Email PDFs]
+                Email PDFs
             </button>
         </form>
 
@@ -209,7 +209,10 @@
                             <td>Signature</td>
                             <td>
                                 @if($collection->client_signature)
-                                    <img src="{{ asset('storage/'.$collection->client_signature) }}"
+                                    <img
+                                        src="{{ Str::startsWith($collection->client_signature, 'data:image')
+                                                ? $collection->client_signature
+                                                : asset('storage/'.$collection->client_signature) }}"
                                         alt="Client Signature"
                                         style="max-height:80px;">
                                 @else
@@ -235,7 +238,10 @@
                             <td>Signature</td>
                             <td>
                                 @if($collection->driver_signature)
-                                    <img src="{{ asset('storage/'.$collection->driver_signature) }}"
+                                    <img
+                                        src="{{ Str::startsWith($collection->driver_signature, 'data:image')
+                                                ? $collection->driver_signature
+                                                : asset('storage/'.$collection->driver_signature) }}"
                                         alt="Driver Signature"
                                         style="max-height:80px;">
                                 @else
@@ -268,9 +274,9 @@
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h5 class="mb-0">ITEMS</h5>
                         <div>
-                            <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.items.edit',$collection) }}">[edit]</a>
-                            <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.collect.form',$collection) }}">[collect]</a>
-                            <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.process.index',$collection) }}">[process]</a>
+                            <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.items.edit',$collection) }}">edit</a>
+                            <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.collect.form',$collection) }}">collect</a>
+                            <a class="btn btn-sm btn-primary mr-2" href="{{ route('collections.process.index',$collection) }}">process</a>
                         </div>
                     </div>
 

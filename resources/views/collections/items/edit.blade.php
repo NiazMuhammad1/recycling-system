@@ -879,7 +879,7 @@ $(function () {
         var key = uid();
 
         var collectedTopCell = IS_COLLECT
-            ? `<td class="text-center"><input type="checkbox" name="new_items[${key}][is_collected]" value="1" ${data.is_collected ? 'checked' : ''}></td>`
+            ? `<td class="text-center"><input class="collected-checkbox" type="checkbox" name="new_items[${key}][is_collected]" value="1" ${data.is_collected ? 'checked' : ''}></td>`
             : `<td></td>`;
 
         var erasureTopCell = `<td class="text-center">
@@ -1118,7 +1118,7 @@ $(function () {
             var key = uid();
 
             var collectedTopCell = IS_COLLECT
-                ? `<td class="text-center"><input type="checkbox" name="new_items[${key}][is_collected]" value="1"></td>`
+                ? `<td class="text-center"><input class="collected-checkbox" type="checkbox" name="new_items[${key}][is_collected]" value="1"></td>`
                 : `<td></td>`;
             var erasureTopCell = `<td class="text-center">
                 <input class="erasure-checkbox erasureCheckbox" type="checkbox" name="new_items[${key}][erasure_required]" value="1" ${is_erasure == 1 ? 'checked' : ''}>

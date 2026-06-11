@@ -352,9 +352,7 @@ class CollectionController extends Controller
             }
         });
 
-        return redirect()
-            ->route('collections.process.index', $collection)
-            ->with('success', 'Selected items processed successfully.');
+        return redirect()->route('collections.show', $collection)->with('success', 'Selected items processed successfully.');
     }
 
 }
