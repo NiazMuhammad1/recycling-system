@@ -104,6 +104,9 @@
                 Email PDFs
             </button>
         </form>
+        <a href="{{ route('driver.collections.offline', $collection) }}" class="btn btn-success">
+            Driver Offline Mode
+        </a>
 
     </div>
     

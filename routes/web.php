@@ -13,6 +13,7 @@ use App\Http\Controllers\AjaxController;
 use App\Http\Controllers\CatalogAjaxController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CollectionPdfController;
+use App\Http\Controllers\DriverOfflineCollectionController;
 Route::get('/', function () {
     if (Auth::check()) {
         return redirect()->route('home');
@@ -23,6 +24,20 @@ Route::get('/', function () {
 Auth::routes([
     'register' => false,
 ]);
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/driver/collections/{collection}/offline', [DriverOfflineCollectionController::class, 'show'])
+        ->name('driver.collections.offline');
+
+    Route::get('/driver/collections/{collection}/offline-data', [DriverOfflineCollectionController::class, 'data'])
+        ->name('driver.collections.offline.data');
+
+    Route::get('/driver/offline-master-data', [DriverOfflineCollectionController::class, 'masterData'])
+        ->name('driver.offline.master-data');
+
+    Route::post('/driver/collections/{collection}/sync', [DriverOfflineCollectionController::class, 'sync'])
+        ->name('driver.collections.sync');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/collections/{collection}/pdf/duty-of-care', [CollectionPdfController::class, 'dutyOfCare'])
