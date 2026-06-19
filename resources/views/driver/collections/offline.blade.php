@@ -75,7 +75,7 @@
 </div>
 @endsection
 
-@section('js')
+@push('js')
 <script>
 const COLLECTION_ID = "{{ $collection->id }}";
 const DATA_URL = "{{ route('driver.collections.offline.data', $collection) }}";
@@ -715,4 +715,4 @@ document.addEventListener('DOMContentLoaded', function () {
     loadOfflineData();
 });
 </script>
-@stop
+@endpush
