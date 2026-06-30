@@ -1519,5 +1519,100 @@ $(function () {
 
 });
 
+$(function () {
+    const $form = $('#itemsForm');
+    const STORAGE_KEY = 'offline_collection_updates';
+
+    // 1. Intercept form submission
+    $form.on('submit', function (e) {
+        // If online, let the form submit normally
+        if (navigator.onLine) {
+            return true; 
+        }
+
+        e.preventDefault(); // Stop standard form redirect
+
+        // Determine which submit button was clicked (save vs send_pdf)
+        const modeValue = document.activeElement ? document.activeElement.value : 'save';
+
+        // Serialize all form data into a lookup object
+        const formData = {};
+        $form.serializeArray().forEach(item => {
+            if (formData[item.name]) {
+                if (!Array.isArray(formData[item.name])) {
+                    formData[item.name] = [formData[item.name]];
+                }
+                formData[item.name].push(item.value);
+            } else {
+                formData[item.name] = item.value;
+            }
+        });
+        
+        // Add explicit action details
+        formData['_action_mode'] = modeValue;
+        formData['_collection_id'] = "{{ $collection->id }}";
+        formData['_timestamp'] = new Date().getTime();
+
+        // 2. Save payload to LocalStorage queue
+        let queue = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        
+        // Remove prior offline items matching this specific collection to avoid stale updates
+        queue = queue.filter(item => item._collection_id !== formData._collection_id);
+        queue.push(formData);
+        
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
+
+        alert('⚠️ You are offline! Data has been securely cached on your device. It will automatically upload once your internet connection is restored.');
+        
+        // Optionally redirect them back to the show page safely
+        window.location.href = "{{ route('collections.show', $collection) }}";
+    });
+
+    // 3. Automated Background Sync Routine when back online
+    async function syncOfflineData() {
+        if (!navigator.onLine) return;
+
+        let queue = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        if (queue.length === 0) return;
+
+        console.log(`Found ${queue.length} offline forms to sync...`);
+
+        for (let i = 0; i < queue.length; i++) {
+            const payload = queue[i];
+            
+            try {
+                const response = await fetch($form.attr('action'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': payload._token
+                    },
+                    body: new URLSearchParams(payload).toString()
+                });
+
+                if (response.ok || response.status === 302) {
+                    // Remove successfully synchronized element
+                    queue.splice(i, 1);
+                    i--; 
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
+                }
+            } catch (error) {
+                console.error('Failed to sync item, retrying later:', error);
+                break; // Stop loop if the server is still unreachable
+            }
+        }
+        
+        if (queue.length === 0) {
+            console.log('All offline data synchronized successfully!');
+        }
+    }
+
+    // Monitor connectivity status shifts
+    window.addEventListener('online', syncOfflineData);
+    
+    // Attempt an initial run on page load just in case they just recovered connectivity
+    syncOfflineData();
+});
 </script>
 @endpush

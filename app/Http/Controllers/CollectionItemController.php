@@ -679,10 +679,27 @@ class CollectionItemController extends Controller
                     'name' => 'hazardous-waste.pdf',
                 ],
             ]));
+            // IF the request came from our background offline-sync script:
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true, 
+                    'message' => 'Data saved and PDFs emailed successfully.'
+                ]);
+            }
 
             return redirect()->route('collections.show', $collection)->with('success', 'Data saved and PDFs emailed successfully');
+
+            
         }
 
+        // Case 2: Driver just chose normal "Save Data"
+            // IF the request came from our background offline-sync script:
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true, 
+                    'message' => 'Saved successfully.'
+                ]);
+            }
         return redirect()->route('collections.show', $collection)->with('success', 'Saved successfully.');
     }
 
