@@ -715,13 +715,15 @@ document.addEventListener('DOMContentLoaded', function () {
     loadOfflineData();
 });
 </script>
+<!-- PWA Manifest -->
 <link rel="manifest" href="/manifest.json">
 
+<!-- Service Worker Registration -->
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/service-worker.js')
-    .then(() => console.log('Service Worker registered'))
-    .catch(err => console.error('SW registration failed:', err));
+    navigator.serviceWorker.register('/service-worker.js')
+        .then(() => console.log('Service Worker registered'))
+        .catch(err => console.error('SW registration failed:', err));
 }
 
 // Use relative URLs
