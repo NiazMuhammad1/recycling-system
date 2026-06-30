@@ -1,7 +1,7 @@
 {
-  "name": "ITAD Offline Collection",
+  "name": "ITAD Driver Offline",
   "short_name": "ITAD Offline",
-  "start_url": "/driver/collections/offline",
+  "start_url": "/driver/collections/{{ $collection->id }}/offline",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0c6311",

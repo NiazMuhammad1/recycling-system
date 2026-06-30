@@ -74,7 +74,7 @@
     </form>
 </div>
 @endsection
-
+<script src="https://cdn.jsdelivr.net/npm/idb@8/build/umd.js"></script>
 @push('js')
 <script>
 const COLLECTION_ID = "{{ $collection->id }}";
@@ -720,6 +720,13 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/service-worker.js')
         .then(() => console.log('Service Worker registered'))
         .catch(err => console.error('SW registration failed:', err));
+}
+</script>
+<script>
+if ('serviceWorker' in navigator){
+    navigator.serviceWorker.register('/service-worker.js')
+        .then(()=>console.log('Service Worker registered'))
+        .catch(err=>console.error('SW registration failed:', err));
 }
 </script>
 @endpush

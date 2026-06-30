@@ -1,17 +1,37 @@
 const CACHE_NAME = 'itad-offline-v1';
 const FILES_TO_CACHE = [
-  '/js/app.js',      // check the actual path on live
-  '/css/app.css',    // check the actual path on live
+  '/offline-fallback.html',
+  '/js/app.js',
+  '/css/app.css',
   '/images/icon-192.png',
   '/images/icon-512.png'
 ];
 
-// Install event
+// Install Service Worker
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(FILES_TO_CACHE);
-    }).catch(err => console.warn('SW cache addAll failed:', err))
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(cache => {
+            return cache.addAll(FILES_TO_CACHE);
+        })
+    );
+    self.skipWaiting();
+});
+
+// Activate Service Worker
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        caches.keys().then(keys => Promise.all(
+            keys.map(key => key !== CACHE_NAME ? caches.delete(key) : null)
+        ))
+    );
+    self.clients.claim();
+});
+
+// Fetch - Return cache if offline
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request).then(resp => {
+      return resp || fetch(event.request).catch(() => caches.match('/offline-fallback.html'));
+    })
   );
-  self.skipWaiting();
 });
