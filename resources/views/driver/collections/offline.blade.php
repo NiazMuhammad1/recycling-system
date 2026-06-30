@@ -78,8 +78,8 @@
 @push('js')
 <script>
 const COLLECTION_ID = "{{ $collection->id }}";
-const DATA_URL = "{{ route('driver.collections.offline.data', $collection) }}";
-const MASTER_DATA_URL = "{{ route('driver.offline.master-data') }}";
+const DATA_URL = "/driver/collections/{{ $collection->id }}/offline-data";
+const MASTER_DATA_URL = "/driver/offline-master-data";
 const SYNC_URL = "{{ route('driver.collections.sync', $collection) }}";
 const CSRF_TOKEN = "{{ csrf_token() }}";
 
@@ -715,4 +715,13 @@ document.addEventListener('DOMContentLoaded', function () {
     loadOfflineData();
 });
 </script>
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js')
+        .then(() => console.log('Service Worker registered'))
+        .catch(err => console.error('SW registration failed:', err));
+}
+</script>
+
+<link rel="manifest" href="/manifest.json">
 @endpush
