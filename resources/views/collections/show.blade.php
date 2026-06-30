@@ -104,8 +104,9 @@
                 Email PDFs
             </button>
         </form>
-        <a href="{{ route('driver.collections.offline', $collection) }}" class="btn btn-success">
-            Driver Offline Mode
+        <a href="{{ route('collections.items.edit', $collection) }}"
+           class="btn btn-sm btn-primary mr-2 copy-and-go">
+            Driver Offline Link
         </a>
 
     </div>
@@ -485,4 +486,35 @@
         </div>
     </div>
 </div>
+<script>
+document.addEventListener('click', function (e) {
+    const link = e.target.closest('.copy-and-go');
+    if (!link) return;
+
+    e.preventDefault();
+
+    const url = link.href;
+
+    function copyText(text) {
+        const input = document.createElement('input');
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(() => {
+            window.location.href = url;
+        }).catch(() => {
+            copyText(url);
+            window.location.href = url;
+        });
+    } else {
+        copyText(url);
+        window.location.href = url;
+    }
+});
+</script>
 @endsection
