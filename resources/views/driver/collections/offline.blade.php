@@ -78,8 +78,8 @@
 @push('js')
 <script>
 const COLLECTION_ID = "{{ $collection->id }}";
-const DATA_URL = "/driver/collections/{{ $collection->id }}/offline-data";
-const MASTER_DATA_URL = "/driver/offline-master-data";
+let DATA_URL = "/driver/collections/{{ $collection->id }}/offline-data";
+let MASTER_DATA_URL = "/driver/offline-master-data";
 const SYNC_URL = "{{ route('driver.collections.sync', $collection) }}";
 const CSRF_TOKEN = "{{ csrf_token() }}";
 
@@ -727,7 +727,7 @@ if ('serviceWorker' in navigator) {
 }
 
 // Use relative URLs
-const DATA_URL = "/driver/collections/{{ $collection->id }}/offline-data";
-const MASTER_DATA_URL = "/driver/offline-master-data";
+let DATA_URL = "/driver/collections/{{ $collection->id }}/offline-data";
+let MASTER_DATA_URL = "/driver/offline-master-data";
 </script>
 @endpush
