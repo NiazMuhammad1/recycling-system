@@ -715,13 +715,17 @@ document.addEventListener('DOMContentLoaded', function () {
     loadOfflineData();
 });
 </script>
+<link rel="manifest" href="/manifest.json">
+
 <script>
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js')
-        .then(() => console.log('Service Worker registered'))
-        .catch(err => console.error('SW registration failed:', err));
+  navigator.serviceWorker.register('/service-worker.js')
+    .then(() => console.log('Service Worker registered'))
+    .catch(err => console.error('SW registration failed:', err));
 }
-</script>
 
-<link rel="manifest" href="/manifest.json">
+// Use relative URLs
+const DATA_URL = "/driver/collections/{{ $collection->id }}/offline-data";
+const MASTER_DATA_URL = "/driver/offline-master-data";
+</script>
 @endpush
