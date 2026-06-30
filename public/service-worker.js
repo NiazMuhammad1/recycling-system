@@ -1,36 +1,17 @@
 const CACHE_NAME = 'itad-offline-v1';
 const FILES_TO_CACHE = [
-  '/',
-  '/driver/collections/22/offline',
-  '/js/app.js',
-  '/css/app.css'
+  '/js/app.js',      // check the actual path on live
+  '/css/app.css',    // check the actual path on live
+  '/images/icon-192.png',
+  '/images/icon-512.png'
 ];
 
 // Install event
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(FILES_TO_CACHE))
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll(FILES_TO_CACHE);
+    }).catch(err => console.warn('SW cache addAll failed:', err))
   );
   self.skipWaiting();
-});
-
-// Activate event
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.map(key => key !== CACHE_NAME ? caches.delete(key) : null)
-    ))
-  );
-  self.clients.claim();
-});
-
-// Fetch event
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request).then(resp => {
-      return resp || fetch(event.request).catch(() =>
-        caches.match('/driver/collections/22/offline')
-      );
-    })
-  );
 });
