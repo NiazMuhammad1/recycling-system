@@ -1613,6 +1613,24 @@ $(function () {
     
     // Attempt an initial run on page load just in case they just recovered connectivity
     syncOfflineData();
+
+    // Register Service Worker for offline page loading
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('Service Worker registered successfully!'))
+            .catch(err => console.log('Service Worker registration failed:', err));
+    });
+}
+
+// Block accidental refreshes or back-button navigation
+window.addEventListener('beforeunload', function (e) {
+    // Show warning only if we are currently working on something
+    e.preventDefault();
+    e.returnValue = 'Are you sure you want to leave? Any unsaved data will be lost.';
+    return e.returnValue;
 });
+});
+
 </script>
 @endpush
