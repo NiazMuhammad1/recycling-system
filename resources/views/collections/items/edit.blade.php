@@ -1623,13 +1623,7 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// Block accidental refreshes or back-button navigation
-window.addEventListener('beforeunload', function (e) {
-    // Show warning only if we are currently working on something
-    e.preventDefault();
-    e.returnValue = 'Are you sure you want to leave? Any unsaved data will be lost.';
-    return e.returnValue;
-});
+
 });
 
 </script>
