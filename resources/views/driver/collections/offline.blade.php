@@ -695,12 +695,7 @@ window.manufacturerChanged = manufacturerChanged;
 window.modelChanged = modelChanged;
 window.clearCanvas = clearCanvas;
 
-document.addEventListener('DOMContentLoaded', function () {
-    updateOnlineStatus();
-    initSignaturePad('clientCanvas', 'client_signature');
-    initSignaturePad('driverCanvas', 'driver_signature');
-    loadOfflineData();
-});
+
 document.addEventListener('DOMContentLoaded', function () {
     updateOnlineStatus();
 
@@ -716,6 +711,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 <!-- PWA Manifest -->
+<!-- PWA Manifest -->
 <link rel="manifest" href="/manifest.json">
 
 <!-- Service Worker Registration -->
@@ -725,9 +721,5 @@ if ('serviceWorker' in navigator) {
         .then(() => console.log('Service Worker registered'))
         .catch(err => console.error('SW registration failed:', err));
 }
-
-// Use relative URLs
-let DATA_URL = "/driver/collections/{{ $collection->id }}/offline-data";
-let MASTER_DATA_URL = "/driver/offline-master-data";
 </script>
 @endpush
