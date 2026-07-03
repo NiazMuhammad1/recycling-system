@@ -1283,6 +1283,12 @@ $(function () {
     const $form = $('#itemsForm');
     const STORAGE_KEY = 'offline_collection_updates';
 
+    // 1. Check network status immediately on page load
+    if (!navigator.onLine) {
+        forceOfflineDropdowns();
+    }
+
+    // 2. The function structure that safely allows being called from above
     function forceOfflineDropdowns() {
         console.log("Switching dropdowns to offline text mode...");
         $('#itemsTbody select, #bulk_manufacturer, #bulk_model').each(function () {
@@ -1298,6 +1304,7 @@ $(function () {
         });
     }
 
+    // 3. Keep your standard network state listeners beneath it
     window.addEventListener('offline', forceOfflineDropdowns);
 
     window.addEventListener('online', function() {
@@ -1312,10 +1319,6 @@ $(function () {
             initModel($('#bulk_model'), function () { return $('#bulk_category').val(); }, function () { return $('#bulk_manufacturer').val(); });
         }
     });
-
-    if (!navigator.onLine) {
-        forceOfflineDropdowns();
-    }
 
     $form.on('submit', function (e) {
         if (navigator.onLine) {
