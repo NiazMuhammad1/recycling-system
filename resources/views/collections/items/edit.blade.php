@@ -667,7 +667,6 @@ $(function () {
 
         var $categoryName = $row.find('.categoryNameInput');
         var $ewc = $row.find('.ewcInput');
-        var $erasrecheckbox = $row.find('.erasureCheckbox');
         var $weight = $row.find('.weightInput');
         var $component = $row.find('.componentInput');
         var $concentration = $row.find('.concentrationInput');
@@ -697,6 +696,17 @@ $(function () {
     }
 
     function initManufacturer($manSelect, getCategoryId) {
+        if (!navigator.onLine) {
+            $manSelect.select2({
+                placeholder: 'Type custom value (Offline Mode)',
+                allowClear: true,
+                tags: true,
+                width: '100%',
+                data: []
+            });
+            return;
+        }
+
         $manSelect.select2({
             placeholder: '-- Manufacturer --',
             allowClear: true,
@@ -725,6 +735,17 @@ $(function () {
     }
 
     function initModel($select, getCategoryIdFn, getManufacturerValFn) {
+        if (!navigator.onLine) {
+            $($select).select2({
+                placeholder: 'Type custom value (Offline Mode)',
+                allowClear: true,
+                tags: true,
+                width: '100%',
+                data: []
+            });
+            return;
+        }
+
         $($select).select2({
             placeholder: '-- Model --',
             allowClear: true,
@@ -740,9 +761,7 @@ $(function () {
                             return success({ results: [] });
                         }
 
-                        let url = "{{ route('ajax.manufacturers.models', ':id') }}"
-                            .replace(':id', manufacturerVal);
-
+                        let url = "{{ route('ajax.manufacturers.models', ':id') }}".replace(':id', manufacturerVal);
                         url += '?category_id=' + encodeURIComponent(categoryId || '');
                         url += '&q=' + encodeURIComponent(params.data?.term || '');
 
@@ -759,11 +778,7 @@ $(function () {
             createTag: function (params) {
                 const term = (params.term || '').trim();
                 if (!term) return null;
-                return {
-                    id: term,
-                    text: term,
-                    newTag: true
-                };
+                return { id: term, text: term, newTag: true };
             }
         });
     }
@@ -796,7 +811,6 @@ $(function () {
 
         $row.find('.categorySel').on('change', function () {
             overwriteFieldsFromCategory($row);
-
             $row.find('.manSel').val(null).trigger('change.select2');
             $row.find('.modelSel').val(null).trigger('change.select2');
             $row.find('.manText').val('');
@@ -835,7 +849,6 @@ $(function () {
         $bulkModel.val(null).trigger('change.select2');
     });
 
-    // duplcates start
     function getItemRows($anyRowInItem) {
         let $topRow = $anyRowInItem.hasClass('item-row-top') ? $anyRowInItem : $anyRowInItem.prev('.item-row-top');
         let $bottomRow = $topRow.next('.item-row-bottomcomment');
@@ -847,15 +860,12 @@ $(function () {
             qty: $topRow.find('input[name*="[qty]"]').val() || 1,
             category_id: $topRow.find('.categorySel').val() || '',
             category_name: $topRow.find('.categoryNameInput').val() || '',
-
             manufacturer_id: $topRow.find('.manSel').val() || '',
             manufacturer_text: $topRow.find('.manText').val() || '',
             manufacturer_label: $topRow.find('.manSel option:selected').text() || '',
-
             product_model_id: $topRow.find('.modelSel').val() || '',
             model_text: $topRow.find('.modelText').val() || '',
             model_label: $topRow.find('.modelSel option:selected').text() || '',
-
             weight_kg: $topRow.find('.weightInput').val() || '',
             ewc_code: $topRow.find('.ewcInput').val() || '',
             is_erasure: $topRow.find('.erasureCheckbox').val() || '',
@@ -864,12 +874,10 @@ $(function () {
             storage_serial_number: $bottomRow.find('input[name*="[storage_serial_number]"]').val() || '',
             second_storage_serial_number: $bottomRow.find('input[name*="[second_storage_serial_number]"]').val() || '',
             our_asset_number: $bottomRow.find('input[name*="[our_asset_number]"]').val() || '',
-
             component: $bottomRow.find('.componentInput').val() || '',
             concentration: $bottomRow.find('.concentrationInput').val() || '',
             physical_form: $bottomRow.find('.formInput').val() || '',
             hazard_codes: $bottomRow.find('.hazardInput').val() || '',
-
             is_collected: $topRow.find('input[name*="[is_collected]"]').is(':checked'),
             erasure_required: $topRow.find('input[name*="[erasure_required]"]').is(':checked')
         };
@@ -877,168 +885,69 @@ $(function () {
 
     function appendDuplicatedItemRow(data, $insertAfterRow = null) {
         var key = uid();
-
         var collectedTopCell = IS_COLLECT
             ? `<td class="text-center"><input class="collected-checkbox" type="checkbox" name="new_items[${key}][is_collected]" value="1" ${data.is_collected ? 'checked' : ''}></td>`
             : `<td></td>`;
 
-        var erasureTopCell = `<td class="text-center">
-            <input type="checkbox" name="new_items[${key}][erasure_required]" value="1" ${data.erasure_required ? 'checked' : ''}>
-        </td>`;
+        var erasureTopCell = `<td class="text-center"><input type="checkbox" name="new_items[${key}][erasure_required]" value="1" ${data.erasure_required ? 'checked' : ''}></td>`;
+        
         var html = `
             <tr data-row="new" class="item-row-top">
                 <td rowspan="2" class="code-cell"><em>new</em></td>
-
-                <td>
-                    <input class="form-control form-control-sm"
-                        name="new_items[${key}][qty]" value="${data.qty}">
-                </td>
-
+                <td><input class="form-control form-control-sm" name="new_items[${key}][qty]" value="${data.qty}"></td>
                 <td>
                     <div class="d-flex">
-                        <select class="form-control form-control-sm categorySel"
-                                name="new_items[${key}][category_id]">
+                        <select class="form-control form-control-sm categorySel" name="new_items[${key}][category_id]">
                             @foreach($categories as $c)
-                                <option value="{{ $c->id }}"
-                                        data-name="{{ $c->name }}"
-                                        data-ewc="{{ $c->ewc_code }}"
-                                        data-is_erasure="{{ $c->is_erasure }}"
-                                        data-def-weight="{{ $c->default_weight_kg }}"
-                                        data-component="{{ $c->component }}"
-                                        data-concentration="{{ $c->concentration }}"
-                                        data-form="{{ $c->physical_form }}"
-                                        data-hazard="{{ $c->hazard_codes }}"
-                                        data-type="{{ $c->type }}">
+                                <option value="{{ $c->id }}" data-name="{{ $c->name }}" data-ewc="{{ $c->ewc_code }}" data-is_erasure="{{ $c->is_erasure }}" data-def-weight="{{ $c->default_weight_kg }}" data-component="{{ $c->component }}" data-concentration="{{ $c->concentration }}" data-form="{{ $c->physical_form }}" data-hazard="{{ $c->hazard_codes }}" data-type="{{ $c->type }}">
                                     {{ $c->name }} / {{ str_replace('_', ' ', $c->type) }}
                                 </option>
                             @endforeach
                         </select>
-
-                        <input class="form-control form-control-sm ml-2 categoryNameInput"
-                            name="new_items[${key}][category_name]" value="${data.category_name}">
+                        <input class="form-control form-control-sm ml-2 categoryNameInput" name="new_items[${key}][category_name]" value="${data.category_name}">
                     </div>
                 </td>
-
                 <td>
-                    <select class="form-control form-control-sm manSel"
-                            name="new_items[${key}][manufacturer_id]"
-                            style="width:100%"></select>
-                    <input type="hidden" class="manText"
-                        name="new_items[${key}][manufacturer_text]" value="${data.manufacturer_text}">
+                    <select class="form-control form-control-sm manSel" name="new_items[${key}][manufacturer_id]" style="width:100%"></select>
+                    <input type="hidden" class="manText" name="new_items[${key}][manufacturer_text]" value="${data.manufacturer_text}">
                 </td>
-
                 <td>
-                    <select class="form-control form-control-sm modelSel"
-                            name="new_items[${key}][product_model_id]"
-                            style="width:100%"></select>
-                    <input type="hidden" class="modelText"
-                        name="new_items[${key}][model_text]" value="${data.model_text}">
+                    <select class="form-control form-control-sm modelSel" name="new_items[${key}][product_model_id]" style="width:100%"></select>
+                    <input type="hidden" class="modelText" name="new_items[${key}][model_text]" value="${data.model_text}">
                 </td>
-
-                <td style="display:none;">
-                    <input class="form-control form-control-sm weightInput"
-                        name="new_items[${key}][weight_kg]" value="${data.weight_kg}">
-                </td>
-
-                <td style="display:none;">
-                    <input class="form-control form-control-sm ewcInput"
-                        name="new_items[${key}][ewc_code]" value="${data.ewc_code}">
-                </td>
-                
+                <td style="display:none;"><input class="form-control form-control-sm weightInput" name="new_items[${key}][weight_kg]" value="${data.weight_kg}"></td>
+                <td style="display:none;"><input class="form-control form-control-sm ewcInput" name="new_items[${key}][ewc_code]" value="${data.ewc_code}"></td>
                 ${collectedTopCell}
                 ${erasureTopCell}
                 <td rowspan="2" class="item-delete-cell">
                     <div class="d-flex flex-column align-items-center">
-                        <input type="number"
-                            class="form-control form-control-sm duplicate-count mb-2"
-                            value="1"
-                            min="1"
-                            max="100"
-                            style="width:70px; display:none;"
-                            title="Number of duplicates">
-
-                        <button type="button"
-                                class="btn btn-sm btn-outline-secondary duplicate-row mb-2"
-                                title="Duplicate row">
-                            <i class="fas fa-copy"></i>
-                        </button>
-
-                        <button type="button" class="btn btn-sm btn-outline-danger removeNew">
-                            <i class="fas fa-times"></i>
-                        </button>
+                        <input type="number" class="form-control form-control-sm duplicate-count mb-2" value="1" min="1" max="100" style="width:70px; display:none;">
+                        <button type="button" class="btn btn-sm btn-outline-secondary duplicate-row mb-2"><i class="fas fa-copy"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-danger removeNew"><i class="fas fa-times"></i></button>
                     </div>
                 </td>
             </tr>
-
             <tr data-row="new" class="item-row-bottomcomment">
                 <td colspan="2">
                     <div class="row no-gutters">
-                        <div class="col-md-4 pr-2">
-                            <label class="small">Serial No</label>
-                            <input class="form-control form-control-sm"
-                                name="new_items[${key}][serial_number]" value="${data.serial_number}">
-                        </div>
-                        <div class="col-md-4 pr-2">
-                            <label class="small">Asset Tag</label>
-                            <input class="form-control form-control-sm"
-                                name="new_items[${key}][asset_tags]" value="${data.asset_tags}">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="small">Our Asset Tracking #</label>
-                            <input class="form-control form-control-sm"
-                                name="new_items[${key}][our_asset_number]" value="${data.our_asset_number}">
-                        </div>
+                        <div class="col-md-4 pr-2"><label class="small">Serial No</label><input class="form-control form-control-sm" name="new_items[${key}][serial_number]" value="${data.serial_number}"></div>
+                        <div class="col-md-4 pr-2"><label class="small">Asset Tag</label><input class="form-control form-control-sm" name="new_items[${key}][asset_tags]" value="${data.asset_tags}"></div>
+                        <div class="col-md-4"><label class="small">Our Asset Tracking #</label><input class="form-control form-control-sm" name="new_items[${key}][our_asset_number]" value="${data.our_asset_number}"></div>
                     </div>
                 </td>
-
-                <td>
-                    <label class="small">Storage Serial</label>
-                    <input class="form-control form-control-sm"
-                        name="new_items[${key}][storage_serial_number]" value="${data.storage_serial_number}">
-                </td>
-
+                <td><label class="small">Storage Serial</label><input class="form-control form-control-sm" name="new_items[${key}][storage_serial_number]" value="${data.storage_serial_number}"></td>
                 <td>
                     <label class="small">Hard Disks</label><br>
-
-                    <button type="button"
-                            class="btn btn-sm btn-primary openHddModal"
-                            data-item-type="new_items"
-                            data-item-id="${key}">
-                        Add / View HDD
-                    </button>
-
+                    <button type="button" class="btn btn-sm btn-primary openHddModal" data-item-type="new_items" data-item-id="${key}">Add / View HDD</button>
                     <span class="badge badge-info hdd-count ml-1">0</span>
-
-                    <div class="hdd-hidden-holder"
-                        data-item-type="new_items"
-                        data-item-id="${key}">
-                    </div>
+                    <div class="hdd-hidden-holder" data-item-type="new_items" data-item-id="${key}"></div>
                 </td>
-
-                <td style="display:none;">
-                    <label class="small">Component</label>
-                    <input class="form-control form-control-sm componentInput"
-                        name="new_items[${key}][component]" value="${data.component}">
-                </td>
-
-                <td style="display:none;">
-                    <label class="small">Concentration</label>
-                    <input class="form-control form-control-sm concentrationInput"
-                        name="new_items[${key}][concentration]" value="${data.concentration}">
-                </td>
-
+                <td style="display:none;"><label class="small">Component</label><input class="form-control form-control-sm componentInput" name="new_items[${key}][component]" value="${data.component}"></td>
+                <td style="display:none;"><label class="small">Concentration</label><input class="form-control form-control-sm concentrationInput" name="new_items[${key}][concentration]" value="${data.concentration}"></td>
                 <td colspan="2" style="display:none;">
                     <div class="row no-gutters">
-                        <div class="col-md-6 pr-2">
-                            <label class="small">Form</label>
-                            <input class="form-control form-control-sm formInput"
-                                name="new_items[${key}][physical_form]" value="${data.physical_form}">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="small">Hazard</label>
-                            <input class="form-control form-control-sm hazardInput"
-                                name="new_items[${key}][hazard_codes]" value="${data.hazard_codes}">
-                        </div>
+                        <div class="col-md-6 pr-2"><label class="small">Form</label><input class="form-control form-control-sm formInput" name="new_items[${key}][physical_form]" value="${data.physical_form}"></div>
+                        <div class="col-md-6"><label class="small">Hazard</label><input class="form-control form-control-sm hazardInput" name="new_items[${key}][hazard_codes]" value="${data.hazard_codes}"></div>
                     </div>
                 </td>
             </tr>
@@ -1050,10 +959,7 @@ $(function () {
             $('#itemsTbody').append(html);
         }
 
-        let $topRow = ($insertAfterRow && $insertAfterRow.length)
-            ? $insertAfterRow.nextAll('tr.item-row-top').first()
-            : $('#itemsTbody tr.item-row-top').last();
-
+        let $topRow = ($insertAfterRow && $insertAfterRow.length) ? $insertAfterRow.nextAll('tr.item-row-top').first() : $('#itemsTbody tr.item-row-top').last();
         $topRow.find('.categorySel').val(data.category_id);
 
         initRow($topRow);
@@ -1077,9 +983,9 @@ $(function () {
         $topRow.find('.weightInput').val(data.weight_kg);
         $topRow.find('.ewcInput').val(data.ewc_code);
 
-        return $topRow.next('.item-row-bottomcomment'); // return last inserted bottom row
+        return $topRow.next('.item-row-bottomcomment');
     }
-    // duplcates end
+
     $(document).on('click', '.duplicate-row', function () {
         let $clickedRow = $(this).closest('tr');
         let rows = getItemRows($clickedRow);
@@ -1090,19 +996,15 @@ $(function () {
 
         if (count <= 1) return;
 
-        // Set original qty to 1
         rows.$topRow.find('input[name*="[qty]"]').val(1);
-
-        // New rows should also have qty = 1
         data.qty = 1;
 
-        // Start inserting after this item's bottom row
         let $insertAfter = rows.$bottomRow;
-
         for (let i = 1; i < count; i++) {
             $insertAfter = appendDuplicatedItemRow(data, $insertAfter);
         }
     });
+
     $('#bulk_add_btn').on('click', function () {
         var qty = parseInt($('#bulk_qty').val() || 1, 10);
         qty = Math.max(1, Math.min(500, qty));
@@ -1116,168 +1018,66 @@ $(function () {
 
         for (var i = 0; i < qty; i++) {
             var key = uid();
-
-            var collectedTopCell = IS_COLLECT
-                ? `<td class="text-center"><input class="collected-checkbox" type="checkbox" name="new_items[${key}][is_collected]" value="1"></td>`
-                : `<td></td>`;
-            var erasureTopCell = `<td class="text-center">
-                <input class="erasure-checkbox erasureCheckbox" type="checkbox" name="new_items[${key}][erasure_required]" value="1" ${is_erasure == 1 ? 'checked' : ''}>
-            </td>`;
+            var collectedTopCell = IS_COLLECT ? `<td class="text-center"><input class="collected-checkbox" type="checkbox" name="new_items[${key}][is_collected]" value="1"></td>` : `<td></td>`;
+            var erasureTopCell = `<td class="text-center"><input class="erasure-checkbox erasureCheckbox" type="checkbox" name="new_items[${key}][erasure_required]" value="1" ${is_erasure == 1 ? 'checked' : ''}></td>`;
 
             var html = `
                 <tr data-row="new" class="item-row-top">
                     <td rowspan="2" class="code-cell"><em>new</em></td>
-
-                    <td>
-                        <input class="form-control form-control-sm"
-                               name="new_items[${key}][qty]" value="1">
-                    </td>
-
+                    <td><input class="form-control form-control-sm" name="new_items[${key}][qty]" value="1"></td>
                     <td>
                         <div class="d-flex">
-                            <select class="form-control form-control-sm categorySel"
-                                    name="new_items[${key}][category_id]">
+                            <select class="form-control form-control-sm categorySel" name="new_items[${key}][category_id]">
                                 @foreach($categories as $c)
-                                    <option value="{{ $c->id }}"
-                                            data-name="{{ $c->name }}"
-                                            data-ewc="{{ $c->ewc_code }}"
-                                            data-is_erasure="{{ $c->is_erasure }}"
-                                            data-def-weight="{{ $c->default_weight_kg }}"
-                                            data-component="{{ $c->component }}"
-                                            data-concentration="{{ $c->concentration }}"
-                                            data-form="{{ $c->physical_form }}"
-                                            data-hazard="{{ $c->hazard_codes }}"
-                                            data-type="{{ $c->type }}">
+                                    <option value="{{ $c->id }}" data-name="{{ $c->name }}" data-ewc="{{ $c->ewc_code }}" data-is_erasure="{{ $c->is_erasure }}" data-def-weight="{{ $c->default_weight_kg }}" data-component="{{ $c->component }}" data-concentration="{{ $c->concentration }}" data-form="{{ $c->physical_form }}" data-hazard="{{ $c->hazard_codes }}" data-type="{{ $c->type }}">
                                         {{ $c->name }} / {{ str_replace('_', ' ', $c->type) }}
                                     </option>
                                 @endforeach
                             </select>
-
-                            <input class="form-control form-control-sm ml-2 categoryNameInput"
-                                   name="new_items[${key}][category_name]" value="">
+                            <input class="form-control form-control-sm ml-2 categoryNameInput" name="new_items[${key}][category_name]" value="">
                         </div>
                     </td>
-
                     <td>
-                        <select class="form-control form-control-sm manSel"
-                                name="new_items[${key}][manufacturer_id]"
-                                style="width:100%"></select>
-                        <input type="hidden" class="manText"
-                               name="new_items[${key}][manufacturer_text]" value="">
+                        <select class="form-control form-control-sm manSel" name="new_items[${key}][manufacturer_id]" style="width:100%"></select>
+                        <input type="hidden" class="manText" name="new_items[${key}][manufacturer_text]" value="">
                     </td>
-
                     <td>
-                        <select class="form-control form-control-sm modelSel"
-                                name="new_items[${key}][product_model_id]"
-                                style="width:100%"></select>
-                        <input type="hidden" class="modelText"
-                               name="new_items[${key}][model_text]" value="">
+                        <select class="form-control form-control-sm modelSel" name="new_items[${key}][product_model_id]" style="width:100%"></select>
+                        <input type="hidden" class="modelText" name="new_items[${key}][model_text]" value="">
                     </td>
-
-                    <td style="display:none;">
-                        <input class="form-control form-control-sm weightInput"
-                               name="new_items[${key}][weight_kg]" value="">
-                    </td>
-
-                    <td style="display:none;">
-                        <input class="form-control form-control-sm ewcInput"
-                               name="new_items[${key}][ewc_code]" value="">
-                    </td>
-
+                    <td style="display:none;"><input class="form-control form-control-sm weightInput" name="new_items[${key}][weight_kg]" value=""></td>
+                    <td style="display:none;"><input class="form-control form-control-sm ewcInput" name="new_items[${key}][ewc_code]" value=""></td>
                     ${collectedTopCell}
                     ${erasureTopCell}
                     <td rowspan="2" class="item-delete-cell">
                         <div class="d-flex flex-column align-items-center">
-                            <input type="number"
-                                class="form-control form-control-sm duplicate-count mb-2"
-                                value="1"
-                                min="1"
-                                max="100"
-                                style="width:70px;display:none;"
-                                title="Number of duplicates">
-
-                            <button type="button"
-                                    class="btn btn-sm btn-outline-secondary duplicate-row mb-2"
-                                    title="Duplicate row">
-                                <i class="fas fa-copy"></i>
-                            </button>
-
-                            <button type="button" class="btn btn-sm btn-outline-danger removeNew">
-                                <i class="fas fa-times"></i>
-                            </button>
+                            <input type="number" class="form-control form-control-sm duplicate-count mb-2" value="1" min="1" max="100" style="width:70px;display:none;">
+                            <button type="button" class="btn btn-sm btn-outline-secondary duplicate-row mb-2"><i class="fas fa-copy"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-danger removeNew"><i class="fas fa-times"></i></button>
                         </div>
                     </td>
                 </tr>
-
                 <tr data-row="new" class="item-row-bottomcomment">
                     <td colspan="2">
                         <div class="row no-gutters">
-                            <div class="col-md-4 pr-2">
-                                <label class="small">Serial No</label>
-                                <input class="form-control form-control-sm"
-                                       name="new_items[${key}][serial_number]" value="">
-                            </div>
-                            <div class="col-md-4 pr-2">
-                                <label class="small">Asset Tag</label>
-                                <input class="form-control form-control-sm"
-                                       name="new_items[${key}][asset_tags]" value="">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="small">Our Asset Tracking #</label>
-                                <input class="form-control form-control-sm"
-                                       name="new_items[${key}][our_asset_number]" value="">
-                            </div>
+                            <div class="col-md-4 pr-2"><label class="small">Serial No</label><input class="form-control form-control-sm" name="new_items[${key}][serial_number]" value=""></div>
+                            <div class="col-md-4 pr-2"><label class="small">Asset Tag</label><input class="form-control form-control-sm" name="new_items[${key}][asset_tags]" value=""></div>
+                            <div class="col-md-4"><label class="small">Our Asset Tracking #</label><input class="form-control form-control-sm" name="new_items[${key}][our_asset_number]" value=""></div>
                         </div>
                     </td>
-
-                    <td>
-                        <label class="small">Storage Serial</label>
-                        <input class="form-control form-control-sm"
-                               name="new_items[${key}][storage_serial_number]" value="">
-                    </td>
-
+                    <td><label class="small">Storage Serial</label><input class="form-control form-control-sm" name="new_items[${key}][storage_serial_number]" value=""></td>
                     <td>
                         <label class="small">Hard Disks</label><br>
-
-                        <button type="button"
-                                class="btn btn-sm btn-primary openHddModal"
-                                data-item-type="new_items"
-                                data-item-id="${key}">
-                            Add / View HDD
-                        </button>
-
+                        <button type="button" class="btn btn-sm btn-primary openHddModal" data-item-type="new_items" data-item-id="${key}">Add / View HDD</button>
                         <span class="badge badge-info hdd-count ml-1">0</span>
-
-                        <div class="hdd-hidden-holder"
-                            data-item-type="new_items"
-                            data-item-id="${key}">
-                        </div>
+                        <div class="hdd-hidden-holder" data-item-type="new_items" data-item-id="${key}"></div>
                     </td>
-
-                    <td style="display:none;">
-                        <label class="small">Component</label>
-                        <input class="form-control form-control-sm componentInput"
-                               name="new_items[${key}][component]" value="">
-                    </td>
-
-                    <td style="display:none;">
-                        <label class="small">Concentration</label>
-                        <input class="form-control form-control-sm concentrationInput"
-                               name="new_items[${key}][concentration]" value="">
-                    </td>
-
+                    <td style="display:none;"><label class="small">Component</label><input class="form-control form-control-sm componentInput" name="new_items[${key}][component]" value=""></td>
+                    <td style="display:none;"><label class="small">Concentration</label><input class="form-control form-control-sm concentrationInput" name="new_items[${key}][concentration]" value=""></td>
                     <td colspan="2" style="display:none;">
                         <div class="row no-gutters">
-                            <div class="col-md-6 pr-2">
-                                <label class="small">Form</label>
-                                <input class="form-control form-control-sm formInput"
-                                       name="new_items[${key}][physical_form]" value="">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="small">Hazard</label>
-                                <input class="form-control form-control-sm hazardInput"
-                                       name="new_items[${key}][hazard_codes]" value="">
-                            </div>
+                            <div class="col-md-6 pr-2"><label class="small">Form</label><input class="form-control form-control-sm formInput" name="new_items[${key}][physical_form]" value=""></div>
+                            <div class="col-md-6"><label class="small">Hazard</label><input class="form-control form-control-sm hazardInput" name="new_items[${key}][hazard_codes]" value=""></div>
                         </div>
                     </td>
                 </tr>
@@ -1317,13 +1117,10 @@ let assignUrlTemplate = "{{ route('collection-items.assignCode', ':id') }}";
 
 $(document).on('click','.assign-code',function(e){
     e.preventDefault();
-
     let id = $(this).data('id');
     let url = assignUrlTemplate.replace(':id', id);
 
-    $.post(url,{
-        _token:'{{ csrf_token() }}'
-    },function(res){
+    $.post(url,{ _token:'{{ csrf_token() }}' },function(res){
         location.reload();
     });
 });
@@ -1338,9 +1135,7 @@ $(document).on('click','.delete-item',function(){
     $.ajax({
         url:url,
         type:'DELETE',
-        data:{
-            _token:'{{ csrf_token() }}'
-        },
+        data:{ _token:'{{ csrf_token() }}' },
         success:function(){
             $bottomRow.remove();
             $topRow.remove();
@@ -1351,14 +1146,12 @@ $(document).on('click','.delete-item',function(){
 $(document).on('click','.removeNew',function(){
     let $topRow = $(this).closest('tr');
     let $bottomRow = $topRow.next('tr');
-
     $bottomRow.remove();
     $topRow.remove();
 });
 
 $(document).on('click','.delete-code',function(e){
     e.stopPropagation();
-
     if(!confirm('Delete this code?')) return;
 
     let url = $(this).data('url');
@@ -1367,14 +1160,13 @@ $(document).on('click','.delete-code',function(e){
     $.ajax({
         url:url,
         type:'DELETE',
-        data:{
-            _token:'{{ csrf_token() }}'
-        },
+        data:{ _token:'{{ csrf_token() }}' },
         success:function(){
             badge.remove();
         }
     });
 });
+
 $(document).on('change', '#checkAllCollected', function () {
     $('.collected-checkbox').prop('checked', $(this).is(':checked'));
 });
@@ -1382,12 +1174,7 @@ $(document).on('change', '#checkAllErasure', function () {
     $('.erasure-checkbox').prop('checked', $(this).is(':checked'));
 });
 
-
-
-
-//
 $(function () {
-
     function uid() {
         return 'n' + Math.random().toString(16).slice(2);
     }
@@ -1400,12 +1187,10 @@ $(function () {
         currentItemId = $(this).data('item-id');
 
         $('#modalHddTable tbody').html('');
-
         let holder = getHolder();
 
         holder.find('.hdd-data-row').each(function () {
             let key = $(this).data('hdd-key');
-
             let serial = $(this).find('input[name$="[serial]"]').val() || '';
             let size = $(this).find('input[name$="[size]"]').val() || '';
             let status = $(this).find('input[name$="[status]"]').val() || 'not_processed';
@@ -1440,14 +1225,8 @@ $(function () {
     function addModalRow(key, serial, size, status, notes) {
         let row = `
             <tr data-hdd-key="${key}">
-                <td>
-                    <input class="form-control form-control-sm hdd-serial" value="${escapeHtml(serial)}">
-                </td>
-
-                <td>
-                    <input class="form-control form-control-sm hdd-size" value="${escapeHtml(size)}" placeholder="500GB / 1TB">
-                </td>
-
+                <td><input class="form-control form-control-sm hdd-serial" value="${escapeHtml(serial)}"></td>
+                <td><input class="form-control form-control-sm hdd-size" value="${escapeHtml(size)}" placeholder="500GB / 1TB"></td>
                 <td>
                     <select class="form-control form-control-sm hdd-status">
                         <option value="not_processed" ${status === 'not_processed' ? 'selected' : ''}>Not Processed</option>
@@ -1456,38 +1235,26 @@ $(function () {
                         <option value="shredding" ${status === 'shredding' ? 'selected' : ''}>Shredding</option>
                     </select>
                 </td>
-
-                <td>
-                    <input class="form-control form-control-sm hdd-notes" value="${escapeHtml(notes)}">
-                </td>
-
-                <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-outline-danger removeModalHdd">&times;</button>
-                </td>
+                <td><input class="form-control form-control-sm hdd-notes" value="${escapeHtml(notes)}"></td>
+                <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger removeModalHdd">&times;</button></td>
             </tr>
         `;
-
         $('#modalHddTable tbody').append(row);
     }
 
     function saveHddsToHiddenInputs() {
         let holder = getHolder();
         holder.html('');
-
         let count = 0;
 
         $('#modalHddTable tbody tr').each(function () {
             let key = $(this).data('hdd-key') || uid();
-
             let serial = $(this).find('.hdd-serial').val() || '';
             let size = $(this).find('.hdd-size').val() || '';
             let status = $(this).find('.hdd-status').val() || 'not_processed';
             let notes = $(this).find('.hdd-notes').val() || '';
 
-            if (!serial && !size && !notes) {
-                return;
-            }
-
+            if (!serial && !size && !notes) return;
             count++;
 
             holder.append(`
@@ -1500,42 +1267,64 @@ $(function () {
                 </div>
             `);
         });
-
         holder.closest('td').find('.hdd-count').text(count);
     }
 
     function escapeHtml(value) {
-        return String(value)
-            .replaceAll('&', '&amp;')
-            .replaceAll('<', '&lt;')
-            .replaceAll('>', '&gt;')
-            .replaceAll('"', '&quot;')
-            .replaceAll("'", '&#039;');
+        return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
     }
-
-    function escapeAttr(value) {
-        return escapeHtml(value);
-    }
-
+    function escapeAttr(value) { return escapeHtml(value); }
 });
 
+// ======================================================================
+// INTEGRATED OFFLINE SYSTEM CONTROL (SINGLE BLOCK FOR FORM & SYNC)
+// ======================================================================
 $(function () {
     const $form = $('#itemsForm');
     const STORAGE_KEY = 'offline_collection_updates';
 
-    // 1. Intercept form submission
+    function forceOfflineDropdowns() {
+        console.log("Switching dropdowns to offline text mode...");
+        $('#itemsTbody select, #bulk_manufacturer, #bulk_model').each(function () {
+            if ($(this).hasClass("select2-hidden-accessible")) {
+                $(this).select2('destroy'); 
+            }
+            $(this).select2({ 
+                placeholder: 'Type custom value (Offline Mode)', 
+                tags: true, 
+                width: '100%',
+                data: []
+            });
+        });
+    }
+
+    window.addEventListener('offline', forceOfflineDropdowns);
+
+    window.addEventListener('online', function() {
+        console.log("Switching dropdowns back to active database lookup mode...");
+        $('#itemsTbody tr.item-row-top').each(function () {
+            if (typeof initRow === 'function') initRow($(this));
+        });
+        if (typeof initManufacturer === 'function') {
+            initManufacturer($('#bulk_manufacturer'), function () { return $('#bulk_category').val(); });
+        }
+        if (typeof initModel === 'function') {
+            initModel($('#bulk_model'), function () { return $('#bulk_category').val(); }, function () { return $('#bulk_manufacturer').val(); });
+        }
+    });
+
+    if (!navigator.onLine) {
+        forceOfflineDropdowns();
+    }
+
     $form.on('submit', function (e) {
-        // If online, let the form submit normally
         if (navigator.onLine) {
             return true; 
         }
 
-        e.preventDefault(); // Stop standard form redirect
-
-        // Determine which submit button was clicked (save vs send_pdf)
+        e.preventDefault(); 
         const modeValue = document.activeElement ? document.activeElement.value : 'save';
 
-        // Serialize all form data into a lookup object
         const formData = {};
         $form.serializeArray().forEach(item => {
             if (formData[item.name]) {
@@ -1548,27 +1337,20 @@ $(function () {
             }
         });
         
-        // Add explicit action details
-        formData['_action_mode'] = modeValue;
+        formData['mode'] = modeValue;
         formData['_collection_id'] = "{{ $collection->id }}";
         formData['_timestamp'] = new Date().getTime();
 
-        // 2. Save payload to LocalStorage queue
         let queue = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-        
-        // Remove prior offline items matching this specific collection to avoid stale updates
         queue = queue.filter(item => item._collection_id !== formData._collection_id);
         queue.push(formData);
         
         localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
 
-        alert('⚠️ You are offline! Data has been securely cached on your device. It will automatically upload once your internet connection is restored.');
-        
-        // Optionally redirect them back to the show page safely
+        alert('⚠️ Connection Lost! Your grid changes and signatures have been safely saved to this device.');
         window.location.href = "{{ route('collections.show', $collection) }}";
     });
 
-    // 3. Automated Background Sync Routine when back online
     async function syncOfflineData() {
         if (!navigator.onLine) return;
 
@@ -1579,10 +1361,12 @@ $(function () {
 
         for (let i = 0; i < queue.length; i++) {
             const payload = queue[i];
-            
+            const targetUrl = $form.prop('action') || $form.attr('action');
+            const submitMethod = $form.attr('method') || 'POST';
+
             try {
-                const response = await fetch($form.attr('action'), {
-                    method: 'POST',
+                const response = await fetch(targetUrl, {
+                    method: submitMethod, 
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                         'X-Requested-With': 'XMLHttpRequest',
@@ -1592,39 +1376,28 @@ $(function () {
                 });
 
                 if (response.ok || response.status === 302) {
-                    // Remove successfully synchronized element
                     queue.splice(i, 1);
                     i--; 
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
+                    console.log('Sync successful!');
                 }
             } catch (error) {
-                console.error('Failed to sync item, retrying later:', error);
-                break; // Stop loop if the server is still unreachable
+                console.error('Sync failed, will retry later:', error);
+                break; 
             }
-        }
-        
-        if (queue.length === 0) {
-            console.log('All offline data synchronized successfully!');
         }
     }
 
-    // Monitor connectivity status shifts
     window.addEventListener('online', syncOfflineData);
-    
-    // Attempt an initial run on page load just in case they just recovered connectivity
     syncOfflineData();
 
-    // Register Service Worker for offline page loading
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('Service Worker registered successfully!'))
-            .catch(err => console.log('Service Worker registration failed:', err));
-    });
-}
-
-
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('Service Worker registered successfully!'))
+                .catch(err => console.log('Service Worker registration failed:', err));
+        });
+    }
 });
-
 </script>
 @endpush
